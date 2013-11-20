@@ -462,6 +462,8 @@ function load(callback, errback, options) {
 
 return {
     hex: Hex,
+    TrezorApi: TrezorApi,
+    BrowserPlugin: BrowserPlugin,
     load: load
 };
 
