@@ -210,15 +210,6 @@ var TrezorApi = function() {
 
     var DEFAULT_URL = 'http://localhost:8000/signer/config_signed.bin';
 
-    // Loads the plugin.
-    // options = { timeout, configUrl }
-    function load(callback, errback, options) {
-        options = options || {};
-        BrowserPlugin.load(function (plugin) {
-            callback(new Trezor(plugin, options.configUrl));
-        }, errback, options.timeout);
-    }
-
     //
     // Trezor
     //
@@ -419,7 +410,7 @@ var TrezorApi = function() {
     };
 
     return {
-        load: load
+        Trezor: Trezor
     };
 }();
 
@@ -457,9 +448,21 @@ var Hex = (function () {
 
 }());
 
+// Loads the plugin.
+// options = { timeout, configUrl }
+function load(callback, errback, options) {
+
+    var success = function (plugin) {
+        var trezor = new TrezorApi.Trezor(plugin, options.configUrl);
+        callback(trezor);
+    };
+    options = options || {};
+    BrowserPlugin.load(success, options.timeout);
+}
+
 return {
     hex: Hex,
-    load: TrezorApi.load
+    load: load
 };
 
 }({}));
