@@ -246,7 +246,9 @@ var TrezorApi = function() {
 
     // Opens a given device and returns a Session object.
     Trezor.prototype.open = function (device, on) {
-        return new Session(device, on);
+        var session = new Session(device, on);
+        session.open();
+        return session;
     };
 
     //
@@ -255,17 +257,35 @@ var TrezorApi = function() {
     var Session = function (device, on) {
         this._device = device;
         this._on = on || {};
-        this.open();
     };
 
     // Opens the session and acquires the HID device handle.
     Session.prototype.open = function () {
-        this._device.open();
+        var self = this;
+        this._log('Opening');
+        this._device.open(
+            function() {
+                self._log('Opened');
+                if (self._on.openSuccess)
+                    self._on.openSuccess(self);
+            },
+            function() {
+                self._log('Opening error');
+                if (self._on.openError)
+                    self._on.openError(self);
+            },
+            function() {
+                self._log('Closed');
+                if (self._on.close)
+                    self._on.close(self);
+            }
+        );
     };
 
     // Closes the session and the HID device.
     Session.prototype.close = function () {
-        this._device.close();
+        this._log('Closing');
+        this._device.close(false); // do not block until the thread closes
     };
 
     Session.prototype.initialize = function (callback, errback) {
@@ -280,7 +300,7 @@ var TrezorApi = function() {
             }
 
             callback(m);
-        });
+        }, errback);
     };
 
     Session.prototype.getEntropy = function (size, callback, errback) {
@@ -295,7 +315,7 @@ var TrezorApi = function() {
             }
 
             callback(m.entropy);
-        });
+        }, errback);
     };
 
     Session.prototype.getAddress = function (address_n, callback, errback) {
@@ -310,7 +330,7 @@ var TrezorApi = function() {
             }
 
             callback(m.address);
-        });
+        }, errback);
     };
 
     Session.prototype.getMasterPublicKey = function (callback, errback) {
@@ -325,7 +345,7 @@ var TrezorApi = function() {
             }
 
             callback(m.key);
-        });
+        }, errback);
     };
 
     Session.prototype.signTx = function (inputs, outputs, callback, errback) {
@@ -334,7 +354,7 @@ var TrezorApi = function() {
             serializedTx = '';
 
         this._call('SignTx', { inputs_count: inputs.length,
-                               outputs_count: outputs.length }, process);
+                               outputs_count: outputs.length }, process, errback);
 
         function process (t, m) {
 
@@ -370,7 +390,8 @@ var TrezorApi = function() {
             console.log(arguments);
     };
 
-    Session.prototype._call = function (type, msg, callback) {
+    // TODO: this should return a promise instead
+    Session.prototype._call = function (type, msg, callback, errback) {
         var self = this;
 
         self._log('Sending:', type, msg);
@@ -380,6 +401,7 @@ var TrezorApi = function() {
                 self._log('Received error:', err);
                 if (self._on.error)
                     self._on.error(err);
+                errback(err);
                 return;
             }
 
