@@ -1,6 +1,160 @@
 var trezor = (function () {
 
 //
+// Bare-bones promise implementation
+//
+// License: MIT
+// Copyright (c) 2013 Forbes Lindesay
+// https://github.com/then/promise
+//
+
+var Promise = (function () {
+
+    'use strict'
+
+    // var asap = require('asap')
+    var asap = function(fn) { setTimeout(fn, 0) }
+
+    function Promise(fn) {
+      if (!(this instanceof Promise)) return new Promise(fn)
+      if (typeof fn !== 'function') throw new TypeError('not a function')
+      var state = null
+      var value = null
+      var deferreds = []
+      var self = this
+
+      this.then = function(onFulfilled, onRejected) {
+        return new Promise(function(resolve, reject) {
+          handle(new Handler(onFulfilled, onRejected, resolve, reject))
+        })
+      }
+
+      function handle(deferred) {
+        if (state === null) {
+          deferreds.push(deferred)
+          return
+        }
+        asap(function() {
+          var cb = state ? deferred.onFulfilled : deferred.onRejected
+          if (cb === null) {
+            (state ? deferred.resolve : deferred.reject)(value)
+            return
+          }
+          var ret
+          try {
+            ret = cb(value)
+          }
+          catch (e) {
+            deferred.reject(e)
+            return
+          }
+          deferred.resolve(ret)
+        })
+      }
+
+      function resolve(newValue) {
+        try { //Promise Resolution Procedure: https://github.com/promises-aplus/promises-spec#the-promise-resolution-procedure
+          if (newValue === self) throw new TypeError('A promise cannot be resolved with itself.')
+          if (newValue && (typeof newValue === 'object' || typeof newValue === 'function')) {
+            var then = newValue.then
+            if (typeof then === 'function') {
+              doResolve(then.bind(newValue), resolve, reject)
+              return
+            }
+          }
+          state = true
+          value = newValue
+          finale()
+        } catch (e) { reject(e) }
+      }
+
+      function reject(newValue) {
+        state = false
+        value = newValue
+        finale()
+      }
+
+      function finale() {
+        for (var i = 0, len = deferreds.length; i < len; i++)
+          handle(deferreds[i])
+        deferreds = null
+      }
+
+      doResolve(fn, resolve, reject)
+    }
+
+
+    function Handler(onFulfilled, onRejected, resolve, reject){
+      this.onFulfilled = typeof onFulfilled === 'function' ? onFulfilled : null
+      this.onRejected = typeof onRejected === 'function' ? onRejected : null
+      this.resolve = resolve
+      this.reject = reject
+    }
+
+    /**
+     * Take a potentially misbehaving resolver function and make sure
+     * onFulfilled and onRejected are only called once.
+     *
+     * Makes no guarantees about asynchrony.
+     */
+    function doResolve(fn, onFulfilled, onRejected) {
+      var done = false;
+      try {
+        fn(function (value) {
+          if (done) return
+          done = true
+          onFulfilled(value)
+        }, function (reason) {
+          if (done) return
+          done = true
+          onRejected(reason)
+        })
+      } catch (ex) {
+        if (done) return
+        done = true
+        onRejected(ex)
+      }
+    }
+
+    return Promise;
+
+}());
+
+//
+// Hex codec
+//
+var Hex = (function () {
+
+    // Encode binary string to hex string
+    function encode(bin) {
+        var i, chr, hex = '';
+
+        for (i = 0; i < bin.length; i++) {
+            chr = (bin.charCodeAt(i) & 0xFF).toString(16);
+            hex += chr.length < 2 ? '0' + chr : chr;
+        }
+
+        return hex;
+    }
+
+    // Decode hex string to binary string
+    function decode(hex) {
+        var i, bytes = [];
+
+        for (i = 0; i < hex.length - 1; i += 2)
+            bytes.push(parseInt(hex.substr(i, 2), 16));
+
+        return String.fromCharCode.apply(String, bytes);
+    }
+
+    return {
+        encode: encode,
+        decode: decode
+    };
+
+}());
+
+//
 // Takes care of injecting the trezor plugin into the webpage.
 //
 var BrowserPlugin = (function () {
@@ -206,7 +360,7 @@ var BrowserPlugin = (function () {
 //
 // Trezor API module
 //
-var TrezorApi = function() {
+var TrezorApi = function(Promise) {
 
     var DEFAULT_URL = 'http://localhost:8000/signer/config_signed.bin';
 
@@ -288,81 +442,35 @@ var TrezorApi = function() {
         this._device.close(false); // do not block until the thread closes
     };
 
-    Session.prototype.initialize = function (callback, errback) {
-        this._call('Initialize', {}, function (t, m) {
-            if (t === 'Failure') {
-                errback(new Error(m.message));
-                return;
-            }
-            if (t !== 'Features') {
-                errback(new Error('Response of unexpected type'));
-                return;
-            }
-
-            callback(m);
-        }, errback);
+    Session.prototype.initialize = function () {
+        return this._typedCommonCall('Initialize', 'Features');
     };
 
     Session.prototype.getEntropy = function (size, callback, errback) {
-        this._call('GetEntropy', { size: size }, function (t, m) {
-            if (t === 'Failure') {
-                errback(new Error(m.message));
-                return;
-            }
-            if (t !== 'Entropy') {
-                errback(new Error('Response of unexpected type'));
-                return;
-            }
-
-            callback(m.entropy);
-        }, errback);
+        return this._typedCommonCall('GetEntropy', 'Entropy');
     };
 
     Session.prototype.getAddress = function (address_n, callback, errback) {
-        this._call('GetAddress', { address_n: address_n }, function (t, m) {
-            if (t === 'Failure') {
-                errback(new Error(m.message));
-                return;
-            }
-            if (t !== 'Address') {
-                errback(new Error('Response of unexpected type'));
-                return;
-            }
-
-            callback(m.address);
-        }, errback);
+        return this._typedCommonCall('GetAddress', 'Address');
     };
 
     Session.prototype.getMasterPublicKey = function (callback, errback) {
-        this._call('GetMasterPublicKey', {}, function (t, m) {
-            if (t === 'Failure') {
-                errback(new Error(m.message));
-                return;
-            }
-            if (t !== 'MasterPublicKey') {
-                errback(new Error('Response of unexpected type'));
-                return;
-            }
-
-            callback(m.key);
-        }, errback);
+        return this._typedCommonCall('GetMasterPublicKey', 'MasterPublicKey');
     };
 
-    Session.prototype.signTx = function (inputs, outputs, callback, errback) {
+    Session.prototype.signTx = function (inputs, outputs) {
         var self = this,
             signatures = [],
-            serializedTx = '';
+            serializedTx = '',
+            signTx = {
+                inputs_count: inputs.length,
+                outputs_count: outputs.length
+            };
 
-        this._call('SignTx', { inputs_count: inputs.length,
-                               outputs_count: outputs.length }, process, errback);
+        return this._typedCommonCall('SignTx', 'TxInputRequest', signTx).then(process);
 
-        function process (t, m) {
-
-            if (t === 'Failure')
-                return errback(new Error(m.message));
-
-            if (t !== 'TxInputRequest')
-                return errback(new Error('Response of unexpected type'));
+        function process(res) {
+            var m = res.message;
 
             if (m.serialized_tx)
                 serializedTx += m.serialized_tx;
@@ -371,13 +479,101 @@ var TrezorApi = function() {
                 signatures[m.signed_index] = m.signature;
 
             if (m.request_index < 0)
-                return callback(signatures, serializedTx);
+                return {
+                    signatures: signatures,
+                    serializedTx: serializedTx
+                };
 
             if (m.request_type == 'TXINPUT')
-                self._call('TxInput', inputs[m.request_index], process);
+                return self._typedCommonCall('TxInput', 'TxInputRequest',
+                    inputs[m.request_index]).then(process);
             else
-                self._call('TxOutput', outputs[m.request_index], process);
+                return self._typedCommonCall('TxOutput', 'TxInputRequest',
+                    outputs[m.request_index]).then(process);
         }
+    };
+
+    Session.prototype._typedCommonCall = function (type, resType, msg) {
+        var self = this;
+
+        return this._commonCall(type, msg).then(function (res) {
+            return self._assertType(res, resType);
+        });
+    };
+
+    Session.prototype._assertType = function (res, resType) {
+        if (res.type !== resType)
+            throw new TypeError('Response of unexpected type: ' + res.type);
+        return res;
+    };
+
+    Session.prototype._commonCall = function (type, msg) {
+        var self = this,
+            callpr = this._call(type, msg);
+
+        return callpr.then(function (res) {
+            return self._filterCommonTypes(res);
+        });
+    };
+
+    Session.prototype._filterCommonTypes = function (res) {
+        var self = this;
+
+        if (res.type === 'Failure')
+            throw res.message; // TODO: wrap in Error instead?
+
+        if (res.type === 'ButtonRequest')
+            return this._commonCall('ButtonAck');
+
+        if (res.type === 'PinMatrixRequest')
+            return this._promptPin().then(
+                function (pin) {
+                    return self._commonCall('PinMatrixAck', { pin: pin });
+                },
+                function () {
+                    return self._commonCall('PinMatrixCancel');
+                }
+            );
+
+        return res;
+    };
+
+    Session.prototype._promptPin = function () {
+        var self = this;
+
+        return new Promise(function (resolve, reject) {
+            var pinfn = self._on.pin || function (callback) {
+                self._log('PIN callback not configured, cancelling PIN request');
+                callback(null);
+            };
+            pinfn(function (pin) {
+                if (pin)
+                    resolve(pin);
+                else
+                    reject();
+            });
+        });
+    };
+
+    Session.prototype._call = function (type, msg) {
+        var self = this;
+
+        type = type || {};
+
+        return new Promise(function (resolve, reject) {
+            self._device.call(type, msg, function (err, t, m) {
+                if (err) {
+                    self._log('Received error:', err);
+                    reject(err);
+                } else {
+                    self._log('Received:', t, m);
+                    resolve({
+                        type: t,
+                        message: m
+                    });
+                }
+            });
+        });
     };
 
     Session.prototype._log = function () {
@@ -390,85 +586,11 @@ var TrezorApi = function() {
             console.log(arguments);
     };
 
-    // TODO: this should return a promise instead
-    Session.prototype._call = function (type, msg, callback, errback) {
-        var self = this;
-
-        self._log('Sending:', type, msg);
-
-        self._device.call(type, msg, function (err, t, m) {
-            if (err) {
-                self._log('Received error:', err);
-                if (self._on.error)
-                    self._on.error(err);
-                errback(err);
-                return;
-            }
-
-            self._log('Received:', t, m);
-
-            if (t === 'ButtonRequest') {
-                self._call('ButtonAck', {}, callback);
-                return;
-            }
-
-            if (t === 'PinMatrixRequest') {
-                if (self._on.pin)
-                    self._on.pin(function (pin) {
-                        if (pin)
-                            self._call('PinMatrixAck', { pin: pin }, callback);
-                        else
-                            self._call('PinMatrixCancel', {}, callback);
-                    });
-                else {
-                    self._log('PIN callback not configured, cancelling PIN request');
-                    self._call('PinMatrixCancel', {}, callback);
-                }
-                return;
-            }
-
-            callback(t, m);
-        });
-    };
-
     return {
         Trezor: Trezor
     };
-}();
 
-//
-// Hex codec
-//
-var Hex = (function () {
-
-    // Encode binary string to hex string
-    function encode(bin) {
-        var i, chr, hex = '';
-
-        for (i = 0; i < bin.length; i++) {
-            chr = (bin.charCodeAt(i) & 0xFF).toString(16);
-            hex += chr.length < 2 ? '0' + chr : chr;
-        }
-
-        return hex;
-    }
-
-    // Decode hex string to binary string
-    function decode(hex) {
-        var i, bytes = [];
-
-        for (i = 0; i < hex.length - 1; i += 2)
-            bytes.push(parseInt(hex.substr(i, 2), 16));
-
-        return String.fromCharCode.apply(String, bytes);
-    }
-
-    return {
-        encode: encode,
-        decode: decode
-    };
-
-}());
+}(Promise);
 
 // Loads the plugin.
 // options = { timeout, configUrl }
@@ -483,7 +605,7 @@ function load(callback, errback, options) {
 }
 
 return {
-    hex: Hex,
+    Hex: Hex,
     TrezorApi: TrezorApi,
     BrowserPlugin: BrowserPlugin,
     load: load
