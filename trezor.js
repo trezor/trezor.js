@@ -335,7 +335,7 @@ var TrezorApi = function() {
 
     Session.prototype.getMasterPublicKey = function (callback, errback) {
         this._call('GetMasterPublicKey', {}, function (t, m) {
-            if (t === 'errback') {
+            if (t === 'Failure') {
                 errback(new Error(m.message));
                 return;
             }
