@@ -125,6 +125,8 @@ var Promise = (function () {
 //
 var Hex = (function () {
 
+    'use strict';
+
     // Encode binary string to hex string
     function encode(bin) {
         var i, chr, hex = '';
@@ -158,6 +160,8 @@ var Hex = (function () {
 // Takes care of injecting the trezor plugin into the webpage.
 //
 var BrowserPlugin = (function () {
+
+    'use strict';
 
     var PLUGIN_ID = '__trezor-plugin',
         PLUGIN_CALLBACK = '__trezorPluginLoaded',
@@ -245,15 +249,7 @@ var BrowserPlugin = (function () {
 
     // Returns true if plugin with a given mimetype is installed.
     function installed(mimetype) {
-        var plugins = navigator.plugins,
-            i, j;
-
-        for (i = 0; i < plugins.length; i++)
-            for (j = 0; j < plugins[i].length; j++)
-                if (plugins[i][j].type === mimetype)
-                    return true;
-
-        return false;
+        return !!navigator.mimeTypes[mimetype];
     }
 
     // Promps a download dialog for the user.
@@ -362,6 +358,8 @@ var BrowserPlugin = (function () {
 //
 var TrezorApi = function(Promise) {
 
+    'use strict';
+
     var DEFAULT_URL = 'http://localhost:8000/signer/config_signed.bin';
 
     //
@@ -408,6 +406,10 @@ var TrezorApi = function(Promise) {
     //
     // Trezor device session handle.
     //
+    // Handlers:
+    //  openSuccess
+    //  openError
+    //
     var Session = function (device, on) {
         this._device = device;
         this._on = on || {};
@@ -417,23 +419,23 @@ var TrezorApi = function(Promise) {
     Session.prototype.open = function () {
         var self = this;
         this._log('Opening');
-        this._device.open(
-            function() {
+        this._device.open({
+            openSuccess: function() {
                 self._log('Opened');
                 if (self._on.openSuccess)
                     self._on.openSuccess(self);
             },
-            function() {
+            openError: function() {
                 self._log('Opening error');
                 if (self._on.openError)
                     self._on.openError(self);
             },
-            function() {
+            close: function() {
                 self._log('Closed');
                 if (self._on.close)
                     self._on.close(self);
             }
-        );
+        });
     };
 
     // Closes the session and the HID device.
@@ -446,15 +448,19 @@ var TrezorApi = function(Promise) {
         return this._typedCommonCall('Initialize', 'Features');
     };
 
-    Session.prototype.getEntropy = function (size, callback, errback) {
-        return this._typedCommonCall('GetEntropy', 'Entropy');
+    Session.prototype.getEntropy = function (size) {
+        return this._typedCommonCall('GetEntropy', 'Entropy', {
+            size: size
+        });
     };
 
-    Session.prototype.getAddress = function (address_n, callback, errback) {
-        return this._typedCommonCall('GetAddress', 'Address');
+    Session.prototype.getAddress = function (address_n) {
+        return this._typedCommonCall('GetAddress', 'Address', {
+            address_n: address_n
+        });
     };
 
-    Session.prototype.getMasterPublicKey = function (callback, errback) {
+    Session.prototype.getMasterPublicKey = function () {
         return this._typedCommonCall('GetMasterPublicKey', 'MasterPublicKey');
     };
 
@@ -558,9 +564,10 @@ var TrezorApi = function(Promise) {
     Session.prototype._call = function (type, msg) {
         var self = this;
 
-        type = type || {};
+        msg = msg || {};
 
         return new Promise(function (resolve, reject) {
+            self._log('Sending:', type, msg);
             self._device.call(type, msg, function (err, t, m) {
                 if (err) {
                     self._log('Received error:', err);
@@ -595,6 +602,8 @@ var TrezorApi = function(Promise) {
 // Loads the plugin.
 // options = { timeout, configUrl }
 function load(callback, errback, options) {
+
+    'use strict';
 
     var success = function (plugin) {
         var trezor = new TrezorApi.Trezor(plugin, options.configUrl);
