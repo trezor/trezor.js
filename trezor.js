@@ -393,7 +393,7 @@ var TrezorApi = function(Promise) {
 
     // Returns the list of connected Trezor devices.
     Trezor.prototype.devices = function () {
-        return this._plugin.devices;
+        return this._plugin.devices();
     };
 
     // Opens a given device and returns a Session object.
