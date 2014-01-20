@@ -396,6 +396,11 @@ var TrezorApi = function(Promise) {
         return this._plugin.devices();
     };
 
+    // BIP32 CKD
+    Trezor.prototype.deriveChildNode = function (node, n) {
+        return this._plugin.deriveChildNode(node, n);
+    };
+
     // Opens a given device and returns a Session object.
     Trezor.prototype.open = function (device, on) {
         var session = new Session(device, on);
