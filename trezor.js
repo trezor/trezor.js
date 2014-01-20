@@ -549,7 +549,19 @@ var TrezorApi = function(Promise) {
                     return self._commonCall('PinMatrixAck', { pin: pin });
                 },
                 function () {
-                    return self._commonCall('PinMatrixCancel');
+                    return self._commonCall('Cancel');
+                }
+            );
+
+        if (res.type === 'PassphraseRequest')
+            return this._promptPassphrase().then(
+                function (passphrase) {
+                    return self._commonCall('PassphraseAck', {
+                        passphrase: Hex.encode(passphrase)
+                    });
+                },
+                function () {
+                    return self._commonCall('Cancel');
                 }
             );
 
@@ -561,12 +573,29 @@ var TrezorApi = function(Promise) {
 
         return new Promise(function (resolve, reject) {
             var pinfn = self._on.pin || function (callback) {
-                self._log('PIN callback not configured, cancelling PIN request');
+                self._log('PIN callback not configured, cancelling request');
                 callback(null);
             };
             pinfn(function (pin) {
                 if (pin)
                     resolve(pin);
+                else
+                    reject();
+            });
+        });
+    };
+
+    Session.prototype._promptPassphrase = function () {
+        var self = this;
+
+        return new Promise(function (resolve, reject) {
+            var passphrasefn = self._on.passphrase || function (callback) {
+                self._log('Passphrase callback not configured, cancelling request');
+                callback(null);
+            };
+            passphrasefn(function (passphrase) {
+                if (passphrase)
+                    resolve(passphrase);
                 else
                     reject();
             });
