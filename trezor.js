@@ -465,8 +465,10 @@ var TrezorApi = function(Promise) {
         });
     };
 
-    Session.prototype.getMasterPublicKey = function () {
-        return this._typedCommonCall('GetMasterPublicKey', 'MasterPublicKey');
+    Session.prototype.getPublicKey = function (address_n) {
+        return this._typedCommonCall('GetPublicKey', 'PublicKey', {
+            address_n: address_n
+        });
     };
 
     Session.prototype.signTx = function (inputs, outputs) {
