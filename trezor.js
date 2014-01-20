@@ -538,6 +538,11 @@ var TrezorApi = function(Promise) {
         if (res.type === 'ButtonRequest')
             return this._commonCall('ButtonAck');
 
+        if (res.type === 'EntropyRequest')
+            return this._commonCall('Entropy', {
+                entropy: Hex.encode(this._generateEntropy(256))
+            });
+
         if (res.type === 'PinMatrixRequest')
             return this._promptPin().then(
                 function (pin) {
@@ -566,6 +571,31 @@ var TrezorApi = function(Promise) {
                     reject();
             });
         });
+    };
+
+    Session.prototype._generateEntropy = function (len) {
+        if (window.crypto)
+            return this._generateCryptoEntropy(len);
+        else
+            return this._generatePseudoEntropy(len);
+    };
+
+    Session.prototype._generateCryptoEntropy = function (len) {
+        var arr = new Uint8Array(len);
+
+        window.crypto.getRandomValues(ret);
+
+        return String.fromCharCode.apply(String, arr);
+    };
+
+    Session.prototype._generatePseudoEntropy = function (len) {
+        var arr = [],
+            i;
+
+        for (i = 0; i < len; i++)
+            arr[i] = Math.floor(Math.random() * 255);
+
+        return String.fromCharCode.apply(String, arr);
     };
 
     Session.prototype._call = function (type, msg) {
