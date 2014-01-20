@@ -403,50 +403,33 @@ var TrezorApi = function(Promise) {
 
     // Opens a given device and returns a Session object.
     Trezor.prototype.open = function (device, on) {
-        var session = new Session(device, on);
-        session.open();
-        return session;
+        return new Session(this._plugin, device, on);
     };
 
     //
     // Trezor device session handle.
     //
     // Handlers:
-    //  openSuccess
-    //  openError
+    //  pin
+    //  passphrase
     //
-    var Session = function (device, on) {
+    var Session = function (plugin, device, on) {
+        this._plugin = plugin;
         this._device = device;
         this._on = on || {};
     };
 
-    // Opens the session and acquires the HID device handle.
-    Session.prototype.open = function () {
-        var self = this;
-        this._log('Opening');
-        this._device.open({
-            openSuccess: function() {
-                self._log('Opened');
-                if (self._on.openSuccess)
-                    self._on.openSuccess(self);
-            },
-            openError: function() {
-                self._log('Opening error');
-                if (self._on.openError)
-                    self._on.openError(self);
-            },
-            close: function() {
-                self._log('Closed');
-                if (self._on.close)
-                    self._on.close(self);
-            }
-        });
-    };
-
     // Closes the session and the HID device.
     Session.prototype.close = function () {
-        this._log('Closing');
-        this._device.close(false); // do not block until the thread closes
+        var self = this;
+
+        return new Promise(function (resolve, reject) {
+            self._log('Closing');
+            self._plugin.close(self._device, {
+                success: resolve,
+                error: reject
+            });
+        });
     };
 
     Session.prototype.initialize = function () {
@@ -634,16 +617,17 @@ var TrezorApi = function(Promise) {
 
         return new Promise(function (resolve, reject) {
             self._log('Sending:', type, msg);
-            self._device.call(type, msg, function (err, t, m) {
-                if (err) {
-                    self._log('Received error:', err);
-                    reject(err);
-                } else {
+            self._plugin.call(self._device, type, msg, {
+                success: function (t, m) {
                     self._log('Received:', t, m);
                     resolve({
                         type: t,
                         message: m
                     });
+                },
+                error: function (err) {
+                    self._log('Received error:', err);
+                    reject(err);
                 }
             });
         });
