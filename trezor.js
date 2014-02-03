@@ -454,6 +454,14 @@ var TrezorApi = function(Promise) {
         });
     };
 
+    Session.prototype.simpleSignTx = function (inputs, outputs, transactions) {
+        return this._typedCommonCall('SimpleSignTx', 'TxRequest', {
+            inputs: inputs,
+            outputs: outputs,
+            transactions: transactions
+        });
+    };
+
     Session.prototype.signTx = function (inputs, outputs) {
         var self = this,
             signatures = [],
@@ -463,7 +471,7 @@ var TrezorApi = function(Promise) {
                 outputs_count: outputs.length
             };
 
-        return this._typedCommonCall('SignTx', 'TxInputRequest', signTx).then(process);
+        return this._typedCommonCall('SignTx', 'TxRequest', signTx).then(process);
 
         function process(res) {
             var m = res.message;
@@ -481,11 +489,13 @@ var TrezorApi = function(Promise) {
                 };
 
             if (m.request_type == 'TXINPUT')
-                return self._typedCommonCall('TxInput', 'TxInputRequest',
-                    inputs[m.request_index]).then(process);
+                return self._typedCommonCall('TxInput', 'TxRequest', {
+                    input: inputs[m.request_index]
+                }).then(process);
             else
-                return self._typedCommonCall('TxOutput', 'TxInputRequest',
-                    outputs[m.request_index]).then(process);
+                return self._typedCommonCall('TxOutput', 'TxRequest', {
+                    output: outputs[m.request_index]
+                }).then(process);
         }
     };
 
