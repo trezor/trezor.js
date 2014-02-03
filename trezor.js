@@ -611,13 +611,14 @@ var TrezorApi = function(Promise) {
     };
 
     Session.prototype._call = function (type, msg) {
-        var self = this;
+        var self = this,
+            timeout = this._timeoutForType(type);
 
         msg = msg || {};
 
         return new Promise(function (resolve, reject) {
             self._log('Sending:', type, msg);
-            self._plugin.call(self._device, type, msg, {
+            self._plugin.call(self._device, timeout, type, msg, {
                 success: function (t, m) {
                     self._log('Received:', t, m);
                     resolve({
@@ -631,6 +632,11 @@ var TrezorApi = function(Promise) {
                 }
             });
         });
+    };
+
+    Session.prototype._timeoutForType = function (type) {
+        var noTimeoutTypes = ['PinMatrixAck', 'PassphraseAck', 'ButtonAck'];
+        return noTimeoutTypes.indexOf(type) < 0;
     };
 
     Session.prototype._log = function () {
