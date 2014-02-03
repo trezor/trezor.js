@@ -547,7 +547,7 @@ var TrezorApi = function(Promise) {
         var self = this;
 
         if (res.type === 'Failure')
-            throw res.message; // TODO: wrap in Error instead?
+            throw new Error(res.message);
 
         if (res.type === 'ButtonRequest')
             return this._commonCall('ButtonAck');
@@ -659,7 +659,7 @@ var TrezorApi = function(Promise) {
                 },
                 error: function (err) {
                     self._log('Received error:', err);
-                    reject(err);
+                    reject(new Error(err));
                 }
             });
         });
