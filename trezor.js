@@ -456,6 +456,13 @@ var TrezorApi = function(Promise) {
         });
     };
 
+    Session.prototype.measureTx = function (inputs, outputs) {
+        return this._typedCommonCall('EstimateTxSize', 'TxSize', {
+            inputs_count: inputs.length,
+            outputs_count: outputs.length
+        });
+    };
+
     Session.prototype.simpleSignTx = function (inputs, outputs, transactions) {
         return this._typedCommonCall('SimpleSignTx', 'TxRequest', {
             inputs: inputs,
