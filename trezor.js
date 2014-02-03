@@ -398,7 +398,9 @@ var TrezorApi = function(Promise) {
 
     // BIP32 CKD
     Trezor.prototype.deriveChildNode = function (node, n) {
-        return this._plugin.deriveChildNode(node, n);
+        var child = this._plugin.deriveChildNode(node, n);
+        child.path = node.path.concat([n]);
+        return child;
     };
 
     // Opens a given device and returns a Session object.
