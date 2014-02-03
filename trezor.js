@@ -456,6 +456,18 @@ var TrezorApi = function(Promise) {
         });
     };
 
+    Session.prototype.wipeDevice = function () {
+        return this._commonCall('WipeDevice');
+    };
+
+    Session.prototype.resetDevice = function (settings) {
+        return this._commonCall('ResetDevice', settings);
+    };
+
+    Session.prototype.loadDevice = function (settings) {
+        return this._commonCall('LoadDevice', settings);
+    };
+
     Session.prototype.measureTx = function (inputs, outputs) {
         return this._typedCommonCall('EstimateTxSize', 'TxSize', {
             inputs_count: inputs.length,
