@@ -736,7 +736,7 @@ var TrezorApi = function(Promise) {
 }(Promise);
 
 // Loads the plugin.
-// options = { timeout, configUrl, updateUrl }
+// options = { timeout, configUrl }
 function load(options) {
     'use strict';
 
