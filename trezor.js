@@ -471,6 +471,10 @@ var TrezorApi = function(Promise) {
         return this._commonCall('LoadDevice', settings);
     };
 
+    Session.prototype.recoverDevice = function (settings) {
+        return this._commonCall('RecoveryDevice', settings);
+    };
+
     Session.prototype.measureTx = function (inputs, outputs) {
         return this._typedCommonCall('EstimateTxSize', 'TxSize', {
             inputs_count: inputs.length,
