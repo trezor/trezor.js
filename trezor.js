@@ -415,8 +415,12 @@ var TrezorApi = function(Promise) {
     // Trezor device session handle.
     //
     // Handlers:
-    //  pin
-    //  passphrase
+    //  receive: function (type, message)
+    //  error: function (error)
+    //  button: function (code)
+    //  pin: function (message, callback)
+    //  passphrase: function (callback)
+    //  word: function (callback)
     //
     var Session = function (plugin, device, on) {
         this._plugin = plugin;
@@ -554,18 +558,21 @@ var TrezorApi = function(Promise) {
         var self = this;
 
         if (res.type === 'Failure')
-            throw new Error(res.message);
+            throw res.message;
 
-        if (res.type === 'ButtonRequest')
+        if (res.type === 'ButtonRequest') {
+            if (this._on.button)
+                this._on.button(res.message.code);
             return this._commonCall('ButtonAck');
+        }
 
         if (res.type === 'EntropyRequest')
-            return this._commonCall('Entropy', {
+            return this._commonCall('EntropyAck', {
                 entropy: Hex.encode(this._generateEntropy(256))
             });
 
         if (res.type === 'PinMatrixRequest')
-            return this._promptPin().then(
+            return this._promptPin(res.message.message).then(
                 function (pin) {
                     return self._commonCall('PinMatrixAck', { pin: pin });
                 },
@@ -577,8 +584,22 @@ var TrezorApi = function(Promise) {
         if (res.type === 'PassphraseRequest')
             return this._promptPassphrase().then(
                 function (passphrase) {
+                    passphrase = unescape(encodeURIComponent(passphrase)); // encode to UTF-8
                     return self._commonCall('PassphraseAck', {
                         passphrase: Hex.encode(passphrase)
+                    });
+                },
+                function () {
+                    return self._commonCall('Cancel');
+                }
+            );
+
+        if (res.type === 'WordRequest')
+            return this._promptWord().then(
+                function (word) {
+                    word = unescape(encodeURIComponent(word)); // encode to UTF-8
+                    return self._commonCall('WordAck', {
+                        word: Hex.encode(word)
                     });
                 },
                 function () {
@@ -589,15 +610,15 @@ var TrezorApi = function(Promise) {
         return res;
     };
 
-    Session.prototype._promptPin = function () {
+    Session.prototype._promptPin = function (message) {
         var self = this;
 
         return new Promise(function (resolve, reject) {
-            var pinfn = self._on.pin || function (callback) {
+            var fn = self._on.pin || function (message, callback) {
                 self._log('PIN callback not configured, cancelling request');
                 callback(null);
             };
-            pinfn(function (pin) {
+            fn(message, function (pin) {
                 if (pin)
                     resolve(pin);
                 else
@@ -610,13 +631,30 @@ var TrezorApi = function(Promise) {
         var self = this;
 
         return new Promise(function (resolve, reject) {
-            var passphrasefn = self._on.passphrase || function (callback) {
+            var fn = self._on.passphrase || function (callback) {
                 self._log('Passphrase callback not configured, cancelling request');
                 callback(null);
             };
-            passphrasefn(function (passphrase) {
+            fn(function (passphrase) {
                 if (passphrase)
                     resolve(passphrase);
+                else
+                    reject();
+            });
+        });
+    };
+
+    Session.prototype._promptWord = function () {
+        var self = this;
+
+        return new Promise(function (resolve, reject) {
+            var fn = self._on.word || function (callback) {
+                self._log('Word callback not configured, cancelling request');
+                callback(null);
+            };
+            fn(function (word) {
+                if (word)
+                    resolve(word);
                 else
                     reject();
             });
@@ -633,7 +671,7 @@ var TrezorApi = function(Promise) {
     Session.prototype._generateCryptoEntropy = function (len) {
         var arr = new Uint8Array(len);
 
-        window.crypto.getRandomValues(ret);
+        window.crypto.getRandomValues(arr);
 
         return String.fromCharCode.apply(String, arr);
     };
@@ -659,6 +697,8 @@ var TrezorApi = function(Promise) {
             self._plugin.call(self._device, timeout, type, msg, {
                 success: function (t, m) {
                     self._log('Received:', t, m);
+                    if (self._on.receive)
+                        self._on.receive(t, m);
                     resolve({
                         type: t,
                         message: m
@@ -666,6 +706,8 @@ var TrezorApi = function(Promise) {
                 },
                 error: function (err) {
                     self._log('Received error:', err);
+                    if (self._on.error)
+                        self._on.error(err);
                     reject(new Error(err));
                 }
             });
