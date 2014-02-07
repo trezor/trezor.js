@@ -188,8 +188,11 @@ var BrowserPlugin = (function () {
         if (waiting)
             return errback(new Error('Already being loaded'));
 
-        if (!installed(PLUGIN_MIMETYPE))
-            return errback(new Error('Not installed'), install);
+        if (!installed(PLUGIN_MIMETYPE)) {
+            var err = new Error('Not installed');
+            err.install = install;
+            return errback(err);
+        }
 
         waiting = { // register callbacks
             callback: callback,
@@ -687,17 +690,16 @@ var TrezorApi = function(Promise) {
 }(Promise);
 
 // Loads the plugin.
-// options = { timeout, configUrl }
-function load(callback, errback, options) {
-
+// options = { timeout, configUrl, updateUrl }
+function load(options) {
     'use strict';
 
-    var success = function (plugin) {
-        var trezor = new TrezorApi.Trezor(plugin, options.configUrl);
-        callback(trezor);
-    };
     options = options || {};
-    BrowserPlugin.load(success, options.timeout);
+    return new Promise(function (resolve, reject) {
+        BrowserPlugin.load(resolve, reject, options.timeout);
+    }).then(function (plugin) {
+        return new TrezorApi.Trezor(plugin, options.configUrl);
+    });
 }
 
 return {
