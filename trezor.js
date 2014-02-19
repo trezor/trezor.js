@@ -221,7 +221,7 @@ var BrowserPlugin = (function () {
             ' <param name="onload" value="'+callback+'" />'+
             '</object>';
 
-        if (timeout) // register timeout cb
+        if (timeout && !installed(PLUGIN_MIMETYPE)) // register timeout cb
             timer = setTimeout(timeoutFn, timeout);
     }
 
@@ -244,6 +244,11 @@ var BrowserPlugin = (function () {
         loaded = plugin;
         if (callback)
             callback(plugin);
+    }
+
+    // Returns true if plugin with a given mimetype is installed.
+    function installed(mimetype) {
+        return !!navigator.mimeTypes[mimetype];
     }
 
     // Promps a download dialog for the user.
