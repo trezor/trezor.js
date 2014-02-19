@@ -188,12 +188,6 @@ var BrowserPlugin = (function () {
         if (waiting)
             return errback(new Error('Already being loaded'));
 
-        if (!installed(PLUGIN_MIMETYPE)) {
-            var err = new Error('Not installed');
-            err.install = install;
-            return errback(err);
-        }
-
         waiting = { // register callbacks
             callback: callback,
             errback: errback
@@ -209,7 +203,9 @@ var BrowserPlugin = (function () {
                 resolve(null, document.getElementById(id));
             },
             timeoutFn = function () {
-                resolve(new Error('Loading timed out'));
+                var err = new Error('Loading timed out');
+                err.install = install;
+                resolve(err);
             };
 
         var body = document.getElementsByTagName('body')[0],
@@ -248,11 +244,6 @@ var BrowserPlugin = (function () {
         loaded = plugin;
         if (callback)
             callback(plugin);
-    }
-
-    // Returns true if plugin with a given mimetype is installed.
-    function installed(mimetype) {
-        return !!navigator.mimeTypes[mimetype];
     }
 
     // Promps a download dialog for the user.
@@ -342,8 +333,7 @@ var BrowserPlugin = (function () {
 
     return {
         load: load,
-        install: install,
-        installed: installed
+        install: install
     };
 
 }());
@@ -734,7 +724,7 @@ function load(options) {
 
     options = options || {};
     return new Promise(function (resolve, reject) {
-        BrowserPlugin.load(resolve, reject, options.timeout);
+        BrowserPlugin.load(resolve, reject, options.timeout || 500);
     }).then(function (plugin) {
         return new TrezorApi.Trezor(plugin, options.configUrl);
     });
