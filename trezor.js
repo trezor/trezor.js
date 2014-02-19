@@ -461,6 +461,16 @@ var TrezorApi = function(Promise) {
         return this._commonCall('RecoveryDevice', settings);
     };
 
+    Session.prototype.eraseFirmware = function () {
+        return this._commonCall('FirmwareErase');
+    };
+
+    Session.prototype.uploadFirmware = function (payload) {
+        return this._commonCall('FirmwareUpload', {
+            payload: payload
+        });
+    };
+
     Session.prototype.measureTx = function (inputs, outputs) {
         return this._typedCommonCall('EstimateTxSize', 'TxSize', {
             inputs_count: inputs.length,
