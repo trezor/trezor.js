@@ -263,17 +263,22 @@ var BrowserPlugin = (function () {
         body.appendChild(elem);
         elem.innerHTML =
             '<div id="__trezor-install" style="'+
-            '   width: 420px; height: 250px;'+
+            '   width: 440px;'+
             '   position: absolute; top: 50%; right: 50%;'+
-            '   margin: -125px -210px 0 0; padding: 10px 30px;'+
+            '   margin: -125px -220px 0 0; padding: 10px 30px 30px;'+
             '   box-shadow: 3px 3px 0 3px rgba(0, 0, 0, 0.2);'+
             '   background: #f6f6f6; color: #222;'+
             '   font-family: Helvetica, Arial, sans-serif; font-size: 16px;'+
             '   ">'+
-            ' <h1 style="font-size: 42px; letter-spacing: -1px">Bitcoin Trezor Plugin</h1>'+
-            ' <p style="margin-bottom: 40px; line-height: 1.5">Please install the Bitcoin Trezor Plugin to continue. Please install the Bitcoin Trezor Plugin to continue.</p>'+
+            ' <h1 style="'+
+            '   margin: 20px 0;'+
+            '   font-size: 28px; letter-spacing: 0px;'+
+            '   color: #444; font-weight: 100;'+
+            '   ">Bitcoin Trezor Plugin</h1>'+
+            ' <p style="margin-bottom: 20px; line-height: 1.55">To use the Web Wallet, please download and install the Bitcoin Trezor Plugin.</p>'+
             ' <a href="" id="__trezor-install-button" style="'+
-            '   padding: 10px 20px; margin-right: 10px;'+
+            '   display: inline-block;'+
+            '   padding: 13px 23px; margin-right: 20px;'+
             '   text-decoration: none;'+
             '   background: #97bf0f; color: #fff;'+
             '   font-weight: bold;'+
@@ -292,9 +297,7 @@ var BrowserPlugin = (function () {
         var button = document.getElementById('__trezor-install-button'),
             select = document.getElementById('__trezor-install-select');
 
-        var assign_ = bind(select, 'change', assign),
-            ground_ = bind(elem, 'click', ground),
-            cancel_ = bind(document, 'click', cancel);
+        var assign_ = bind(select, 'change', assign);
 
         var opts = ['win', 'mac', 'deb', 'rpm'],
             sys = system();
@@ -307,17 +310,6 @@ var BrowserPlugin = (function () {
         function assign() {
             var opt = select.options[select.selectedIndex];
             button.href = PLUGIN_DOWNLOAD_URLS[opt.value];
-        }
-
-        function cancel() {
-            body.removeChild(elem);
-            cancel_();
-            ground_();
-            assign_();
-        }
-
-        function ground(ev) {
-            ev.stopPropagation();
         }
 
         // Binds the event handler. Returns a thunk for unbinding.
