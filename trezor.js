@@ -168,10 +168,10 @@ var BrowserPlugin = (function () {
         PLUGIN_MIMETYPE = 'application/x-bitcointrezorplugin';
 
     var PLUGIN_DOWNLOAD_URLS = {
-        win: 'http://localhost:8000/trezor-plugin.msi',
-        mac: 'http://localhost:8000/trezor-plugin.dmg',
-        deb: 'http://localhost:8000/trezor-plugin.deb',
-        rpm: 'http://localhost:8000/trezor-plugin.rpm'
+        win: 'https://mytrezor.com/data/plugin/BitcoinTrezorPlugin-latest.msi',
+        mac: 'https://mytrezor.com/data/plugin/BitcoinTrezorPlugin-latest.dmg',
+        deb: 'https://mytrezor.com/data/plugin/BitcoinTrezorPlugin-latest.deb',
+        rpm: 'https://mytrezor.com/data/plugin/BitcoinTrezorPlugin-latest.rpm'
     };
 
     var loaded = null,
@@ -350,7 +350,7 @@ var TrezorApi = function(Promise) {
 
     'use strict';
 
-    var DEFAULT_URL = 'http://localhost:8000/signer/config_signed.bin';
+    var DEFAULT_URL = 'https://mytrezor.com/plugin/config_signed.bin';
 
     //
     // Trezor
