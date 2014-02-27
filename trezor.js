@@ -476,28 +476,31 @@ var TrezorApi = function(Promise) {
         });
     };
 
-    Session.prototype.measureTx = function (inputs, outputs) {
+    Session.prototype.measureTx = function (inputs, outputs, coin) {
         return this._typedCommonCall('EstimateTxSize', 'TxSize', {
             inputs_count: inputs.length,
-            outputs_count: outputs.length
+            outputs_count: outputs.length,
+            coin_name: coin.coin_name
         });
     };
 
-    Session.prototype.simpleSignTx = function (inputs, outputs, transactions) {
+    Session.prototype.simpleSignTx = function (inputs, outputs, coin, transactions) {
         return this._typedCommonCall('SimpleSignTx', 'TxRequest', {
             inputs: inputs,
             outputs: outputs,
+            coin_name: coin.coin_name,
             transactions: transactions
         });
     };
 
-    Session.prototype.signTx = function (inputs, outputs) {
+    Session.prototype.signTx = function (inputs, outputs, coin) {
         var self = this,
             signatures = [],
             serializedTx = '',
             signTx = {
                 inputs_count: inputs.length,
-                outputs_count: outputs.length
+                outputs_count: outputs.length,
+                coin_name: coin.coin_name
             };
 
         return this._typedCommonCall('SignTx', 'TxRequest', signTx).then(process);
