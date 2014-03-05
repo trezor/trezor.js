@@ -587,10 +587,7 @@ var TrezorApi = function(Promise) {
         if (res.type === 'PassphraseRequest')
             return this._promptPassphrase().then(
                 function (passphrase) {
-                    passphrase = unescape(encodeURIComponent(passphrase)); // encode to UTF-8
-                    return self._commonCall('PassphraseAck', {
-                        passphrase: Hex.encode(passphrase)
-                    });
+                    return self._commonCall('PassphraseAck', { passphrase: passphrase });
                 },
                 function () {
                     return self._commonCall('Cancel');
@@ -600,10 +597,7 @@ var TrezorApi = function(Promise) {
         if (res.type === 'WordRequest')
             return this._promptWord().then(
                 function (word) {
-                    word = unescape(encodeURIComponent(word)); // encode to UTF-8
-                    return self._commonCall('WordAck', {
-                        word: Hex.encode(word)
-                    });
+                    return self._commonCall('WordAck', { word: word });
                 },
                 function () {
                     return self._commonCall('Cancel');
