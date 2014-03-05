@@ -168,10 +168,12 @@ var BrowserPlugin = (function () {
         PLUGIN_MIMETYPE = 'application/x-bitcointrezorplugin';
 
     var PLUGIN_DOWNLOAD_URLS = {
-        win: 'https://mytrezor.com/data/plugin/BitcoinTrezorPlugin-latest.msi',
-        mac: 'https://mytrezor.com/data/plugin/BitcoinTrezorPlugin-latest.dmg',
-        deb: 'https://mytrezor.com/data/plugin/BitcoinTrezorPlugin-latest.deb',
-        rpm: 'https://mytrezor.com/data/plugin/BitcoinTrezorPlugin-latest.rpm'
+        mac: '/data/plugin/1.0.4/trezor-plugin.dmg',
+        win: '/data/plugin/1.0.4/BitcoinTrezorPlugin-1.0.4.msi',
+        deb32: '/data/plugin/1.0.4/browser-plugin-trezor_1.0.4_i386.deb',
+        deb64: '/data/plugin/1.0.4/browser-plugin-trezor_1.0.4_amd64.deb',
+        rpm32: '/data/plugin/1.0.4/browser-plugin-trezor-1.0.4.i386.rpm',
+        rpm64: '/data/plugin/1.0.4/browser-plugin-trezor-1.0.4.x86_64.rpm'
     };
 
     var loaded = null,
@@ -285,8 +287,10 @@ var BrowserPlugin = (function () {
             '   ">'+
             '  <option value="win"'+(sys==='win'?' selected':'')+'>for Windows</option>'+
             '  <option value="mac"'+(sys==='mac'?' selected':'')+'>for Mac OS X</option>'+
-            '  <option value="deb"'+(sys==='linux'?' selected':'')+'>for Linux (deb)</option>'+
-            '  <option value="rpm">for Linux (rpm)</option>'+
+            '  <option value="deb32"'+(sys==='linux'?' selected':'')+'>for Linux 32bit (deb)</option>'+
+            '  <option value="deb64">for Linux 64bit (deb)</option>'+
+            '  <option value="rpm32">for Linux 32bit (rpm)</option>'+
+            '  <option value="rpm64">for Linux 64bit (rpm)</option>'+
             ' </select>'+
             '</div>';
 
@@ -295,7 +299,7 @@ var BrowserPlugin = (function () {
 
         var assign_ = bind(select, 'change', assign);
 
-        var opts = ['win', 'mac', 'deb', 'rpm'],
+        var opts = ['win', 'mac', 'deb32', 'deb64', 'rpm32', 'rpm64'],
             sys = system();
 
         if (sys) {
@@ -350,7 +354,7 @@ var TrezorApi = function(Promise) {
 
     'use strict';
 
-    var DEFAULT_URL = 'https://mytrezor.com/plugin/config_signed.bin';
+    var DEFAULT_URL = '/data/plugin/config_signed.bin';
 
     //
     // Trezor
