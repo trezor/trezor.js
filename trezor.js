@@ -447,6 +447,9 @@ var TrezorApi = function(Promise) {
     Session.prototype.getPublicKey = function (address_n) {
         return this._typedCommonCall('GetPublicKey', 'PublicKey', {
             address_n: address_n
+        }).then(function (res) {
+            res.message.node.path = address_n || [];
+            return res;
         });
     };
 
