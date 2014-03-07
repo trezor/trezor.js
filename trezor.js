@@ -575,7 +575,7 @@ var TrezorApi = function(Promise) {
 
         if (res.type === 'EntropyRequest')
             return this._commonCall('EntropyAck', {
-                entropy: Hex.encode(this._generateEntropy(256))
+                entropy: Hex.encode(this._generateEntropy(32))
             });
 
         if (res.type === 'PinMatrixRequest')
