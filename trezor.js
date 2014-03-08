@@ -663,7 +663,7 @@ var TrezorApi = function(Promise) {
     };
 
     Session.prototype._generateEntropy = function (len) {
-        if (window.crypto)
+        if (window.crypto && window.crypto.getRandomValues)
             return this._generateCryptoEntropy(len);
         else
             return this._generatePseudoEntropy(len);
