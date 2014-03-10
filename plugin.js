@@ -126,7 +126,12 @@ function preferredPlatform() {
 
     if (ver.match(/Win/)) return 'win';
     if (ver.match(/Mac/)) return 'mac';
-    if (ver.match(/Linux/)) return 'deb64';
+    if (ver.match(/Linux i[3456]86/)) {
+        return ver.match(/CentOS|Fedora|Mandriva|Mageia|Red Hat|Scientific|SUSE/) ? 'rpm32' : 'deb32';
+    }
+    if (ver.match(/Linux/)) {
+        return ver.match(/CentOS|Fedora|Mandriva|Mageia|Red Hat|Scientific|SUSE/) ? 'rpm64' : 'deb64';
+    }
 }
 
 function requestUri(url) {
