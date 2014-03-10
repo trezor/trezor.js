@@ -8,4 +8,5 @@ Usage
 
 Compile with:
 
+	npm install
 	npm run-script build
