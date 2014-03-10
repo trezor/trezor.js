@@ -107,7 +107,7 @@ function isInstalled(mimetype) {
 module.exports.installers = function (options) {
     var o = options || {},
         pluginUrl = o.pluginUrl || PLUGIN_VERSION_URL,
-        version = o.version || requestUri(pluginUrl).strip(),
+        version = o.version || requestUri(pluginUrl).trim(),
         platform = o.platform || preferredPlatform();
 
     return PLUGIN_INSTALLERS.map(function (plugin) {
