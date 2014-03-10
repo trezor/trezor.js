@@ -1,6 +1,6 @@
 {
   "name": "trezor.js",
-  "main": "trezor.js",
+  "main": "dist/trezor.js",
   "version": "0.1.0",
   "homepage": "https://github.com/trezor/trezor.js",
   "authors": [

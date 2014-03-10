@@ -1,0 +1,31 @@
+{
+  "name": "trezor.js",
+  "version": "0.1.0",
+  "author": "BitcoinTrezor.com <info@bitcointrezor.com>",
+  "homepage": "https://github.com/trezor/trezor.js",
+  "description": "High-level Javascript API for Bitcoin Trezor",
+  "license": "GPLv3",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/trezor/trezor.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/trezor/trezor.js/issues"
+  },
+  "keywords": [
+    "trezor",
+    "bitcoin",
+    "wallet"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "build": "browserify index.js -d --s trezor -o dist/trezor.js"
+  },
+  "devDependencies": {
+    "browserify": "~3.32.0"
+  },
+  "dependencies": {
+    "promise": "~4.0.0",
+    "extend": "~1.2.1"
+  }
+}

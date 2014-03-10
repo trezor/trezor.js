@@ -1,0 +1,10 @@
+{
+  "browser": true,
+  "strict": true,
+  "devel": true,
+  "globalstrict": true,
+  "globals": {
+    "require": false,
+    "module": false
+  }
+}
