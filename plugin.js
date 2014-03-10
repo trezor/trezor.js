@@ -5,29 +5,29 @@ var Promise = require('promise'),
 
 var PLUGIN_VERSION_URL = '/data/plugin/latest.txt',
     PLUGIN_INSTALLERS = [{
-        url: '/data/plugin/$version/trezor-plugin.dmg',
-        label: 'Mac OS X',
-        platform: 'mac'
-    }, {
-        url: '/data/plugin/$version/BitcoinTrezorPlugin-$version.msi',
+        url: '/data/plugin/%version%/BitcoinTrezorPlugin-%version%.msi',
         label: 'Windows',
         platform: 'win'
     }, {
-        url: '/data/plugin/$version/browser-plugin-trezor_$version_i386.deb',
-        label: 'Linux i386 (deb)',
-        platform: 'deb32'
+        url: '/data/plugin/%version%/trezor-plugin-%version%.dmg',
+        label: 'Mac OS X',
+        platform: 'mac'
     }, {
-        url: '/data/plugin/$version/browser-plugin-trezor_$version_amd64.deb',
+        url: '/data/plugin/%version%/browser-plugin-trezor_%version%_amd64.deb',
         label: 'Linux x86_64 (deb)',
         platform: 'deb64'
     }, {
-        url: '/data/plugin/$version/browser-plugin-trezor-$version.i386.rpm',
-        label: 'Linux i386 (rpm)',
-        platform: 'rpm32'
-    }, {
-        url: '/data/plugin/$version/browser-plugin-trezor-$version.x86_64.rpm',
+        url: '/data/plugin/%version%/browser-plugin-trezor-%version%.x86_64.rpm',
         label: 'Linux x86_64 (rpm)',
         platform: 'rpm64'
+    }, {
+        url: '/data/plugin/%version%/browser-plugin-trezor_%version%_i386.deb',
+        label: 'Linux i386 (deb)',
+        platform: 'deb32'
+    }, {
+        url: '/data/plugin/%version%/browser-plugin-trezor-%version%.i386.rpm',
+        label: 'Linux i386 (rpm)',
+        platform: 'rpm32'
     }];
 
 // Try to load a plugin with given options, returns promise. In case of
@@ -113,7 +113,7 @@ module.exports.installers = function (options) {
     return PLUGIN_INSTALLERS.map(function (plugin) {
         return {
             version: version,
-            url: plugin.url.replace('$version', version),
+            url: plugin.url.replace(/%version%/g, version),
             label: plugin.label,
             platform: plugin.platform,
             preferred: (plugin.platform === platform)
@@ -126,7 +126,7 @@ function preferredPlatform() {
 
     if (ver.match(/Win/)) return 'win';
     if (ver.match(/Mac/)) return 'mac';
-    if (ver.match(/Linux/)) return 'deb32';
+    if (ver.match(/Linux/)) return 'deb64';
 }
 
 function requestUri(url) {
