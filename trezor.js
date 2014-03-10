@@ -9,7 +9,7 @@ var CONFIG_URL = '/data/plugin/config_signed.bin';
 //
 // Trezor
 //
-var Trezor = function (plugin, url) {
+var Trezor = module.exports.Trezor = function (plugin, url) {
     this._plugin = plugin;
     this._configure(url || CONFIG_URL);
 };
