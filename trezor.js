@@ -101,7 +101,7 @@ Session.prototype.getAddress = function (address_n) {
     return this._typedCommonCall('GetAddress', 'Address', {
         address_n: address_n
     }).then(function (res) {
-        res.message.node.path = address_n || [];
+        res.message.path = address_n || [];
         return res;
     });
 };
@@ -110,7 +110,7 @@ Session.prototype.getPublicKey = function (address_n) {
     return this._typedCommonCall('GetPublicKey', 'PublicKey', {
         address_n: address_n
     }).then(function (res) {
-        res.message.path = address_n || [];
+        res.message.node.path = address_n || [];
         return res;
     });
 };
