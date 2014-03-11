@@ -306,7 +306,7 @@ Session.prototype._promptWord = function () {
     return new Promise(function (resolve, reject) {
         if (!self.emit('word', function (word) {
             if (word)
-                resolve(word);
+                resolve(word.toLocaleLowerCase());
             else
                 reject();
         })) {
