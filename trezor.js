@@ -232,7 +232,7 @@ Session.prototype._filterCommonTypes = function (res) {
 
     if (res.type === 'EntropyRequest')
         return this._commonCall('EntropyAck', {
-            entropy: stringToHex(this._generateEntropy(256))
+            entropy: stringToHex(this._generateEntropy(32))
         });
 
     if (res.type === 'PinMatrixRequest')
