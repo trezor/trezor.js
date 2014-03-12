@@ -272,7 +272,7 @@ Session.prototype._promptPin = function (message) {
     var self = this;
 
     return new Promise(function (resolve, reject) {
-        if (!self.emit('pin', function (pin) {
+        if (!self.emit('pin', message, function (pin) {
             if (pin)
                 resolve(pin);
             else
