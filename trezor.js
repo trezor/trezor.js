@@ -369,8 +369,8 @@ Session.prototype._call = function (type, msg) {
 };
 
 Session.prototype._timeoutForType = function (type) {
-    var noTimeoutTypes = ['PinMatrixAck', 'PassphraseAck', 'ButtonAck'];
-    return noTimeoutTypes.indexOf(type) < 0;
+    // No calls use timeout now
+    return false;
 };
 
 Session.prototype._log = function () {
