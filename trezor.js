@@ -63,7 +63,7 @@ Trezor.prototype.open = function (device) {
 //
 //  button: code
 //  word: callback
-//  pin: message, callback
+//  pin: type, callback
 //  passphrase: callback
 //
 var Session = function (plugin, device) {
@@ -236,7 +236,7 @@ Session.prototype._filterCommonTypes = function (res) {
         });
 
     if (res.type === 'PinMatrixRequest')
-        return this._promptPin(res.message.message).then(
+        return this._promptPin(res.message.type).then(
             function (pin) {
                 return self._commonCall('PinMatrixAck', { pin: pin });
             },
@@ -268,11 +268,11 @@ Session.prototype._filterCommonTypes = function (res) {
     return res;
 };
 
-Session.prototype._promptPin = function (message) {
+Session.prototype._promptPin = function (type) {
     var self = this;
 
     return new Promise(function (resolve, reject) {
-        if (!self.emit('pin', message, function (pin) {
+        if (!self.emit('pin', type, function (pin) {
             if (pin)
                 resolve(pin);
             else
