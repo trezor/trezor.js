@@ -131,6 +131,16 @@ Session.prototype.recoverDevice = function (settings) {
     return this._commonCall('RecoveryDevice', settings);
 };
 
+Session.prototype.applySettings = function (settings) {
+    return this._commonCall('ApplySettings', settings);
+};
+
+Session.prototype.changePin = function (remove) {
+    return this._commonCall('ChangePin', {
+        remove: remove || false
+    });
+};
+
 Session.prototype.eraseFirmware = function () {
     return this._commonCall('FirmwareErase');
 };
