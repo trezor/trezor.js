@@ -283,7 +283,7 @@ Session.prototype._promptPin = function (type) {
 
     return new Promise(function (resolve, reject) {
         if (!self.emit('pin', type, function (pin) {
-            if (pin)
+            if (pin != null) // we use empty pin to disable the pin protection
                 resolve(pin);
             else
                 reject();
