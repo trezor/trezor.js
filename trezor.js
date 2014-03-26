@@ -1,6 +1,7 @@
 'use strict';
 
 var util = require('util'),
+    console = require('console'),
     Promise = require('promise'),
     EventEmitter = require('events').EventEmitter;
 
@@ -27,7 +28,17 @@ Trezor.prototype._configure = function (url) {
     if (req.status !== 200)
         throw new Error('Failed to load configuration');
 
-    this._plugin.configure(req.responseText);
+    try {
+        this._plugin.configure(req.responseText);
+    } catch (e) {
+        // In most browsers, exceptions from plugin methods are not properly
+        // propagated
+        throw new Error(
+            'Failed to configure the plugin. ' +
+            'Make sure the configuration is signed ' +
+            'and within the expiration timespan.'
+        );
+    }
 };
 
 // Returns the plugin version.
@@ -79,7 +90,7 @@ Session.prototype.close = function () {
     var self = this;
 
     return new Promise(function (resolve, reject) {
-        self._log('Closing');
+        console.log('[trezor] Closing');
         self._plugin.close(self._device, {
             success: resolve,
             error: reject
@@ -288,7 +299,7 @@ Session.prototype._promptPin = function (type) {
             else
                 reject();
         })) {
-            self._log('PIN callback not configured, cancelling request');
+            console.warn('[trezor] PIN callback not configured, cancelling request');
             reject();
         }
     });
@@ -304,7 +315,7 @@ Session.prototype._promptPassphrase = function () {
             else
                 reject();
         })) {
-            self._log('Passphrase callback not configured, cancelling request');
+            console.warn('[trezor] Passphrase callback not configured, cancelling request');
             reject();
         }
     });
@@ -320,7 +331,7 @@ Session.prototype._promptWord = function () {
             else
                 reject();
         })) {
-            self._log('Word callback not configured, cancelling request');
+            console.warn('[trezor] Word callback not configured, cancelling request');
             reject();
         }
     });
@@ -358,20 +369,20 @@ Session.prototype._call = function (type, msg) {
     msg = msg || {};
 
     return new Promise(function (resolve, reject) {
+        console.log('[trezor] Sending:', type, msg);
         self.emit('send', type, msg);
-        self._log('Sending:', type, msg);
         self._plugin.call(self._device, timeout, type, msg, {
             success: function (t, m) {
+                console.log('[trezor] Received:', t, m);
                 self.emit('receive', t, m);
-                self._log('Received:', t, m);
                 resolve({
                     type: t,
                     message: m
                 });
             },
             error: function (err) {
+                console.log('[trezor] Received error:', err);
                 self.emit('error', err);
-                self._log('Received error:', err);
                 reject(new Error(err));
             }
         });
@@ -381,16 +392,6 @@ Session.prototype._call = function (type, msg) {
 Session.prototype._timeoutForType = function (type) {
     // No calls use timeout now
     return false;
-};
-
-Session.prototype._log = function () {
-    if (!console || !console.log)
-        return;
-    [].unshift.call(arguments, '[trezor]');
-    if (console.log.apply)
-        console.log.apply(console, arguments);
-    else
-        console.log(arguments);
 };
 
 //

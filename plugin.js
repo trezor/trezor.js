@@ -1,7 +1,8 @@
 'use strict';
 
-var Promise = require('promise'),
-    extend = require('extend');
+var console = require('console'),
+    extend = require('extend'),
+    Promise = require('promise');
 
 var PLUGIN_VERSION_URL = '/data/plugin/latest.txt',
     PLUGIN_INSTALLERS = [{
@@ -61,7 +62,16 @@ module.exports.load = function (options) {
     ]).catch(function (err) {
         err.installed = installed;
         throw err;
-    });
+    }).then(
+        function (plugin) {
+            console.log('[trezor] Loaded plugin ' + plugin.version);
+            return plugin;
+        },
+        function (err) {
+            console.error('[trezor] Failed to load plugin: ' + err.message);
+            throw err;
+        }
+    );
 };
 
 // Injects the plugin object into the page and waits until it loads.
