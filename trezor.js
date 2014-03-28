@@ -73,9 +73,9 @@ Trezor.prototype.open = function (device) {
 //  error: error
 //
 //  button: code
-//  word: callback
-//  pin: type, callback
-//  passphrase: callback
+//  word: callback(error, word)
+//  pin: type, callback(error, pin)
+//  passphrase: callback(error, passphrase)
 //
 var Session = function (plugin, device) {
     EventEmitter.call(this);
@@ -293,11 +293,11 @@ Session.prototype._promptPin = function (type) {
     var self = this;
 
     return new Promise(function (resolve, reject) {
-        if (!self.emit('pin', type, function (pin) {
-            if (pin != null) // we use empty pin to disable the pin protection
-                resolve(pin);
+        if (!self.emit('pin', type, function (err, pin) {
+            if (err || pin == null)
+                reject(err);
             else
-                reject();
+                resolve(pin);
         })) {
             console.warn('[trezor] PIN callback not configured, cancelling request');
             reject();
@@ -309,11 +309,11 @@ Session.prototype._promptPassphrase = function () {
     var self = this;
 
     return new Promise(function (resolve, reject) {
-        if (!self.emit('passphrase', function (passphrase) {
-            if (passphrase != null) // empty string is a valid passphrase too
-                resolve(passphrase);
+        if (!self.emit('passphrase', function (err, passphrase) {
+            if (err || passphrase == null)
+                reject(err);
             else
-                reject();
+                resolve(passphrase);
         })) {
             console.warn('[trezor] Passphrase callback not configured, cancelling request');
             reject();
@@ -325,11 +325,11 @@ Session.prototype._promptWord = function () {
     var self = this;
 
     return new Promise(function (resolve, reject) {
-        if (!self.emit('word', function (word) {
-            if (word)
-                resolve(word.toLocaleLowerCase());
+        if (!self.emit('word', function (err, word) {
+            if (err || word == null)
+                reject(err);
             else
-                reject();
+                resolve(word.toLocaleLowerCase());
         })) {
             console.warn('[trezor] Word callback not configured, cancelling request');
             reject();
