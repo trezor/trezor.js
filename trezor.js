@@ -1,6 +1,7 @@
 'use strict';
 
 var util = require('util'),
+    unorm = require('unorm'),
     console = require('console'),
     Promise = require('promise'),
     EventEmitter = require('events').EventEmitter;
@@ -313,7 +314,7 @@ Session.prototype._promptPassphrase = function () {
             if (err || passphrase == null)
                 reject(err);
             else
-                resolve(passphrase);
+                resolve(passphrase.normalize('NFKD'));
         })) {
             console.warn('[trezor] Passphrase callback not configured, cancelling request');
             reject();
