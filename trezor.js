@@ -27,7 +27,7 @@ Trezor.prototype._configure = function (url) {
     req.send();
 
     if (req.status !== 200)
-        throw new Error('Failed to load configuration');
+        throw new Error('Plugin configuration not found.');
 
     try {
         this._plugin.configure(req.responseText);
@@ -35,9 +35,8 @@ Trezor.prototype._configure = function (url) {
         // In most browsers, exceptions from plugin methods are not properly
         // propagated
         throw new Error(
-            'Failed to configure the plugin. ' +
-            'Make sure the configuration is signed ' +
-            'and within the expiration timespan.'
+            'Plugin configuration found, but could not be used. ' +
+            'Make sure it is has proper format and a valid signature.'
         );
     }
 };
