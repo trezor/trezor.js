@@ -170,50 +170,102 @@ Session.prototype.measureTx = function (inputs, outputs, coin) {
     });
 };
 
-Session.prototype.simpleSignTx = function (inputs, outputs, coin, transactions) {
+Session.prototype.simpleSignTx = function (inputs, outputs, txs, coin) {
     return this._typedCommonCall('SimpleSignTx', 'TxRequest', {
         inputs: inputs,
         outputs: outputs,
         coin_name: coin.coin_name,
-        transactions: transactions
+        transactions: txs
     });
 };
 
-Session.prototype.signTx = function (inputs, outputs, coin) {
-    var self = this,
-        signatures = [],
-        serializedTx = '',
-        signTx = {
-            inputs_count: inputs.length,
-            outputs_count: outputs.length,
-            coin_name: coin.coin_name
-        };
+Session.prototype._indexTxsForSign = function (inputs, outputs, txs) {
+    var index = {};
 
-    return this._typedCommonCall('SignTx', 'TxRequest', signTx).then(process);
+    // Tx being signed
+    index[''] = {
+        inputs: inputs,
+        outputs: outputs
+    };
+
+    // Referenced txs
+    txs.forEach(function (tx) {
+        index[tx.hash.toUpperCase()] = tx;
+    });
+
+    return index;
+};
+
+Session.prototype.signTx = function (inputs, outputs, txs, coin) {
+    var self = this,
+        index = this._indexTxsForSign(inputs, outputs, txs),
+        signatures = [],
+        serializedTx = '';
+
+    return this._typedCommonCall('SignTx', 'TxRequest', {
+        inputs_count: inputs.length,
+        outputs_count: outputs.length,
+        coin_name: coin.coin_name
+    }).then(process);
 
     function process(res) {
-        var m = res.message;
+        var m = res.message,
+            ms = m.serialized,
+            md = m.details,
+            reqTx, resTx;
 
-        if (m.serialized_tx)
-            serializedTx += m.serialized_tx;
+        if (ms && ms.serialized_tx != null)
+            serializedTx += ms.serialized_tx;
+        if (ms && ms.signature_index != null)
+            signatures[ms.signature_index] = ms.signature;
 
-        if (m.signature && m.signed_index >= 0)
-            signatures[m.signed_index] = m.signature;
-
-        if (m.request_index < 0)
+        if (m.request_type === 'TXFINISHED')
             return {
-                signatures: signatures,
-                serializedTx: serializedTx
+                message: {
+                    signatures: signatures,
+                    serialized_tx: serializedTx
+                }
             };
 
-        if (m.request_type == 'TXINPUT')
-            return self._typedCommonCall('TxInput', 'TxRequest', {
-                input: inputs[m.request_index]
-            }).then(process);
-        else
-            return self._typedCommonCall('TxOutput', 'TxRequest', {
-                output: outputs[m.request_index]
-            }).then(process);
+        resTx = {};
+        reqTx = index[md.tx_hash || ''];
+
+        if (!reqTx)
+            throw new Error(md.tx_hash
+                ? ('Requested unknown tx: ' + md.tx_hash)
+                : ('Requested tx for signing not indexed')
+            );
+
+        switch (m.request_type) {
+
+        case 'TXINPUT':
+            resTx.inputs = [reqTx.inputs[+md.request_index]];
+            break;
+
+        case 'TXOUTPUT':
+            if (md.tx_hash)
+                resTx.bin_outputs = [reqTx.bin_outputs[+md.request_index]];
+            else
+                resTx.outputs = [reqTx.outputs[+md.request_index]];
+            break;
+
+        case 'TXMETA':
+            resTx.version = reqTx.version;
+            resTx.lock_time = reqTx.lock_time;
+            resTx.inputs_cnt = reqTx.inputs.length;
+            if (md.tx_hash)
+                resTx.outputs_cnt = reqTx.bin_outputs.length;
+            else
+                resTx.outputs_cnt = reqTx.outputs.length;
+            break;
+
+        default:
+            throw new Error('Unknown request type: ' + m.request_type);
+        }
+
+        return self._typedCommonCall('TxAck', 'TxRequest', {
+            tx: resTx
+        }).then(process);
     }
 };
 
