@@ -220,10 +220,12 @@ Session.prototype.signTx = function (inputs, outputs, txs, coin) {
             signatures[ms.signature_index] = ms.signature;
 
         if (m.request_type === 'TXFINISHED')
-            return {
+            return { // same format as SimpleSignTx
                 message: {
-                    signatures: signatures,
-                    serialized_tx: serializedTx
+                    serialized: {
+                        signatures: signatures,
+                        serialized_tx: serializedTx
+                    }
                 }
             };
 
