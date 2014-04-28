@@ -1,6 +1,7 @@
 'use strict';
 
 var util = require('util'),
+    crypto = require('crypto'),
     unorm = require('unorm'),
     console = require('console'),
     Promise = require('promise'),
@@ -21,13 +22,17 @@ var Trezor = module.exports.Trezor = function (plugin, url) {
 // Throws on error.
 Trezor.prototype._configure = function (url) {
     var req = new XMLHttpRequest(),
-        time = new Date().getTime();
+        time = new Date().getTime(),
+        hash;
 
     req.open('get', url + '?' + time, false);
     req.send();
 
     if (req.status !== 200)
         throw new Error('Plugin configuration not found.');
+
+    hash = crypto.createHash('sha256').update(req.responseText);
+    console.log('[trezor] Downloaded configuration', hash.digest('base64'));
 
     try {
         this._plugin.configure(req.responseText);
