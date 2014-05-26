@@ -132,7 +132,7 @@ module.exports.installers = function (options) {
 };
 
 function preferredPlatform() {
-    var ver = navigator.appVersion;
+    var ver = navigator.userAgent;
 
     if (ver.match(/Win/)) return 'win';
     if (ver.match(/Mac/)) return 'mac';
