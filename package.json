@@ -4,7 +4,7 @@
   "author": "BitcoinTrezor.com <info@bitcointrezor.com>",
   "homepage": "https://github.com/trezor/trezor.js",
   "description": "High-level Javascript API for Bitcoin Trezor",
-  "license": "GPLv3",
+  "license": "LGPLv3",
   "repository": {
     "type": "git",
     "url": "git://github.com/trezor/trezor.js.git"
