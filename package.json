@@ -17,16 +17,16 @@
     "bitcoin",
     "wallet"
   ],
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "build": "browserify index.js -d --s trezor -o dist/trezor.js"
+    "build": "browserify lib/index.js -d --s trezor -o dist/trezor.js"
   },
   "devDependencies": {
     "browserify": "~3.32.0"
   },
   "dependencies": {
-    "promise": "~4.0.0",
-    "extend": "~1.2.1",
-    "unorm": "~1.3.3"
+    "promise": "^5.0.0",
+    "extend": "^1.3.0",
+    "unorm": "^1.3.3"
   }
 }
