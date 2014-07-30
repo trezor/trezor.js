@@ -11,8 +11,13 @@ function promiseRequest(options, payload) {
             }
 
             if (response.statusCode !== 200) {
-                reject(new Error('Request failed with status '
-                                 + response.statusCode));
+                if (body && body.error) {
+                    err = new Error(body.error);
+                } else {
+                    err = new Error('Request failed with status '
+                                    + response.statusCode);
+                }
+                reject(err);
             }
 
             resolve(body);
@@ -639,7 +644,7 @@ HttpTransport.prototype._request = function (options) {
 
 HttpTransport.prototype.configure = function (config) {
     return this._request({
-        method: 'POST', url: '/configure', body: config
+        method: 'POST', url: '/configure', body: config, json: true
     });
 };
 
