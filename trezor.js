@@ -41,7 +41,7 @@ Trezor.prototype._configure = function (url) {
         // propagated
         throw new Error(
             'Plugin configuration found, but could not be used. ' +
-            'Make sure it is has proper format and a valid signature.'
+            'Make sure it has proper format and a valid signature.'
         );
     }
 };
