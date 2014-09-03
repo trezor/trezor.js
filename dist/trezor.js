@@ -163,9 +163,10 @@ module.exports.load = function (options) {
         timeout: 500
     });
 
-    // if we know for sure that the plugin is installed, never timeout
+    // if we know for sure that the plugin is installed, timeout after
+    // 10 seconds
     var installed = isInstalled(o.mimetype),
-        timeout = installed ? 0 : o.timeout;
+        timeout = installed ? 10000 : o.timeout;
 
     // if the plugin is already loaded, use it
     var plugin = document.getElementById(o.id);
@@ -175,7 +176,7 @@ module.exports.load = function (options) {
     // inject or reject after timeout
     return Promise.race([
         injectPlugin(o.id, o.mimetype, o.fname),
-        rejectAfter(timeout, new Error('Loading timeout out'))
+        rejectAfter(timeout, new Error('Loading timed out'))
     ]).catch(function (err) {
         err.installed = installed;
         throw err;
