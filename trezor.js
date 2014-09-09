@@ -167,6 +167,24 @@ Session.prototype.uploadFirmware = function (payload) {
     });
 };
 
+Session.prototype.verifyMessage = function (address, signature, message) {
+    return this._commonCall('VerifyMessage',  {
+        address: address,
+        signature: signature,
+        message: message
+    });
+};
+
+Session.prototype.signMessage = function (address_n, message, coin) {
+    return this._typedCommonCall('SignMessage', 'MessageSignature', {
+        address_n: address_n,
+        message: message,
+        coin_name: coin.coin_name
+    }).then(function (res) {
+        return res;
+    });
+};
+
 Session.prototype.measureTx = function (inputs, outputs, coin) {
     return this._typedCommonCall('EstimateTxSize', 'TxSize', {
         inputs_count: inputs.length,
