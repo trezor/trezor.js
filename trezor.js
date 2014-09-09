@@ -168,7 +168,7 @@ Session.prototype.uploadFirmware = function (payload) {
 };
 
 Session.prototype.verifyMessage = function (address, signature, message) {
-    return this._commonCall('VerifyMessage',  {
+    return this._commonCall('VerifyMessage', {
         address: address,
         signature: signature,
         message: message
@@ -180,8 +180,6 @@ Session.prototype.signMessage = function (address_n, message, coin) {
         address_n: address_n,
         message: message,
         coin_name: coin.coin_name
-    }).then(function (res) {
-        return res;
     });
 };
 
