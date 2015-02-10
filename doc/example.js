@@ -7,7 +7,7 @@ getTransport()
 
 function getTransport() {
     // Initialize HTTP (trezord) transport
-    var transportUrl = 'https://localhost:21324',
+    var transportUrl = 'https://localback.net:21324',
         transportP = trezor.HttpTransport
             .connect(transportUrl)
             .then(function (info) {
