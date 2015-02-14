@@ -21,7 +21,7 @@ function getTransport() {
 
 function configureTransport(transport) {
     // URL of the signed configuration file for trezord/plugin
-    var CONFIG_URL = 'https://localhost:8000/config_signed.bin';
+    var CONFIG_URL = 'https://mytrezor.com/data/plugin/config_signed.bin';
 
     // Note: trezor.js exposes the internal AJAX API, but you can, of
     // course, retrieve the config file in any way you want.
