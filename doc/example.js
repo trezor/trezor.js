@@ -3,7 +3,7 @@ var trezor = require('trezor.js');
 /* To communicate with a TREZOR devices, we first need to load a
  * transport layer. Right now we have two options, a browser plugin or
  * a HTTP bridge server. trezor.js provides an easy loadTransport()
- * function, that attempts to load the transports in a preferred
+ * function, that attempts to load the transports in the preferred
  * order. */
 trezor.loadTransport()
 
@@ -13,11 +13,11 @@ trezor.loadTransport()
     .then(configureTransport)
 
 /* Now we can enumerate the connected devices, acquire a session ID
- * and construct the Session object. */
+ * and construct a Session object. */
     .then(getSession)
 
 /* To get a clean state and a basic information about the device, send
- * the Initialize message. We also pick a prefferred coin type from
+ * the Initialize message. We also pick a preferred coin type from
  * the list. */
     .then(initialize)
 
