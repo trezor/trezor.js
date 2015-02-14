@@ -1,12 +1,44 @@
 var trezor = require('trezor.js');
 
-getTransport() // Construct the transport object to lookup and talk to devices.
+/* To communicate with a TREZOR devices, we first need to load a
+ * transport layer. Right now we have two options, a browser plugin or
+ * a HTTP bridge server. trezor.js provides an easy loadTransport()
+ * function, that attempts to load the transports in a preferred
+ * order. */
+trezor.loadTransport()
 
-    .then(configureTransport) // Configure it with the signed configuration file.
-    .then(getSession) // Open a session with a connected device.
-    .then(initialize) // Initialize the device to clean state and select a coin data type.
+/* Both transport leayers need to be initialized with a signed
+ * configuration file that specifies the communication protocol, ACL
+ * permissions and other things. */
+    .then(configureTransport)
 
-    // Challenge-response authentication examples:
+/* Now we can enumerate the connected devices, acquire a session ID
+ * and construct the Session object. */
+    .then(getSession)
+
+/* To get a clean state and a basic information about the device, send
+ * the Initialize message. We also pick a prefferred coin type from
+ * the list. */
+    .then(initialize)
+
+/* Shows how to do a basic challenge-response authentication.
+ *
+ * Registration:
+ *  1. Server sends the path of the signing address. Path is most
+ *     probably a constant.
+ *  2. Client computes the address with the GetAddress message.
+ *  3. Client sends the address, server stores it.
+ *
+ * Authentication:
+ *  1. Server constructs a signing message by combining user-friendly
+ *     text ("Login to example.com?") with a random nonce. Nonce is
+ *     needed to prevent replay attacks.
+ *  2. Server sends the message and the signing address path.
+ *  3. Client signs the message with the SignMessage workflow.
+ *  4. Client sends the signature.
+ *  5. Server validates the signature against the message and the
+ *     stored address.
+ */
     .then(registrationExample)
     .then(authenticationExample)
 
@@ -14,13 +46,7 @@ getTransport() // Construct the transport object to lookup and talk to devices.
         console.error(error);
     });
 
-function getTransport() {
-    return trezor.PluginTransport.create(); // Plugin transport.
-    // return trezor.HttpTransport.create(); // HTTP (trezord) transport.
-}
-
 function configureTransport(transport) {
-    // URL of the signed configuration file for trezord/plugin
     var CONFIG_URL = 'https://mytrezor.com/data/plugin/config_signed.bin';
 
     // Note: trezor.js exposes the internal AJAX API, but you can, of
@@ -32,7 +58,7 @@ function configureTransport(transport) {
         })
         .then(function () {
             return transport;
-        })
+        });
 }
 
 function getSession(transport) {
@@ -62,14 +88,14 @@ function initialize(session) {
         });
 }
 
-// BIP32 path of the first address from the first BIP44 account. For
-// real-world use you might want to pick a different path.
+// BIP32 path of some example address. Please pick a different path
+// for real-world usage.
 var ADDRESS_PATH = [
-    ((0x80000000) | 44) >>> 0,
-    ((0x80000000) | 0)  >>> 0,
-    ((0x80000000) | 0)  >>> 0,
-    0,
-    0
+    ((0x80000000) | 1337) >>> 0,
+    ((0x80000000) | 1337)  >>> 0,
+    ((0x80000000) | 1337)  >>> 0,
+    1337,
+    1337
 ];
 
 function registrationExample(device) {
