@@ -1026,7 +1026,7 @@ module.exports = superagentLegacyIESupportPlugin;
 var ChromeMessages = _dereq_('../chrome-messages');
 var Promise = _dereq_('promise');
 
-var EXTENSION_ID = 'pdeipodakpnjhnjepecfdpfilcbnlhob';
+var EXTENSION_ID = 'jcjjhjgimijdkoamemaghajlhegmoclj';
 
 var ChromeExtensionTransport = function (id) {
     id = id || EXTENSION_ID;
