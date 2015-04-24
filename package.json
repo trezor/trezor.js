@@ -19,7 +19,8 @@
   ],
   "main": "lib/index.js",
   "scripts": {
-    "build": "browserify lib/index.js -d --s trezor -o dist/trezor.js"
+    "build": "browserify lib/index.js -d --s trezor -o dist/trezor.js",
+    "deploy": "bin/deploy.sh"
   },
   "devDependencies": {
     "browserify": "~3.32.0"
