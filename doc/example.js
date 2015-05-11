@@ -47,7 +47,7 @@ trezor.loadTransport()
     });
 
 function configureTransport(transport) {
-    var CONFIG_URL = 'https://mytrezor.com/data/config_signed.bin';
+    var CONFIG_URL = 'https://mytrezor.s3.eu-central-1.amazonaws.com/config_signed.bin';
 
     // Note: trezor.js exposes the internal AJAX API, but you can, of
     // course, retrieve the config file in any way you want.
