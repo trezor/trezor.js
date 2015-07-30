@@ -1,7 +1,7 @@
 {
   "name": "trezor.js",
   "main": "dist/trezor.js",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "homepage": "https://github.com/trezor/trezor.js",
   "authors": [
     "BitcoinTrezor.com <info@bitcointrezor.com>"
