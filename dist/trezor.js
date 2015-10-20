@@ -1479,7 +1479,7 @@ PluginTransport.prototype.call = function (deviceDescriptor, type, message) {
     // and remove them from the message object. `traverse` will delete
     // object fields and splice out array items properly.
     traverse(message).forEach(function (value) {
-        if (value === undefined) {
+        if (value == null) {
             this.remove();
         }
     });
@@ -1620,8 +1620,8 @@ function asap(task) {
 module.exports = asap;
 
 
-}).call(this,_dereq_("/Users/karelbilek/trezor.js/node_modules/process/browser.js"))
-},{"/Users/karelbilek/trezor.js/node_modules/process/browser.js":22}],12:[function(_dereq_,module,exports){
+}).call(this,_dereq_("/home/peepee/dev/trezor.js/node_modules/process/browser.js"))
+},{"/home/peepee/dev/trezor.js/node_modules/process/browser.js":22}],12:[function(_dereq_,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -3871,8 +3871,9 @@ module.exports = Response;
  * @param {Number} statusCode
  * @param {Object} headers
  * @param {Buffer} body
+ * @param {String} url
  */
-function Response(statusCode, headers, body) {
+function Response(statusCode, headers, body, url) {
   if (typeof statusCode !== 'number') {
     throw new TypeError('statusCode must be a number but was ' + (typeof statusCode));
   }
@@ -3888,6 +3889,7 @@ function Response(statusCode, headers, body) {
     this.headers[key.toLowerCase()] = headers[key];
   }
   this.body = body;
+  this.url = url;
 }
 
 Response.prototype.getBody = function (encoding) {
@@ -3897,6 +3899,7 @@ Response.prototype.getBody = function (encoding) {
     err.statusCode = this.statusCode;
     err.headers = this.headers;
     err.body = this.body;
+    err.url = this.url;
     throw err;
   }
   return encoding ? this.body.toString(encoding) : this.body;
@@ -4388,8 +4391,8 @@ function oldBrowser() {
     )
 }
 
-}).call(this,_dereq_("/Users/karelbilek/trezor.js/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer)
-},{"/Users/karelbilek/trezor.js/node_modules/process/browser.js":22,"buffer":14}],26:[function(_dereq_,module,exports){
+}).call(this,_dereq_("/home/peepee/dev/trezor.js/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer)
+},{"/home/peepee/dev/trezor.js/node_modules/process/browser.js":22,"buffer":14}],26:[function(_dereq_,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5504,7 +5507,7 @@ var Response = _dereq_('http-response-object');
 var handleQs = _dereq_('then-request/lib/handle-qs.js');
 
 module.exports = doRequest;
-function doRequest(method, url, options, callback) {
+function doRequest(method, url, options) {
   var xhr = new window.XMLHttpRequest();
 
   // check types of arguments
@@ -5515,20 +5518,13 @@ function doRequest(method, url, options, callback) {
   if (typeof url !== 'string') {
     throw new TypeError('The URL/path must be a string.');
   }
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
   if (options === null || options === undefined) {
     options = {};
   }
   if (typeof options !== 'object') {
     throw new TypeError('Options must be an object (or null).');
   }
-  if (typeof callback !== 'function') {
-    callback = undefined;
-  }
-
+  
   method = method.toUpperCase();
   options.headers = options.headers || {};
 
@@ -7362,7 +7358,7 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-}).call(this,_dereq_("/Users/karelbilek/trezor.js/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":37,"/Users/karelbilek/trezor.js/node_modules/process/browser.js":22,"inherits":21}]},{},[3])
+}).call(this,_dereq_("/home/peepee/dev/trezor.js/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./support/isBuffer":37,"/home/peepee/dev/trezor.js/node_modules/process/browser.js":22,"inherits":21}]},{},[3])
 (3)
 });
