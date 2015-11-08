@@ -1429,12 +1429,26 @@ PluginTransport.prototype._findDevice = function(deviceDescriptor) {
     return this._NPDeviceCache[key];
 }
 
+function timeoutPromise(time) {
+    return new Promise(function (resolve, reject) {
+        window.setTimeout(function() {
+            resolve();
+        }, time);
+    });
+}
+
 // Enumerates connected devices.
 // Requires configured plugin.
-PluginTransport.prototype.enumerate = function () {
+PluginTransport.prototype.enumerate = function (wait) {
     var plugin = this._plugin;
 
-    return this._currentCall.then(function() {
+    var waitPromise = wait ? timeoutPromise(1000) : Promise.resolve();
+
+    return waitPromise
+    .then(function() {
+        return this._currentCall;
+    }.bind(this))
+    .then(function() {
         var pluginDevices = plugin.devices();
         this._saveDevices(pluginDevices);
 
