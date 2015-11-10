@@ -1,67 +1,76 @@
-"use strict";
+'use strict';
+
 var trezor = require('trezor.js');
 
-var DeviceList = trezor.ListScenario.DeviceList;
+// DeviceList encapsulates transports, sessions, device enumeration and other
+// low-level things, and provides easy-to-use event interface.
+var list = new trezor.DeviceList();
 
-// DeviceList automatically handles the logic of acquiring and disconnecting devices
-// and emits messages after acquiring
-var list = new DeviceList();
+list.on('connect', function (device) {
+    console.log('Connected a device:', device);
+    console.log('Devices:', list.asArray());
 
-list.on("connect", function (device) {
-    console.log("Connected a device ", device);
-    console.log("Devices: ", list.asArray());
-
-    // What to do on user interactions
+    // What to do on user interactions:
     device.on('button', buttonCallback);
     device.on('passphrase', passphraseCallback);
     device.on('pin', pinCallback);
 
-    // Example what to do with the devices - ask them for public keys
-    Promise.all(list.asArray().map(function (device) {
-        return device.getPublicKey([44, 0, 0]);
-    })).then(function (publicKeys) {
-        console.log("Keys:", publicKeys);
-    }).catch(function (error) {
-        // Errors can happen easily, when device is disconnected etc
-        console.error("Error: ", error);
+    // For convenience, device emits 'disconnect' event on disconnection.
+    device.on('disconnect', function () {
+        console.log('Disconnected an opened device');
     });
+
+    // You generally want to filter out devices connected in bootloader mode:
+    if (device.isBootloader()) {
+        throw new Error('Device is in bootloader mode, re-connected it');
+    }
+
+    // Ask the device for public key:
+    device.session.getPublicKey([44, 0, 0])
+        .then(function (result) {
+            console.log('Keys:', result);
+        })
+        .catch(function (error) {
+            // Errors can happen easily, i.e. when device is disconnected.
+            console.error('Error:', error);
+        });
 });
 
-// What to do on device disconnection
-list.on("disconnect", function (device) {
-    console.log("Disonnected a device ", device);
-    console.log("Devices: ", list.asArray());
+list.on('disconnect', function (device) {
+    console.log('Disconnected a device:', device);
+    console.log('Devices:', list.asArray());
 });
 
+list.on('error', function (error) {
+    console.error('Error:', error);
+});
 
-// What to do on general error
-// error should be only one of the following:
-// trezor.ListScenario.NO_TRANSPORT - badly initialized transport
-// trezor.ListScenario.ENUMERATE_ERROR - some problem with enumerating
-// trezor.ListScenario.CONNECT_ERROR - some problem with connecting device (disconnected while initializing)
-list.on("error", function (error, originalError) {
-    console.error("Error", error);
-})
-
+/**
+ * @param {string}
+ */
 function buttonCallback(code) {
-    console.log("User is now asked for an action on device", code);
-    // we can (but don't necessarily have to) show something to the user,
-    // such as "look at your device".
-    // Code are in the format ButtonRequest_[type]
-    // where [type] is one of the types, defined around here
+    console.log('User is now asked for an action on device', code);
+    // We can (but don't necessarily have to) show something to the user, such
+    // as 'look at your device'.
+    // Codes are in the format ButtonRequest_[type] where [type] is one of the
+    // types, defined here:
     // https://github.com/trezor/trezor-common/blob/master/protob/types.proto#L78-L89
 }
 
-// callback for passphrase
+/**
+ * @param {Function<Error, string>} callback
+ */
 function passphraseCallback(callback) {
-    // first parameter is error, second parameter is passphrase
-    // we can put empty passphrase if we want, or ask the user for a different one
-    callback(null, "");
+    // We can respond with empty passphrase if we want, or ask the user.
+    callback(null, '');
 }
 
-function pinCallback(callback) {
-    throw new Error("Nothing defined");
-    // We should ask the user for PIN and send it back like this
-    // callback("12");
-    // where 1 is the top left position, 2 is the top middle position, etc.
+/**
+ * @param {string} type
+ * @param {Function<Error, string>} callback
+ */
+function pinCallback(type, callback) {
+    // We should ask the user for PIN and send it back as '1234', where 1 is the
+    // top left position, 2 is the top middle position, etc.
+    throw new Error('Nothing defined');
 }
