@@ -1,4 +1,5 @@
-var trezor = require('trezor.js');
+//var trezor = require('trezor.js');
+var trezor = window.trezor;
 
 /* In order to communicate with TREZOR devices we first need to load a
  * transport layer. Right now we have three options: generic browser
@@ -21,26 +22,7 @@ trezor.loadTransport()
  * the list. */
     .then(initialize)
 
-/* Shows how to do a basic challenge-response authentication.
- *
- * Registration:
- *  1. Server sends the path of the signing address. Path is most
- *     probably a constant.
- *  2. Client computes the address with the GetAddress message.
- *  3. Client sends the address, server stores it.
- *
- * Authentication:
- *  1. Server constructs a signing message by combining user-friendly
- *     text ("Login to example.com?") with a random nonce. Nonce is
- *     needed to prevent replay attacks.
- *  2. Server sends the message and the signing address path.
- *  3. Client signs the message with the SignMessage workflow.
- *  4. Client sends the signature.
- *  5. Server validates the signature against the message and the
- *     stored address.
- */
-    .then(registrationExample)
-    .then(authenticationExample)
+    .then(signMessageExample)
 
     .catch(function (error) {
         console.error(error);
@@ -98,33 +80,41 @@ var ADDRESS_PATH = [
     1337
 ];
 
-function registrationExample(device) {
+function signMessageExample(device) {
     var session = device.session;
     var coin = device.coin;
 
-    return session.getAddress(ADDRESS_PATH, coin).then(function (result) {
-        var address = result.message.address;
 
-        // Register the address on the server...
+    var message = 'Sign me!';
 
-        return device;
-    });
-}
-
-function authenticationExample(device) {
-    var session = device.session;
-    var coin = device.coin;
-
-    var nonce = getRandomNonce(); // Server provides a random nonce value to prevent replay attacks.
-
-    var message = 'Login to example.com? ' + nonce;
-
-    return session.signMessage(ADDRESS_PATH, message, coin).then(function (result) {
+    return session.signMessage(ADDRESS_PATH, stringToHex(message), coin).then(function (result) {
         var address = result.message.address;
         var signature = result.message.signature; // In hex
 
-        // Send to server for verification...
+        // do something with the signature....
+        console.debug("Signature: ", signature);
 
         return device;
     });
 }
+
+function bytesToHex(bytes) {
+    return new Buffer(bytes).toString('hex')
+}
+function d2h(d) {
+    return d.toString(16);
+}
+
+function stringToHex (tmp) {
+    var str = '',
+        i = 0,
+        tmp_len = tmp.length,
+        c;
+ 
+    for (; i < tmp_len; i += 1) {
+        c = tmp.charCodeAt(i);
+        str += d2h(c);
+    }
+    return str;
+}
+
