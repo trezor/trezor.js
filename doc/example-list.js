@@ -1,6 +1,10 @@
 'use strict';
 
+// in case of browserify
 var trezor = require('trezor.js');
+
+// in case of just including trezor.js
+// var trezor = window.trezor;
 
 // DeviceList encapsulates transports, sessions, device enumeration and other
 // low-level things, and provides easy-to-use event interface.
@@ -25,14 +29,24 @@ list.on('connect', function (device) {
         throw new Error('Device is in bootloader mode, re-connected it');
     }
 
-    // Ask the device for public key:
-    device.session.getPublicKey([44, 0, 0])
+    var hardeningConstant = 0x80000000;
+
+    // Ask the device to show first address of first account on display and return it
+    device.session.getAddress([
+        44 | hardeningConstant,
+        0 | hardeningConstant,
+        0 | hardeningConstant,
+        0,
+        0
+    ], {coin_name: "Bitcoin"}, true)
         .then(function (result) {
-            console.log('Keys:', result);
+            console.log('Address:', result.message.address);
         })
         .catch(function (error) {
-            // Errors can happen easily, i.e. when device is disconnected.
-            console.error('Error:', error);
+            // Errors can happen easily, i.e. when device is disconnected or request rejected
+            // Note: if there is general error handler, that listens on device.on('error'),
+            // both this and the general error handler gets called
+            console.error('Call rejected:', error);
         });
 });
 
@@ -41,9 +55,11 @@ list.on('disconnect', function (device) {
     console.log('Devices:', list.asArray());
 });
 
+// This gets called on general error of the devicelist (no transport, etc)
 list.on('error', function (error) {
-    console.error('Error:', error);
+    console.error('List error:', error);
 });
+
 
 /**
  * @param {string}
