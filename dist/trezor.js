@@ -622,7 +622,7 @@ Session.prototype._indexTxsForSign = function (inputs, outputs, txs) {
     return index;
 };
 
-Session.prototype.signTx = function (inputs, outputs, txs, coin) {
+Session.prototype.signTx = function (inputs, outputs, txs, coin, notifyCallback) {
     var self = this,
         index = this._indexTxsForSign(inputs, outputs, txs),
         signatures = [],
@@ -634,6 +634,12 @@ Session.prototype.signTx = function (inputs, outputs, txs, coin) {
         coin_name: coin.coin_name
     }).then(process);
 
+    function notify(type) {
+        if (notifyCallback != null) {
+            notifyCallback(type);
+        }
+    }
+
     function process(res) {
         var m = res.message,
             ms = m.serialized,
@@ -644,6 +650,8 @@ Session.prototype.signTx = function (inputs, outputs, txs, coin) {
             serializedTx += ms.serialized_tx;
         if (ms && ms.signature_index != null)
             signatures[ms.signature_index] = ms.signature;
+
+        notify(m.request_type);
 
         if (m.request_type === 'TXFINISHED')
             return { // same format as SimpleSignTx
