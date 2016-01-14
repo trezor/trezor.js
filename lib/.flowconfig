@@ -1,0 +1,12 @@
+[ignore]
+
+[include]
+../node_modules/util/
+../node_modules/events/
+../node_modules/extend/
+../node_modules/randombytes/
+../node_modules/unorm/
+
+[libs]
+
+[options]
