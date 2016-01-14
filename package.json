@@ -19,11 +19,16 @@
   ],
   "main": "lib/index.js",
   "scripts": {
-    "build": "browserify lib/index.js --s trezor -o dist/trezor.js",
+    "build": "babel --plugins transform-flow-strip-types,transform-class-properties,add-module-exports --presets es2015 lib/ -d prebuild/ && browserify prebuild/index.js --s trezor -o dist/trezor.js",
     "deploy": "bin/deploy.sh"
   },
   "devDependencies": {
-    "browserify": "^12.0.1"
+    "babel-cli": "^6.4.0",
+    "babel-plugin-add-module-exports": "^0.1.2",
+    "babel-plugin-transform-class-properties": "^6.4.0",
+    "babel-plugin-transform-flow-strip-types": "^6.4.0",
+    "babel-preset-es2015": "^6.3.13",
+    "browserify": "^12.0.2"
   },
   "dependencies": {
     "extend": "^1.3.0",
