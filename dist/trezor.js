@@ -7974,6 +7974,13 @@ var Session = function (_EventEmitter) {
                 blacklist = {
                 PassphraseAck: {
                     passphrase: '(redacted...)'
+                },
+                CipheredKeyValue: {
+                    passphrase: '(redacted...)'
+                },
+                DecryptedMessage: {
+                    message: '(redacted...)',
+                    address: '(redacted...)'
                 }
             };
 
