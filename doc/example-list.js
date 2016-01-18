@@ -1,10 +1,10 @@
 'use strict';
 
 // in case of browserify
-var trezor = require('trezor.js');
+//var trezor = require('trezor.js');
 
 // in case of just including trezor.js
-// var trezor = window.trezor;
+ var trezor = window.trezor;
 
 // DeviceList encapsulates transports, sessions, device enumeration and other
 // low-level things, and provides easy-to-use event interface.
@@ -34,9 +34,9 @@ list.on('connect', function (device) {
     // Ask the device to show first address of first account on display and return it
     device.waitForSessionAndRun(function (session) {
         return session.getAddress([
-            44 | hardeningConstant,
-            0 | hardeningConstant,
-            0 | hardeningConstant,
+            (44 | hardeningConstant) >>> 0,
+            (0 | hardeningConstant) >>> 0,
+            (0 | hardeningConstant) >>> 0,
             0,
             0
         ], {coin_name: "Bitcoin"}, true)
