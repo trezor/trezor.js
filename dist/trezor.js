@@ -6851,15 +6851,17 @@ var Device = function (_EventEmitter) {
         value: function run(fn, options) {
             var _this2 = this;
 
-            if (this.activityInProgress) {
-                return Promise.reject(new Error('One activity already running.'));
-            }
             this.activityInProgress = true;
 
             var options_ = options == null ? {} : options;
             var aggressive = !!options_.aggressive;
             var skipFinalReload = !!options_.skipFinalReload;
             var waiting = !!options_.waiting;
+
+            var onlyOneActivity = !!options_.onlyOneActivity;
+            if (onlyOneActivity && this.activityInProgress) {
+                return Promise.reject(new Error('One activity already running.'));
+            }
 
             var currentSession = this.deviceList.getSession(this.path);
             if (!aggressive && !waiting && currentSession != null) {
