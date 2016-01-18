@@ -7978,7 +7978,7 @@ var Session = function (_EventEmitter) {
                     passphrase: '(redacted...)'
                 },
                 CipheredKeyValue: {
-                    passphrase: '(redacted...)'
+                    value: '(redacted...)'
                 },
                 DecryptedMessage: {
                     message: '(redacted...)',
