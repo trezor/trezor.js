@@ -6769,8 +6769,6 @@ module.exports = exports['default'];
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
@@ -6836,18 +6834,12 @@ var Device = function (_EventEmitter) {
         value: function waitForSessionAndRun(fn) {
             return this.run(fn, { waiting: true });
         }
-    }, {
-        key: 'emit',
-        value: function emit(event) {
-            var _console, _get2;
 
-            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-                args[_key - 1] = arguments[_key];
-            }
-
-            (_console = console).log.apply(_console, ["[device] Emitting", event].concat(args));
-            (_get2 = _get(Object.getPrototypeOf(Device.prototype), 'emit', this)).call.apply(_get2, [this, event].concat(args));
-        }
+        // FOR DEBUGGING
+        // emit(event: string, ...args: Array<any>) {
+        //     console.log("[device] Emitting", event, ...args);
+        //     super.emit(event, ...args);
+        // }
 
         // Initializes device with the given descriptor,
         // runs a given function and then releases the session.
@@ -6860,7 +6852,7 @@ var Device = function (_EventEmitter) {
             var _this2 = this;
 
             if (this.activityInProgress) {
-                return new Promise.reject(new Error('One activity already running.'));
+                return Promise.reject(new Error('One activity already running.'));
             }
             this.activityInProgress = true;
 
@@ -7101,8 +7093,8 @@ var Device = function (_EventEmitter) {
 exports.default = Device;
 function forward(source, target, event) {
     source.on(event, function () {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
         }
 
         if (event === 'error') {
