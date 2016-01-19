@@ -4,7 +4,7 @@
   "author": "BitcoinTrezor.com <info@bitcointrezor.com>",
   "homepage": "https://github.com/trezor/trezor.js",
   "description": "High-level Javascript API for Bitcoin Trezor",
-  "license": "LGPLv3",
+  "license": "LGPL-3.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/trezor/trezor.js.git"
@@ -23,7 +23,7 @@
     "deploy": "bin/deploy.sh"
   },
   "devDependencies": {
-    "browserify": "~3.32.0"
+    "browserify": "^13.0.0"
   },
   "dependencies": {
     "extend": "^1.3.0",
