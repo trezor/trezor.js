@@ -1,6 +1,8 @@
 trezor.js
 =========
 
+[![Build Status](https://travis-ci.org/trezor/trezor.js.svg?branch=master)](https://travis-ci.org/trezor/trezor.js)
+
 High-level Javascript API for Bitcoin Trezor
 
 Usage
