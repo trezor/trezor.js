@@ -6,7 +6,11 @@
 ../node_modules/extend/
 ../node_modules/randombytes/
 ../node_modules/unorm/
+../node_modules/traverse/
+../node_modules/superagent/
+../node_modules/sync-request/
 
 [libs]
+../flowtype_definitions/chrome.js
 
 [options]
