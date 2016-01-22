@@ -1056,6 +1056,9 @@ function installers(options) {
     });
 }
 
+// legacy API
+installers.latestVersion = latestVersion;
+
 function isPreferred(installer, platform) {
     if (typeof installer === 'string') {
         // single platform
