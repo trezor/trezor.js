@@ -780,7 +780,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.default = request;
-var request = require('superagent'),
+var _request = require('superagent'),
     legacyIESupport = require('./superagent-legacyIESupport'),
     _syncRequest = require('sync-request/browser.js');
 
@@ -817,7 +817,7 @@ function request(options) {
     options = wrapOptions(options);
 
     return new Promise(function (resolve, reject) {
-        request(options.method, options.url).use(legacyIESupport).type(contentType(options.body || '')).send(options.body || '').end(function (err, res) {
+        _request(options.method, options.url).use(legacyIESupport).type(contentType(options.body || '')).send(options.body || '').end(function (err, res) {
             if (!err && !res.ok) {
                 if (res.body && res.body.error) {
                     err = new Error(res.body.error);
@@ -962,7 +962,7 @@ Object.defineProperty(exports, 'udevInstallers', {
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 },{"./descriptor-stream":2,"./device":4,"./device-list":3,"./installers":7,"./session":10,"./transport":14,"./transport/chrome-extension":12,"./transport/http":13}],7:[function(require,module,exports){
-/*  weak*/
+
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -971,11 +971,15 @@ Object.defineProperty(exports, "__esModule", {
 exports.udevInstallers = udevInstallers;
 exports.latestVersion = latestVersion;
 exports.installers = installers;
+
 var DATA_DOMAIN = 'https://mytrezor.s3.amazonaws.com';
 
 function fillInstallerUrl(installer) {
-    installer.url = DATA_DOMAIN + installer.shortUrl;
-    return installer;
+    return {
+        url: DATA_DOMAIN + installer.shortUrl,
+        label: installer.label,
+        platform: installer.platform
+    };
 }
 
 var BRIDGE_VERSION_URL = DATA_DOMAIN + '/bridge/latest.txt';
@@ -1017,8 +1021,8 @@ var UDEV_INSTALLERS = [{
 }].map(fillInstallerUrl);
 
 function udevInstallers(options) {
-    var o = options || {},
-        platform = o.platform || preferredPlatform();
+    var o = options || {};
+    var platform = o.platform || preferredPlatform();
 
     return UDEV_INSTALLERS.map(function (udev) {
         return {
@@ -1032,18 +1036,18 @@ function udevInstallers(options) {
 
 // Note: this blocks because request blocks
 function latestVersion(options) {
-    var o = options || {},
-        bridgeUrl = o.bridgeUrl || BRIDGE_VERSION_URL,
-        version = requestUri(bridgeUrl).trim();
+    var o = options || {};
+    var bridgeUrl = o.bridgeUrl || BRIDGE_VERSION_URL;
+    var version = requestUri(bridgeUrl).trim();
     return version;
 }
 
 // Returns a list of bridge installers, with download URLs and a mark on
 // bridge preferred for the user's platform.
 function installers(options) {
-    var o = options || {},
-        version = o.version || latestVersion(options),
-        platform = o.platform || preferredPlatform();
+    var o = options || {};
+    var version = o.version || latestVersion(options);
+    var platform = o.platform || preferredPlatform();
 
     return BRIDGE_INSTALLERS.map(function (bridge) {
         return {
@@ -1056,7 +1060,7 @@ function installers(options) {
     });
 }
 
-// legacy API
+// legacy API :-(
 installers.latestVersion = latestVersion;
 
 function isPreferred(installer, platform) {
@@ -1082,6 +1086,10 @@ function preferredPlatform() {
     if (ver.match(/Mac/)) return 'mac';
     if (ver.match(/Linux i[3456]86/)) return ver.match(/CentOS|Fedora|Mandriva|Mageia|Red Hat|Scientific|SUSE/) ? 'rpm32' : 'deb32';
     if (ver.match(/Linux/)) return ver.match(/CentOS|Fedora|Mandriva|Mageia|Red Hat|Scientific|SUSE/) ? 'rpm64' : 'deb64';
+
+    // fallback - weird OS
+    // most likely windows, let's say 32 bit
+    return 'win32';
 }
 
 function requestUri(url) {
@@ -1393,6 +1401,9 @@ var Session = function (_EventEmitter) {
         value: function eraseFirmware() {
             return this._commonCall('FirmwareErase');
         }
+
+        // payload is in hexa
+
     }, {
         key: 'uploadFirmware',
         value: function uploadFirmware(payload) {
@@ -1429,7 +1440,8 @@ var Session = function (_EventEmitter) {
         }
     }, {
         key: 'cipherKeyValue',
-        value: function cipherKeyValue(address_n, key, value, encrypt, ask_on_encrypt, ask_on_decrypt, iv) {
+        value: function cipherKeyValue(address_n, key, value, encrypt, ask_on_encrypt, ask_on_decrypt, iv //in hexadecimal
+        ) {
             return this._typedCommonCall('CipherKeyValue', 'CipheredKeyValue', {
                 address_n: address_n,
                 key: key,
