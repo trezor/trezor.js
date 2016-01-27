@@ -1,10 +1,10 @@
 'use strict';
 
 // in case of browserify
-var trezor = require('trezor.js');
+//var trezor = require('trezor.js');
 
 // in case of just including trezor.js
-// var trezor = window.trezor;
+ var trezor = window.trezor;
 
 // DeviceList encapsulates transports, sessions, device enumeration and other
 // low-level things, and provides easy-to-use event interface.
@@ -32,24 +32,27 @@ list.on('connect', function (device) {
     var hardeningConstant = 0x80000000;
 
     // Ask the device to show first address of first account on display and return it
-    device.session.getAddress([
-        44 | hardeningConstant,
-        0 | hardeningConstant,
-        0 | hardeningConstant,
-        0,
-        0
-    ], {coin_name: "Bitcoin"}, true)
-        .then(function (result) {
-            console.log('Address:', result.message.address);
-        })
-        .catch(function (error) {
-            // Errors can happen easily, i.e. when device is disconnected or request rejected
-            // Note: if there is general error handler, that listens on device.on('error'),
-            // both this and the general error handler gets called
-            console.error('Call rejected:', error);
-        });
+    device.waitForSessionAndRun(function (session) {
+        return session.getAddress([
+            (44 | hardeningConstant) >>> 0,
+            (0 | hardeningConstant) >>> 0,
+            (0 | hardeningConstant) >>> 0,
+            0,
+            0
+        ], {coin_name: "Bitcoin"}, true)
+    })
+    .then(function (result) {
+        console.log('Address:', result.message.address);
+    })
+    .catch(function (error) {
+        // Errors can happen easily, i.e. when device is disconnected or request rejected
+        // Note: if there is general error handler, that listens on device.on('error'),
+        // both this and the general error handler gets called
+        console.error('Call rejected:', error);
+    });
 });
 
+// Note that this is a bit duplicate to device.on('disconnect')
 list.on('disconnect', function (device) {
     console.log('Disconnected a device:', device);
     console.log('Devices:', list.asArray());
