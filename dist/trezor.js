@@ -959,9 +959,18 @@ Object.defineProperty(exports, 'udevInstallers', {
   }
 });
 
+var _http2 = require('./http');
+
+Object.defineProperty(exports, 'http', {
+  enumerable: true,
+  get: function get() {
+    return _interopRequireDefault(_http2).default;
+  }
+});
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./descriptor-stream":2,"./device":4,"./device-list":3,"./installers":7,"./session":10,"./transport":14,"./transport/chrome-extension":12,"./transport/http":13}],7:[function(require,module,exports){
+},{"./descriptor-stream":2,"./device":4,"./device-list":3,"./http":5,"./installers":7,"./session":10,"./transport":14,"./transport/chrome-extension":12,"./transport/http":13}],7:[function(require,module,exports){
 
 'use strict';
 
