@@ -1,16 +1,19 @@
 [ignore]
 
 [include]
-../node_modules/util/
+../node_modules/bitcoinjs-lib/
+../node_modules/ecurve/
 ../node_modules/events/
-../node_modules/extend/
+../node_modules/babel-polyfill/
 ../node_modules/randombytes/
-../node_modules/unorm/
-../node_modules/traverse/
 ../node_modules/superagent/
 ../node_modules/sync-request/
+../node_modules/traverse/
+../node_modules/unorm/
+../node_modules/util/
 
 [libs]
 ../flowtype_definitions/chrome.js
+../flowtype_definitions/bitcoin.js
 
 [options]
