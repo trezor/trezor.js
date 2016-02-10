@@ -10,7 +10,6 @@
 ../node_modules/sync-request/
 ../node_modules/traverse/
 ../node_modules/unorm/
-../node_modules/util/
 
 [libs]
 ../flowtype_definitions/chrome.js
