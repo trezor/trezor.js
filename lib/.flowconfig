@@ -4,9 +4,9 @@
 ../node_modules/bitcoinjs-lib/
 ../node_modules/ecurve/
 ../node_modules/events/
+../node_modules/fetch/
 ../node_modules/babel-polyfill/
 ../node_modules/randombytes/
-../node_modules/superagent/
 ../node_modules/sync-request/
 ../node_modules/traverse/
 ../node_modules/unorm/
@@ -14,6 +14,7 @@
 
 [libs]
 ../flowtype_definitions/chrome.js
+../flowtype_definitions/fetch.js
 ../flowtype_definitions/bitcoin.js
 
 [options]
