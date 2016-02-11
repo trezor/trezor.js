@@ -58,11 +58,11 @@ function send(extensionId, message) {
 
 "use strict";
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _events = require('events');
 
@@ -207,11 +207,11 @@ module.exports = exports['default'];
 
 "use strict";
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _events = require('events');
 
@@ -427,11 +427,11 @@ module.exports = exports['default'];
 
 "use strict";
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _events = require('events');
 
@@ -488,6 +488,7 @@ var Device = function (_EventEmitter) {
     // First parameter is a function that has two parameters
     // - first the session and second the fresh device features.
     // Note - when descriptor.path != null, this will steal the device from someone else
+
 
     _createClass(Device, [{
         key: 'waitForSessionAndRun',
@@ -752,6 +753,7 @@ var Device = function (_EventEmitter) {
 
 // Forwards events from source to target
 
+
 exports.default = Device;
 function forward(source, target, event) {
     source.on(event, function () {
@@ -774,11 +776,12 @@ module.exports = exports['default'];
 /*  weak*/
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 exports.default = request;
 var _request = require('superagent'),
     legacyIESupport = require('./superagent-legacyIESupport'),
@@ -860,7 +863,7 @@ request.sync = function (options) {
 };
 module.exports = exports['default'];
 
-},{"./superagent-legacyIESupport":11,"superagent":28,"sync-request/browser.js":29}],6:[function(require,module,exports){
+},{"./superagent-legacyIESupport":11,"superagent":33,"sync-request/browser.js":34}],6:[function(require,module,exports){
 
 
 'use strict';
@@ -989,6 +992,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.udevInstallers = udevInstallers;
 exports.latestVersion = latestVersion;
 exports.installers = installers;
+
 
 var DATA_DOMAIN = 'https://mytrezor.s3.amazonaws.com';
 
@@ -1231,11 +1235,11 @@ module.exports = exports['default'];
 /*  weak */
 "use strict";
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _randombytes = require('randombytes');
 
@@ -1261,7 +1265,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 // (not possible in ES6 way)
 require('unorm'); // in general, can be anything
 
+
 // TODO add proper flow typing when it's time
+
 
 //
 // Trezor device session handle. Acts as a event emitter.
@@ -1503,19 +1509,13 @@ var Session = function (_EventEmitter) {
     }, {
         key: 'signTx',
         value: function signTx(inputs, outputs, txs, coin) {
+            var _this2 = this;
+
             var index = this._indexTxsForSign(inputs, outputs, txs);
             var signatures = [];
             var serializedTx = '';
 
-            return this._typedCommonCall('SignTx', 'TxRequest', {
-                inputs_count: inputs.length,
-                outputs_count: outputs.length,
-                coin_name: coin.coin_name
-            }).then(function (res) {
-                return process(res);
-            });
-
-            function process(res) {
+            var process = function process(res) {
                 var m = res.message;
                 var ms = m.serialized;
                 var md = m.details;
@@ -1558,18 +1558,26 @@ var Session = function (_EventEmitter) {
                         throw new Error('Unknown request type: ' + m.request_type);
                 }
 
-                return this._typedCommonCall('TxAck', 'TxRequest', {
+                return _this2._typedCommonCall('TxAck', 'TxRequest', {
                     tx: resTx
                 }).then(process);
-            }
+            };
+
+            return this._typedCommonCall('SignTx', 'TxRequest', {
+                inputs_count: inputs.length,
+                outputs_count: outputs.length,
+                coin_name: coin.coin_name
+            }).then(function (res) {
+                return process(res);
+            });
         }
     }, {
         key: '_typedCommonCall',
         value: function _typedCommonCall(type, resType, msg) {
-            var _this2 = this;
+            var _this3 = this;
 
             return this._commonCall(type, msg).then(function (res) {
-                return _this2._assertType(res, resType);
+                return _this3._assertType(res, resType);
             });
         }
     }, {
@@ -1581,12 +1589,12 @@ var Session = function (_EventEmitter) {
     }, {
         key: '_commonCall',
         value: function _commonCall(type, msg) {
-            var _this3 = this;
+            var _this4 = this;
 
             var callpr = this._call(type, msg);
 
             return callpr.then(function (res) {
-                return _this3._filterCommonTypes(res);
+                return _this4._filterCommonTypes(res);
             });
         }
 
@@ -1598,7 +1606,7 @@ var Session = function (_EventEmitter) {
     }, {
         key: '_filterCommonTypes',
         value: function _filterCommonTypes(res) {
-            var _this4 = this;
+            var _this5 = this;
 
             if (res.type === 'Failure') throw res.message;
 
@@ -1612,23 +1620,23 @@ var Session = function (_EventEmitter) {
             });
 
             if (res.type === 'PinMatrixRequest') return this._promptPin(res.message.type).then(function (pin) {
-                return _this4._commonCall('PinMatrixAck', { pin: pin });
+                return _this5._commonCall('PinMatrixAck', { pin: pin });
             }, function () {
-                return _this4._commonCall('Cancel');
+                return _this5._commonCall('Cancel');
             });
 
             if (res.type === 'PassphraseRequest') return this._promptPassphrase().then(function (passphrase) {
-                return _this4._commonCall('PassphraseAck', { passphrase: passphrase });
+                return _this5._commonCall('PassphraseAck', { passphrase: passphrase });
             }, function (err) {
-                return _this4._commonCall('Cancel').then(null, function (e) {
+                return _this5._commonCall('Cancel').then(null, function (e) {
                     throw err || e;
                 });
             });
 
             if (res.type === 'WordRequest') return this._promptWord().then(function (word) {
-                return _this4._commonCall('WordAck', { word: word });
+                return _this5._commonCall('WordAck', { word: word });
             }, function () {
-                return _this4._commonCall('Cancel');
+                return _this5._commonCall('Cancel');
             });
 
             return res;
@@ -1636,10 +1644,10 @@ var Session = function (_EventEmitter) {
     }, {
         key: '_promptPin',
         value: function _promptPin(type) {
-            var _this5 = this;
+            var _this6 = this;
 
             return new Promise(function (resolve, reject) {
-                if (!_this5._emitter.emit('pin', type, function (err, pin) {
+                if (!_this6._emitter.emit('pin', type, function (err, pin) {
                     if (err || pin == null) reject(err);else resolve(pin);
                 })) {
                     console.warn('[trezor] PIN callback not configured, cancelling request');
@@ -1650,10 +1658,10 @@ var Session = function (_EventEmitter) {
     }, {
         key: '_promptPassphrase',
         value: function _promptPassphrase() {
-            var _this6 = this;
+            var _this7 = this;
 
             return new Promise(function (resolve, reject) {
-                if (!_this6._emitter.emit('passphrase', function (err, passphrase) {
+                if (!_this7._emitter.emit('passphrase', function (err, passphrase) {
                     if (err || passphrase == null) reject(err);else resolve(passphrase.normalize('NFKD'));
                 })) {
                     // TODO can this happen at all?
@@ -1665,10 +1673,10 @@ var Session = function (_EventEmitter) {
     }, {
         key: '_promptWord',
         value: function _promptWord() {
-            var _this7 = this;
+            var _this8 = this;
 
             return new Promise(function (resolve, reject) {
-                if (!_this7._emitter.emit('word', function (err, word) {
+                if (!_this8._emitter.emit('word', function (err, word) {
                     if (err || word == null) reject(err);else resolve(word.toLocaleLowerCase());
                 })) {
                     // TODO can this happen at all?
@@ -1704,9 +1712,10 @@ var Session = function (_EventEmitter) {
     }, {
         key: '_call',
         value: function _call(type) {
-            var _this8 = this;
+            var _this9 = this;
 
             var msg = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
 
             var logMessage = this._filterForLog(type, msg);
 
@@ -1714,14 +1723,14 @@ var Session = function (_EventEmitter) {
             this._emitter.emit('send', type, msg);
 
             return this._transport.call(this._sessionId, type, msg).then(function (res) {
-                var logMessage = _this8._filterForLog(res.type, res.message);
+                var logMessage = _this9._filterForLog(res.type, res.message);
 
                 console.log('[trezor] Received', res.type, logMessage);
-                _this8._emitter.emit('receive', res.type, res.message);
+                _this9._emitter.emit('receive', res.type, res.message);
                 return res;
             }, function (err) {
                 console.log('[trezord] Received error', err);
-                _this8._emitter.emit('error', err);
+                _this9._emitter.emit('error', err);
                 throw err;
             });
         }
@@ -1734,6 +1743,7 @@ var Session = function (_EventEmitter) {
         key: '_callSync',
         value: function _callSync(type) {
             var msg = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
 
             if (!this.supportsSync) {
                 throw new Error('Blocking calls are not supported');
@@ -1793,6 +1803,7 @@ var Session = function (_EventEmitter) {
 
 // Encode binary string to hex string
 
+
 exports.default = Session;
 function stringToHex(bin) {
     var i = undefined,
@@ -1819,7 +1830,7 @@ function hexToString(hex) {
 module.exports = exports['default'];
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"buffer":18,"events":21,"extend":22,"randombytes":26,"unorm":37}],11:[function(require,module,exports){
+},{"buffer":18,"events":21,"extend":22,"randombytes":31,"unorm":37}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2499,11 +2510,11 @@ module.exports = exports['default'];
 
 "use strict";
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _events = require('events');
 
@@ -2540,8 +2551,10 @@ var UnacquiredDevice = function (_EventEmitter) {
 
     // returns Promise just to be similar to Device.fromPath
 
+
     _createClass(UnacquiredDevice, [{
         key: 'steal',
+
 
         // what steal() does is that it does not actually keep the session for itself
         // because it immediately releases it again;
@@ -2597,129 +2610,123 @@ exports.default = UnacquiredDevice;
 module.exports = exports['default'];
 
 },{"./device":4,"events":21}],17:[function(require,module,exports){
-var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-
 ;(function (exports) {
-	'use strict';
+  'use strict'
+
+  var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
   var Arr = (typeof Uint8Array !== 'undefined')
     ? Uint8Array
     : Array
 
-	var PLUS   = '+'.charCodeAt(0)
-	var SLASH  = '/'.charCodeAt(0)
-	var NUMBER = '0'.charCodeAt(0)
-	var LOWER  = 'a'.charCodeAt(0)
-	var UPPER  = 'A'.charCodeAt(0)
-	var PLUS_URL_SAFE = '-'.charCodeAt(0)
-	var SLASH_URL_SAFE = '_'.charCodeAt(0)
+  var PLUS = '+'.charCodeAt(0)
+  var SLASH = '/'.charCodeAt(0)
+  var NUMBER = '0'.charCodeAt(0)
+  var LOWER = 'a'.charCodeAt(0)
+  var UPPER = 'A'.charCodeAt(0)
+  var PLUS_URL_SAFE = '-'.charCodeAt(0)
+  var SLASH_URL_SAFE = '_'.charCodeAt(0)
 
-	function decode (elt) {
-		var code = elt.charCodeAt(0)
-		if (code === PLUS ||
-		    code === PLUS_URL_SAFE)
-			return 62 // '+'
-		if (code === SLASH ||
-		    code === SLASH_URL_SAFE)
-			return 63 // '/'
-		if (code < NUMBER)
-			return -1 //no match
-		if (code < NUMBER + 10)
-			return code - NUMBER + 26 + 26
-		if (code < UPPER + 26)
-			return code - UPPER
-		if (code < LOWER + 26)
-			return code - LOWER + 26
-	}
+  function decode (elt) {
+    var code = elt.charCodeAt(0)
+    if (code === PLUS || code === PLUS_URL_SAFE) return 62 // '+'
+    if (code === SLASH || code === SLASH_URL_SAFE) return 63 // '/'
+    if (code < NUMBER) return -1 // no match
+    if (code < NUMBER + 10) return code - NUMBER + 26 + 26
+    if (code < UPPER + 26) return code - UPPER
+    if (code < LOWER + 26) return code - LOWER + 26
+  }
 
-	function b64ToByteArray (b64) {
-		var i, j, l, tmp, placeHolders, arr
+  function b64ToByteArray (b64) {
+    var i, j, l, tmp, placeHolders, arr
 
-		if (b64.length % 4 > 0) {
-			throw new Error('Invalid string. Length must be a multiple of 4')
-		}
+    if (b64.length % 4 > 0) {
+      throw new Error('Invalid string. Length must be a multiple of 4')
+    }
 
-		// the number of equal signs (place holders)
-		// if there are two placeholders, than the two characters before it
-		// represent one byte
-		// if there is only one, then the three characters before it represent 2 bytes
-		// this is just a cheap hack to not do indexOf twice
-		var len = b64.length
-		placeHolders = '=' === b64.charAt(len - 2) ? 2 : '=' === b64.charAt(len - 1) ? 1 : 0
+    // the number of equal signs (place holders)
+    // if there are two placeholders, than the two characters before it
+    // represent one byte
+    // if there is only one, then the three characters before it represent 2 bytes
+    // this is just a cheap hack to not do indexOf twice
+    var len = b64.length
+    placeHolders = b64.charAt(len - 2) === '=' ? 2 : b64.charAt(len - 1) === '=' ? 1 : 0
 
-		// base64 is 4/3 + up to two characters of the original data
-		arr = new Arr(b64.length * 3 / 4 - placeHolders)
+    // base64 is 4/3 + up to two characters of the original data
+    arr = new Arr(b64.length * 3 / 4 - placeHolders)
 
-		// if there are placeholders, only get up to the last complete 4 chars
-		l = placeHolders > 0 ? b64.length - 4 : b64.length
+    // if there are placeholders, only get up to the last complete 4 chars
+    l = placeHolders > 0 ? b64.length - 4 : b64.length
 
-		var L = 0
+    var L = 0
 
-		function push (v) {
-			arr[L++] = v
-		}
+    function push (v) {
+      arr[L++] = v
+    }
 
-		for (i = 0, j = 0; i < l; i += 4, j += 3) {
-			tmp = (decode(b64.charAt(i)) << 18) | (decode(b64.charAt(i + 1)) << 12) | (decode(b64.charAt(i + 2)) << 6) | decode(b64.charAt(i + 3))
-			push((tmp & 0xFF0000) >> 16)
-			push((tmp & 0xFF00) >> 8)
-			push(tmp & 0xFF)
-		}
+    for (i = 0, j = 0; i < l; i += 4, j += 3) {
+      tmp = (decode(b64.charAt(i)) << 18) | (decode(b64.charAt(i + 1)) << 12) | (decode(b64.charAt(i + 2)) << 6) | decode(b64.charAt(i + 3))
+      push((tmp & 0xFF0000) >> 16)
+      push((tmp & 0xFF00) >> 8)
+      push(tmp & 0xFF)
+    }
 
-		if (placeHolders === 2) {
-			tmp = (decode(b64.charAt(i)) << 2) | (decode(b64.charAt(i + 1)) >> 4)
-			push(tmp & 0xFF)
-		} else if (placeHolders === 1) {
-			tmp = (decode(b64.charAt(i)) << 10) | (decode(b64.charAt(i + 1)) << 4) | (decode(b64.charAt(i + 2)) >> 2)
-			push((tmp >> 8) & 0xFF)
-			push(tmp & 0xFF)
-		}
+    if (placeHolders === 2) {
+      tmp = (decode(b64.charAt(i)) << 2) | (decode(b64.charAt(i + 1)) >> 4)
+      push(tmp & 0xFF)
+    } else if (placeHolders === 1) {
+      tmp = (decode(b64.charAt(i)) << 10) | (decode(b64.charAt(i + 1)) << 4) | (decode(b64.charAt(i + 2)) >> 2)
+      push((tmp >> 8) & 0xFF)
+      push(tmp & 0xFF)
+    }
 
-		return arr
-	}
+    return arr
+  }
 
-	function uint8ToBase64 (uint8) {
-		var i,
-			extraBytes = uint8.length % 3, // if we have 1 byte left, pad 2 bytes
-			output = "",
-			temp, length
+  function uint8ToBase64 (uint8) {
+    var i
+    var extraBytes = uint8.length % 3 // if we have 1 byte left, pad 2 bytes
+    var output = ''
+    var temp, length
 
-		function encode (num) {
-			return lookup.charAt(num)
-		}
+    function encode (num) {
+      return lookup.charAt(num)
+    }
 
-		function tripletToBase64 (num) {
-			return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F)
-		}
+    function tripletToBase64 (num) {
+      return encode(num >> 18 & 0x3F) + encode(num >> 12 & 0x3F) + encode(num >> 6 & 0x3F) + encode(num & 0x3F)
+    }
 
-		// go through the array every three bytes, we'll deal with trailing stuff later
-		for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
-			temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
-			output += tripletToBase64(temp)
-		}
+    // go through the array every three bytes, we'll deal with trailing stuff later
+    for (i = 0, length = uint8.length - extraBytes; i < length; i += 3) {
+      temp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+      output += tripletToBase64(temp)
+    }
 
-		// pad the end with zeros, but make sure to not forget the extra bytes
-		switch (extraBytes) {
-			case 1:
-				temp = uint8[uint8.length - 1]
-				output += encode(temp >> 2)
-				output += encode((temp << 4) & 0x3F)
-				output += '=='
-				break
-			case 2:
-				temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1])
-				output += encode(temp >> 10)
-				output += encode((temp >> 4) & 0x3F)
-				output += encode((temp << 2) & 0x3F)
-				output += '='
-				break
-		}
+    // pad the end with zeros, but make sure to not forget the extra bytes
+    switch (extraBytes) {
+      case 1:
+        temp = uint8[uint8.length - 1]
+        output += encode(temp >> 2)
+        output += encode((temp << 4) & 0x3F)
+        output += '=='
+        break
+      case 2:
+        temp = (uint8[uint8.length - 2] << 8) + (uint8[uint8.length - 1])
+        output += encode(temp >> 10)
+        output += encode((temp >> 4) & 0x3F)
+        output += encode((temp << 2) & 0x3F)
+        output += '='
+        break
+      default:
+        break
+    }
 
-		return output
-	}
+    return output
+  }
 
-	exports.toByteArray = b64ToByteArray
-	exports.fromByteArray = uint8ToBase64
+  exports.toByteArray = b64ToByteArray
+  exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
 },{}],18:[function(require,module,exports){
@@ -2761,9 +2768,6 @@ var rootParent = {}
  *   - Firefox 4-29 lacks support for adding new properties to `Uint8Array` instances,
  *     See: https://bugzilla.mozilla.org/show_bug.cgi?id=695438.
  *
- *   - Safari 5-7 lacks support for changing the `Object.prototype.constructor` property
- *     on objects.
- *
  *   - Chrome 9-10 is missing the `TypedArray.prototype.subarray` function.
  *
  *   - IE10 has a broken `TypedArray.prototype.subarray` function which returns arrays of
@@ -2777,13 +2781,10 @@ Buffer.TYPED_ARRAY_SUPPORT = global.TYPED_ARRAY_SUPPORT !== undefined
   : typedArraySupport()
 
 function typedArraySupport () {
-  function Bar () {}
   try {
     var arr = new Uint8Array(1)
     arr.foo = function () { return 42 }
-    arr.constructor = Bar
     return arr.foo() === 42 && // typed array instances can be augmented
-        arr.constructor === Bar && // constructor can be set
         typeof arr.subarray === 'function' && // chrome 9-10 lack `subarray`
         arr.subarray(1, 1).byteLength === 0 // ie10 has broken `subarray`
   } catch (e) {
@@ -2798,16 +2799,13 @@ function kMaxLength () {
 }
 
 /**
- * Class: Buffer
- * =============
+ * The Buffer constructor returns instances of `Uint8Array` that have their
+ * prototype changed to `Buffer.prototype`. Furthermore, `Buffer` is a subclass of
+ * `Uint8Array`, so the returned instances will have all the node `Buffer` methods
+ * and the `Uint8Array` methods. Square bracket notation works as expected -- it
+ * returns a single octet.
  *
- * The Buffer constructor returns instances of `Uint8Array` that are augmented
- * with function properties for all the node `Buffer` API functions. We use
- * `Uint8Array` so that square bracket notation works as expected -- it returns
- * a single octet.
- *
- * By augmenting the instances, we can avoid modifying the `Uint8Array`
- * prototype.
+ * The `Uint8Array` prototype remains unmodified.
  */
 function Buffer (arg) {
   if (!(this instanceof Buffer)) {
@@ -2833,6 +2831,12 @@ function Buffer (arg) {
 
   // Unusual.
   return fromObject(this, arg)
+}
+
+// TODO: Legacy, not needed anymore. Remove in next major version.
+Buffer._augment = function (arr) {
+  arr.__proto__ = Buffer.prototype
+  return arr
 }
 
 function fromNumber (that, length) {
@@ -2909,10 +2913,12 @@ function fromTypedArray (that, array) {
 }
 
 function fromArrayBuffer (that, array) {
+  array.byteLength // this throws if `array` is not a valid ArrayBuffer
+
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     // Return an augmented `Uint8Array` instance, for best performance
-    array.byteLength
-    that = Buffer._augment(new Uint8Array(array))
+    that = new Uint8Array(array)
+    that.__proto__ = Buffer.prototype
   } else {
     // Fallback: Return an object instance of the Buffer class
     that = fromTypedArray(that, new Uint8Array(array))
@@ -2959,12 +2965,11 @@ if (Buffer.TYPED_ARRAY_SUPPORT) {
 function allocate (that, length) {
   if (Buffer.TYPED_ARRAY_SUPPORT) {
     // Return an augmented `Uint8Array` instance, for best performance
-    that = Buffer._augment(new Uint8Array(length))
+    that = new Uint8Array(length)
     that.__proto__ = Buffer.prototype
   } else {
     // Fallback: Return an object instance of the Buffer class
     that.length = length
-    that._isBuffer = true
   }
 
   var fromPool = length !== 0 && length <= Buffer.poolSize >>> 1
@@ -3147,6 +3152,10 @@ function slowToString (encoding, start, end) {
   }
 }
 
+// The property is used by `Buffer.isBuffer` and `is-buffer` (in Safari 5-7) to detect
+// Buffer instances.
+Buffer.prototype._isBuffer = true
+
 Buffer.prototype.toString = function toString () {
   var length = this.length | 0
   if (length === 0) return ''
@@ -3215,18 +3224,6 @@ Buffer.prototype.indexOf = function indexOf (val, byteOffset) {
   }
 
   throw new TypeError('val must be string, number or Buffer')
-}
-
-// `get` is deprecated
-Buffer.prototype.get = function get (offset) {
-  console.log('.get() is deprecated. Access using array indexes instead.')
-  return this.readUInt8(offset)
-}
-
-// `set` is deprecated
-Buffer.prototype.set = function set (v, offset) {
-  console.log('.set() is deprecated. Access using array indexes instead.')
-  return this.writeUInt8(v, offset)
 }
 
 function hexWrite (buf, string, offset, length) {
@@ -3524,7 +3521,8 @@ Buffer.prototype.slice = function slice (start, end) {
 
   var newBuf
   if (Buffer.TYPED_ARRAY_SUPPORT) {
-    newBuf = Buffer._augment(this.subarray(start, end))
+    newBuf = this.subarray(start, end)
+    newBuf.__proto__ = Buffer.prototype
   } else {
     var sliceLen = end - start
     newBuf = new Buffer(sliceLen, undefined)
@@ -3928,7 +3926,6 @@ Buffer.prototype.writeInt32BE = function writeInt32BE (value, offset, noAssert) 
 }
 
 function checkIEEE754 (buf, value, offset, ext, max, min) {
-  if (value > max || value < min) throw new RangeError('value is out of bounds')
   if (offset + ext > buf.length) throw new RangeError('index out of range')
   if (offset < 0) throw new RangeError('index out of range')
 }
@@ -4004,7 +4001,11 @@ Buffer.prototype.copy = function copy (target, targetStart, start, end) {
       target[i + targetStart] = this[i + start]
     }
   } else {
-    target._set(this.subarray(start, start + len), targetStart)
+    Uint8Array.prototype.set.call(
+      target,
+      this.subarray(start, start + len),
+      targetStart
+    )
   }
 
   return len
@@ -4041,96 +4042,8 @@ Buffer.prototype.fill = function fill (value, start, end) {
   return this
 }
 
-/**
- * Creates a new `ArrayBuffer` with the *copied* memory of the buffer instance.
- * Added in Node 0.12. Only available in browsers that support ArrayBuffer.
- */
-Buffer.prototype.toArrayBuffer = function toArrayBuffer () {
-  if (typeof Uint8Array !== 'undefined') {
-    if (Buffer.TYPED_ARRAY_SUPPORT) {
-      return (new Buffer(this)).buffer
-    } else {
-      var buf = new Uint8Array(this.length)
-      for (var i = 0, len = buf.length; i < len; i += 1) {
-        buf[i] = this[i]
-      }
-      return buf.buffer
-    }
-  } else {
-    throw new TypeError('Buffer.toArrayBuffer not supported in this browser')
-  }
-}
-
 // HELPER FUNCTIONS
 // ================
-
-var BP = Buffer.prototype
-
-/**
- * Augment a Uint8Array *instance* (not the Uint8Array class!) with Buffer methods
- */
-Buffer._augment = function _augment (arr) {
-  arr.constructor = Buffer
-  arr._isBuffer = true
-
-  // save reference to original Uint8Array set method before overwriting
-  arr._set = arr.set
-
-  // deprecated
-  arr.get = BP.get
-  arr.set = BP.set
-
-  arr.write = BP.write
-  arr.toString = BP.toString
-  arr.toLocaleString = BP.toString
-  arr.toJSON = BP.toJSON
-  arr.equals = BP.equals
-  arr.compare = BP.compare
-  arr.indexOf = BP.indexOf
-  arr.copy = BP.copy
-  arr.slice = BP.slice
-  arr.readUIntLE = BP.readUIntLE
-  arr.readUIntBE = BP.readUIntBE
-  arr.readUInt8 = BP.readUInt8
-  arr.readUInt16LE = BP.readUInt16LE
-  arr.readUInt16BE = BP.readUInt16BE
-  arr.readUInt32LE = BP.readUInt32LE
-  arr.readUInt32BE = BP.readUInt32BE
-  arr.readIntLE = BP.readIntLE
-  arr.readIntBE = BP.readIntBE
-  arr.readInt8 = BP.readInt8
-  arr.readInt16LE = BP.readInt16LE
-  arr.readInt16BE = BP.readInt16BE
-  arr.readInt32LE = BP.readInt32LE
-  arr.readInt32BE = BP.readInt32BE
-  arr.readFloatLE = BP.readFloatLE
-  arr.readFloatBE = BP.readFloatBE
-  arr.readDoubleLE = BP.readDoubleLE
-  arr.readDoubleBE = BP.readDoubleBE
-  arr.writeUInt8 = BP.writeUInt8
-  arr.writeUIntLE = BP.writeUIntLE
-  arr.writeUIntBE = BP.writeUIntBE
-  arr.writeUInt16LE = BP.writeUInt16LE
-  arr.writeUInt16BE = BP.writeUInt16BE
-  arr.writeUInt32LE = BP.writeUInt32LE
-  arr.writeUInt32BE = BP.writeUInt32BE
-  arr.writeIntLE = BP.writeIntLE
-  arr.writeIntBE = BP.writeIntBE
-  arr.writeInt8 = BP.writeInt8
-  arr.writeInt16LE = BP.writeInt16LE
-  arr.writeInt16BE = BP.writeInt16BE
-  arr.writeInt32LE = BP.writeInt32LE
-  arr.writeInt32BE = BP.writeInt32BE
-  arr.writeFloatLE = BP.writeFloatLE
-  arr.writeFloatBE = BP.writeFloatBE
-  arr.writeDoubleLE = BP.writeDoubleLE
-  arr.writeDoubleBE = BP.writeDoubleBE
-  arr.fill = BP.fill
-  arr.inspect = BP.inspect
-  arr.toArrayBuffer = BP.toArrayBuffer
-
-  return arr
-}
 
 var INVALID_BASE64_RE = /[^+\/0-9A-Za-z-_]/g
 
@@ -5054,6 +4967,418 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],26:[function(require,module,exports){
+module.exports = require('./lib/');
+
+},{"./lib/":27}],27:[function(require,module,exports){
+// Load modules
+
+var Stringify = require('./stringify');
+var Parse = require('./parse');
+
+
+// Declare internals
+
+var internals = {};
+
+
+module.exports = {
+    stringify: Stringify,
+    parse: Parse
+};
+
+},{"./parse":28,"./stringify":29}],28:[function(require,module,exports){
+// Load modules
+
+var Utils = require('./utils');
+
+
+// Declare internals
+
+var internals = {
+    delimiter: '&',
+    depth: 5,
+    arrayLimit: 20,
+    parameterLimit: 1000
+};
+
+
+internals.parseValues = function (str, options) {
+
+    var obj = {};
+    var parts = str.split(options.delimiter, options.parameterLimit === Infinity ? undefined : options.parameterLimit);
+
+    for (var i = 0, il = parts.length; i < il; ++i) {
+        var part = parts[i];
+        var pos = part.indexOf(']=') === -1 ? part.indexOf('=') : part.indexOf(']=') + 1;
+
+        if (pos === -1) {
+            obj[Utils.decode(part)] = '';
+        }
+        else {
+            var key = Utils.decode(part.slice(0, pos));
+            var val = Utils.decode(part.slice(pos + 1));
+
+            if (!Object.prototype.hasOwnProperty.call(obj, key)) {
+                obj[key] = val;
+            }
+            else {
+                obj[key] = [].concat(obj[key]).concat(val);
+            }
+        }
+    }
+
+    return obj;
+};
+
+
+internals.parseObject = function (chain, val, options) {
+
+    if (!chain.length) {
+        return val;
+    }
+
+    var root = chain.shift();
+
+    var obj = {};
+    if (root === '[]') {
+        obj = [];
+        obj = obj.concat(internals.parseObject(chain, val, options));
+    }
+    else {
+        var cleanRoot = root[0] === '[' && root[root.length - 1] === ']' ? root.slice(1, root.length - 1) : root;
+        var index = parseInt(cleanRoot, 10);
+        var indexString = '' + index;
+        if (!isNaN(index) &&
+            root !== cleanRoot &&
+            indexString === cleanRoot &&
+            index >= 0 &&
+            index <= options.arrayLimit) {
+
+            obj = [];
+            obj[index] = internals.parseObject(chain, val, options);
+        }
+        else {
+            obj[cleanRoot] = internals.parseObject(chain, val, options);
+        }
+    }
+
+    return obj;
+};
+
+
+internals.parseKeys = function (key, val, options) {
+
+    if (!key) {
+        return;
+    }
+
+    // The regex chunks
+
+    var parent = /^([^\[\]]*)/;
+    var child = /(\[[^\[\]]*\])/g;
+
+    // Get the parent
+
+    var segment = parent.exec(key);
+
+    // Don't allow them to overwrite object prototype properties
+
+    if (Object.prototype.hasOwnProperty(segment[1])) {
+        return;
+    }
+
+    // Stash the parent if it exists
+
+    var keys = [];
+    if (segment[1]) {
+        keys.push(segment[1]);
+    }
+
+    // Loop through children appending to the array until we hit depth
+
+    var i = 0;
+    while ((segment = child.exec(key)) !== null && i < options.depth) {
+
+        ++i;
+        if (!Object.prototype.hasOwnProperty(segment[1].replace(/\[|\]/g, ''))) {
+            keys.push(segment[1]);
+        }
+    }
+
+    // If there's a remainder, just add whatever is left
+
+    if (segment) {
+        keys.push('[' + key.slice(segment.index) + ']');
+    }
+
+    return internals.parseObject(keys, val, options);
+};
+
+
+module.exports = function (str, options) {
+
+    if (str === '' ||
+        str === null ||
+        typeof str === 'undefined') {
+
+        return {};
+    }
+
+    options = options || {};
+    options.delimiter = typeof options.delimiter === 'string' || Utils.isRegExp(options.delimiter) ? options.delimiter : internals.delimiter;
+    options.depth = typeof options.depth === 'number' ? options.depth : internals.depth;
+    options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : internals.arrayLimit;
+    options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : internals.parameterLimit;
+
+    var tempObj = typeof str === 'string' ? internals.parseValues(str, options) : str;
+    var obj = {};
+
+    // Iterate over the keys and setup the new object
+
+    var keys = Object.keys(tempObj);
+    for (var i = 0, il = keys.length; i < il; ++i) {
+        var key = keys[i];
+        var newObj = internals.parseKeys(key, tempObj[key], options);
+        obj = Utils.merge(obj, newObj);
+    }
+
+    return Utils.compact(obj);
+};
+
+},{"./utils":30}],29:[function(require,module,exports){
+// Load modules
+
+var Utils = require('./utils');
+
+
+// Declare internals
+
+var internals = {
+    delimiter: '&',
+    arrayPrefixGenerators: {
+        brackets: function (prefix, key) {
+            return prefix + '[]';
+        },
+        indices: function (prefix, key) {
+            return prefix + '[' + key + ']';
+        },
+        repeat: function (prefix, key) {
+            return prefix;
+        }
+    }
+};
+
+
+internals.stringify = function (obj, prefix, generateArrayPrefix) {
+
+    if (Utils.isBuffer(obj)) {
+        obj = obj.toString();
+    }
+    else if (obj instanceof Date) {
+        obj = obj.toISOString();
+    }
+    else if (obj === null) {
+        obj = '';
+    }
+
+    if (typeof obj === 'string' ||
+        typeof obj === 'number' ||
+        typeof obj === 'boolean') {
+
+        return [encodeURIComponent(prefix) + '=' + encodeURIComponent(obj)];
+    }
+
+    var values = [];
+
+    if (typeof obj === 'undefined') {
+        return values;
+    }
+
+    var objKeys = Object.keys(obj);
+    for (var i = 0, il = objKeys.length; i < il; ++i) {
+        var key = objKeys[i];
+        if (Array.isArray(obj)) {
+            values = values.concat(internals.stringify(obj[key], generateArrayPrefix(prefix, key), generateArrayPrefix));
+        }
+        else {
+            values = values.concat(internals.stringify(obj[key], prefix + '[' + key + ']', generateArrayPrefix));
+        }
+    }
+
+    return values;
+};
+
+
+module.exports = function (obj, options) {
+
+    options = options || {};
+    var delimiter = typeof options.delimiter === 'undefined' ? internals.delimiter : options.delimiter;
+
+    var keys = [];
+
+    if (typeof obj !== 'object' ||
+        obj === null) {
+
+        return '';
+    }
+
+    var arrayFormat;
+    if (options.arrayFormat in internals.arrayPrefixGenerators) {
+        arrayFormat = options.arrayFormat;
+    }
+    else if ('indices' in options) {
+        arrayFormat = options.indices ? 'indices' : 'repeat';
+    }
+    else {
+        arrayFormat = 'indices';
+    }
+
+    var generateArrayPrefix = internals.arrayPrefixGenerators[arrayFormat];
+
+    var objKeys = Object.keys(obj);
+    for (var i = 0, il = objKeys.length; i < il; ++i) {
+        var key = objKeys[i];
+        keys = keys.concat(internals.stringify(obj[key], key, generateArrayPrefix));
+    }
+
+    return keys.join(delimiter);
+};
+
+},{"./utils":30}],30:[function(require,module,exports){
+// Load modules
+
+
+// Declare internals
+
+var internals = {};
+
+
+exports.arrayToObject = function (source) {
+
+    var obj = {};
+    for (var i = 0, il = source.length; i < il; ++i) {
+        if (typeof source[i] !== 'undefined') {
+
+            obj[i] = source[i];
+        }
+    }
+
+    return obj;
+};
+
+
+exports.merge = function (target, source) {
+
+    if (!source) {
+        return target;
+    }
+
+    if (typeof source !== 'object') {
+        if (Array.isArray(target)) {
+            target.push(source);
+        }
+        else {
+            target[source] = true;
+        }
+
+        return target;
+    }
+
+    if (typeof target !== 'object') {
+        target = [target].concat(source);
+        return target;
+    }
+
+    if (Array.isArray(target) &&
+        !Array.isArray(source)) {
+
+        target = exports.arrayToObject(target);
+    }
+
+    var keys = Object.keys(source);
+    for (var k = 0, kl = keys.length; k < kl; ++k) {
+        var key = keys[k];
+        var value = source[key];
+
+        if (!target[key]) {
+            target[key] = value;
+        }
+        else {
+            target[key] = exports.merge(target[key], value);
+        }
+    }
+
+    return target;
+};
+
+
+exports.decode = function (str) {
+
+    try {
+        return decodeURIComponent(str.replace(/\+/g, ' '));
+    } catch (e) {
+        return str;
+    }
+};
+
+
+exports.compact = function (obj, refs) {
+
+    if (typeof obj !== 'object' ||
+        obj === null) {
+
+        return obj;
+    }
+
+    refs = refs || [];
+    var lookup = refs.indexOf(obj);
+    if (lookup !== -1) {
+        return refs[lookup];
+    }
+
+    refs.push(obj);
+
+    if (Array.isArray(obj)) {
+        var compacted = [];
+
+        for (var i = 0, il = obj.length; i < il; ++i) {
+            if (typeof obj[i] !== 'undefined') {
+                compacted.push(obj[i]);
+            }
+        }
+
+        return compacted;
+    }
+
+    var keys = Object.keys(obj);
+    for (i = 0, il = keys.length; i < il; ++i) {
+        var key = keys[i];
+        obj[key] = exports.compact(obj[key], refs);
+    }
+
+    return obj;
+};
+
+
+exports.isRegExp = function (obj) {
+    return Object.prototype.toString.call(obj) === '[object RegExp]';
+};
+
+
+exports.isBuffer = function (obj) {
+
+    if (obj === null ||
+        typeof obj === 'undefined') {
+
+        return false;
+    }
+
+    return !!(obj.constructor &&
+        obj.constructor.isBuffer &&
+        obj.constructor.isBuffer(obj));
+};
+
+},{}],31:[function(require,module,exports){
 (function (process,global,Buffer){
 'use strict'
 
@@ -5092,7 +5417,7 @@ function randomBytes (size, cb) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"_process":25,"buffer":18}],27:[function(require,module,exports){
+},{"_process":25,"buffer":18}],32:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -5117,7 +5442,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],28:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -6200,7 +6525,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":20,"reduce":27}],29:[function(require,module,exports){
+},{"emitter":20,"reduce":32}],34:[function(require,module,exports){
 'use strict';
 
 var Response = require('http-response-object');
@@ -6266,7 +6591,7 @@ function doRequest(method, url, options) {
   return new Response(xhr.status, headers, xhr.responseText);
 }
 
-},{"http-response-object":23,"then-request/lib/handle-qs.js":30}],30:[function(require,module,exports){
+},{"http-response-object":23,"then-request/lib/handle-qs.js":35}],35:[function(require,module,exports){
 'use strict';
 
 var parse = require('qs').parse;
@@ -6290,419 +6615,7 @@ function handleQs(url, query) {
   return start + qs + end;
 }
 
-},{"qs":31}],31:[function(require,module,exports){
-module.exports = require('./lib/');
-
-},{"./lib/":32}],32:[function(require,module,exports){
-// Load modules
-
-var Stringify = require('./stringify');
-var Parse = require('./parse');
-
-
-// Declare internals
-
-var internals = {};
-
-
-module.exports = {
-    stringify: Stringify,
-    parse: Parse
-};
-
-},{"./parse":33,"./stringify":34}],33:[function(require,module,exports){
-// Load modules
-
-var Utils = require('./utils');
-
-
-// Declare internals
-
-var internals = {
-    delimiter: '&',
-    depth: 5,
-    arrayLimit: 20,
-    parameterLimit: 1000
-};
-
-
-internals.parseValues = function (str, options) {
-
-    var obj = {};
-    var parts = str.split(options.delimiter, options.parameterLimit === Infinity ? undefined : options.parameterLimit);
-
-    for (var i = 0, il = parts.length; i < il; ++i) {
-        var part = parts[i];
-        var pos = part.indexOf(']=') === -1 ? part.indexOf('=') : part.indexOf(']=') + 1;
-
-        if (pos === -1) {
-            obj[Utils.decode(part)] = '';
-        }
-        else {
-            var key = Utils.decode(part.slice(0, pos));
-            var val = Utils.decode(part.slice(pos + 1));
-
-            if (!Object.prototype.hasOwnProperty.call(obj, key)) {
-                obj[key] = val;
-            }
-            else {
-                obj[key] = [].concat(obj[key]).concat(val);
-            }
-        }
-    }
-
-    return obj;
-};
-
-
-internals.parseObject = function (chain, val, options) {
-
-    if (!chain.length) {
-        return val;
-    }
-
-    var root = chain.shift();
-
-    var obj = {};
-    if (root === '[]') {
-        obj = [];
-        obj = obj.concat(internals.parseObject(chain, val, options));
-    }
-    else {
-        var cleanRoot = root[0] === '[' && root[root.length - 1] === ']' ? root.slice(1, root.length - 1) : root;
-        var index = parseInt(cleanRoot, 10);
-        var indexString = '' + index;
-        if (!isNaN(index) &&
-            root !== cleanRoot &&
-            indexString === cleanRoot &&
-            index >= 0 &&
-            index <= options.arrayLimit) {
-
-            obj = [];
-            obj[index] = internals.parseObject(chain, val, options);
-        }
-        else {
-            obj[cleanRoot] = internals.parseObject(chain, val, options);
-        }
-    }
-
-    return obj;
-};
-
-
-internals.parseKeys = function (key, val, options) {
-
-    if (!key) {
-        return;
-    }
-
-    // The regex chunks
-
-    var parent = /^([^\[\]]*)/;
-    var child = /(\[[^\[\]]*\])/g;
-
-    // Get the parent
-
-    var segment = parent.exec(key);
-
-    // Don't allow them to overwrite object prototype properties
-
-    if (Object.prototype.hasOwnProperty(segment[1])) {
-        return;
-    }
-
-    // Stash the parent if it exists
-
-    var keys = [];
-    if (segment[1]) {
-        keys.push(segment[1]);
-    }
-
-    // Loop through children appending to the array until we hit depth
-
-    var i = 0;
-    while ((segment = child.exec(key)) !== null && i < options.depth) {
-
-        ++i;
-        if (!Object.prototype.hasOwnProperty(segment[1].replace(/\[|\]/g, ''))) {
-            keys.push(segment[1]);
-        }
-    }
-
-    // If there's a remainder, just add whatever is left
-
-    if (segment) {
-        keys.push('[' + key.slice(segment.index) + ']');
-    }
-
-    return internals.parseObject(keys, val, options);
-};
-
-
-module.exports = function (str, options) {
-
-    if (str === '' ||
-        str === null ||
-        typeof str === 'undefined') {
-
-        return {};
-    }
-
-    options = options || {};
-    options.delimiter = typeof options.delimiter === 'string' || Utils.isRegExp(options.delimiter) ? options.delimiter : internals.delimiter;
-    options.depth = typeof options.depth === 'number' ? options.depth : internals.depth;
-    options.arrayLimit = typeof options.arrayLimit === 'number' ? options.arrayLimit : internals.arrayLimit;
-    options.parameterLimit = typeof options.parameterLimit === 'number' ? options.parameterLimit : internals.parameterLimit;
-
-    var tempObj = typeof str === 'string' ? internals.parseValues(str, options) : str;
-    var obj = {};
-
-    // Iterate over the keys and setup the new object
-
-    var keys = Object.keys(tempObj);
-    for (var i = 0, il = keys.length; i < il; ++i) {
-        var key = keys[i];
-        var newObj = internals.parseKeys(key, tempObj[key], options);
-        obj = Utils.merge(obj, newObj);
-    }
-
-    return Utils.compact(obj);
-};
-
-},{"./utils":35}],34:[function(require,module,exports){
-// Load modules
-
-var Utils = require('./utils');
-
-
-// Declare internals
-
-var internals = {
-    delimiter: '&',
-    arrayPrefixGenerators: {
-        brackets: function (prefix, key) {
-            return prefix + '[]';
-        },
-        indices: function (prefix, key) {
-            return prefix + '[' + key + ']';
-        },
-        repeat: function (prefix, key) {
-            return prefix;
-        }
-    }
-};
-
-
-internals.stringify = function (obj, prefix, generateArrayPrefix) {
-
-    if (Utils.isBuffer(obj)) {
-        obj = obj.toString();
-    }
-    else if (obj instanceof Date) {
-        obj = obj.toISOString();
-    }
-    else if (obj === null) {
-        obj = '';
-    }
-
-    if (typeof obj === 'string' ||
-        typeof obj === 'number' ||
-        typeof obj === 'boolean') {
-
-        return [encodeURIComponent(prefix) + '=' + encodeURIComponent(obj)];
-    }
-
-    var values = [];
-
-    if (typeof obj === 'undefined') {
-        return values;
-    }
-
-    var objKeys = Object.keys(obj);
-    for (var i = 0, il = objKeys.length; i < il; ++i) {
-        var key = objKeys[i];
-        if (Array.isArray(obj)) {
-            values = values.concat(internals.stringify(obj[key], generateArrayPrefix(prefix, key), generateArrayPrefix));
-        }
-        else {
-            values = values.concat(internals.stringify(obj[key], prefix + '[' + key + ']', generateArrayPrefix));
-        }
-    }
-
-    return values;
-};
-
-
-module.exports = function (obj, options) {
-
-    options = options || {};
-    var delimiter = typeof options.delimiter === 'undefined' ? internals.delimiter : options.delimiter;
-
-    var keys = [];
-
-    if (typeof obj !== 'object' ||
-        obj === null) {
-
-        return '';
-    }
-
-    var arrayFormat;
-    if (options.arrayFormat in internals.arrayPrefixGenerators) {
-        arrayFormat = options.arrayFormat;
-    }
-    else if ('indices' in options) {
-        arrayFormat = options.indices ? 'indices' : 'repeat';
-    }
-    else {
-        arrayFormat = 'indices';
-    }
-
-    var generateArrayPrefix = internals.arrayPrefixGenerators[arrayFormat];
-
-    var objKeys = Object.keys(obj);
-    for (var i = 0, il = objKeys.length; i < il; ++i) {
-        var key = objKeys[i];
-        keys = keys.concat(internals.stringify(obj[key], key, generateArrayPrefix));
-    }
-
-    return keys.join(delimiter);
-};
-
-},{"./utils":35}],35:[function(require,module,exports){
-// Load modules
-
-
-// Declare internals
-
-var internals = {};
-
-
-exports.arrayToObject = function (source) {
-
-    var obj = {};
-    for (var i = 0, il = source.length; i < il; ++i) {
-        if (typeof source[i] !== 'undefined') {
-
-            obj[i] = source[i];
-        }
-    }
-
-    return obj;
-};
-
-
-exports.merge = function (target, source) {
-
-    if (!source) {
-        return target;
-    }
-
-    if (typeof source !== 'object') {
-        if (Array.isArray(target)) {
-            target.push(source);
-        }
-        else {
-            target[source] = true;
-        }
-
-        return target;
-    }
-
-    if (typeof target !== 'object') {
-        target = [target].concat(source);
-        return target;
-    }
-
-    if (Array.isArray(target) &&
-        !Array.isArray(source)) {
-
-        target = exports.arrayToObject(target);
-    }
-
-    var keys = Object.keys(source);
-    for (var k = 0, kl = keys.length; k < kl; ++k) {
-        var key = keys[k];
-        var value = source[key];
-
-        if (!target[key]) {
-            target[key] = value;
-        }
-        else {
-            target[key] = exports.merge(target[key], value);
-        }
-    }
-
-    return target;
-};
-
-
-exports.decode = function (str) {
-
-    try {
-        return decodeURIComponent(str.replace(/\+/g, ' '));
-    } catch (e) {
-        return str;
-    }
-};
-
-
-exports.compact = function (obj, refs) {
-
-    if (typeof obj !== 'object' ||
-        obj === null) {
-
-        return obj;
-    }
-
-    refs = refs || [];
-    var lookup = refs.indexOf(obj);
-    if (lookup !== -1) {
-        return refs[lookup];
-    }
-
-    refs.push(obj);
-
-    if (Array.isArray(obj)) {
-        var compacted = [];
-
-        for (var i = 0, il = obj.length; i < il; ++i) {
-            if (typeof obj[i] !== 'undefined') {
-                compacted.push(obj[i]);
-            }
-        }
-
-        return compacted;
-    }
-
-    var keys = Object.keys(obj);
-    for (i = 0, il = keys.length; i < il; ++i) {
-        var key = keys[i];
-        obj[key] = exports.compact(obj[key], refs);
-    }
-
-    return obj;
-};
-
-
-exports.isRegExp = function (obj) {
-    return Object.prototype.toString.call(obj) === '[object RegExp]';
-};
-
-
-exports.isBuffer = function (obj) {
-
-    if (obj === null ||
-        typeof obj === 'undefined') {
-
-        return false;
-    }
-
-    return !!(obj.constructor &&
-        obj.constructor.isBuffer &&
-        obj.constructor.isBuffer(obj));
-};
-
-},{}],36:[function(require,module,exports){
+},{"qs":26}],36:[function(require,module,exports){
 var traverse = module.exports = function (obj) {
     return new Traverse(obj);
 };
