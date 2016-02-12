@@ -3,38 +3,41 @@
  */
 
 type Network = {
+    messagePrefix: string;
+    bip32: {
+        public: number;
+        private: number;
+    };
     pubKeyHash: number;
     scriptHash: number;
-    dustThreshold: number;
+    wif: number;
+    dustTreshold: number;
     feePerKB: number;
-};
+}
 
 type Input = {
     script: Buffer;
     hash: Buffer;
     index: number;
     sequence: number;
-
-    // additional: hash converted to tx id
-    id: string;
 };
 
 type Output = {
     script: Buffer;
     value: number;
-
-    // additional: cached address from the script
-    address: ?string;
 };
 
 declare module 'bitcoinjs-lib' {
 
     declare var address: {
+        fromBase58(address: string): {hash: Buffer, version: number};
         fromOutputScript(script: Buffer, network?: Network): string;
     };
 
     declare var script: {
         fromAddress(address: string, network?: Network): Buffer;
+        pubKeyHashOutput(pkh: Buffer): Buffer;
+        scriptHashOutput(sho: Buffer): Buffer;
     };
     
     declare class ECPair {
@@ -59,10 +62,16 @@ declare module 'bitcoinjs-lib' {
     }
 
     declare class Transaction {
+        version: number;
+        locktime: number;
+
+        constructor(): void;
         static fromHex(hex: string): Transaction;
         ins: Array<Input>;
         outs: Array<Output>;
         toHex(): string;
     }
+    
+    declare var networks: {[key: string]: Network}
 }
 
