@@ -1,93 +1,117 @@
-// this part of spec is not finished yet
-// I made this stackoverflow question
+/* @flow */
+// this part of spec is not finished yet, apparently
 // https://stackoverflow.com/questions/35296664/can-fetch-get-object-as-headers
+type HeadersInit = Headers | {[key: string]: string};
 
-type HeadersInit = string | Headers | {[key: string]: string};
 
+// TODO Heades and URLSearchParams are almost the same thing.
+// Could it somehow be abstracted away?
 declare class Headers {
-  constructor(init?: HeadersInit): void;
-  append(name: string, value: string): void;
-  delete(name: string): void;
-  entries(): Iterator<[string, string]>;
-  get(name: string): string;
-  getAll(name: string): Array<string>;
-  has(name: string): boolean;
-  keys(): Iterator<string>;
-  set(name: string, value: string): void;
-  values(): Iterator<string>; 
+    @@iterator(): Iterator<[string, string]>;
+    constructor(init?: HeadersInit): void;
+    append(name: string, value: string): void;
+    delete(name: string): void;
+    entries(): Iterator<[string, string]>;
+    get(name: string): string;
+    getAll(name: string): Array<string>;
+    has(name: string): boolean;
+    keys(): Iterator<string>;
+    set(name: string, value: string): void;
+    values(): Iterator<string>; 
 }
 
 declare class URLSearchParams {
-  constuctor(query: string): void;
-  append(name: string, value: string): void;
-  delete(name: string): void;
-  entries(): Iterator<[string, string]>;
-  get(name: string): string;
-  getAll(name: string): Array<string>;
-  has(name: string): boolean;
-  keys(): Iterator<string>;
-  set(name: string, value: string): void;
-  values(): Iterator<string>; 
+    @@iterator(): Iterator<[string, string]>;
+    constructor(query?: string | URLSearchParams): void;
+    append(name: string, value: string): void;
+    delete(name: string): void;
+    entries(): Iterator<[string, string]>;
+    get(name: string): string;
+    getAll(name: string): Array<string>;
+    has(name: string): boolean;
+    keys(): Iterator<string>;
+    set(name: string, value: string): void;
+    values(): Iterator<string>; 
 }
+
+type CacheType =  'default' | 'no-store' | 'reload' | 'no-cache' | 'force-cache' | 'only-if-cached';
+type CredentialsType = 'omit' | 'same-origin' | 'include';
+type ModeType = 'cors' | 'no-cors' | 'same-origin';
+type RedirectType = 'follow' | 'error' | 'manual';
+type MethodType = 'GET' | 'POST' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'PUT' ;
+type ReferrerPolicyType =
+    '' | 'no-referrer' | 'no-referrer-when-downgrade' | 'origin-only' |
+    'origin-when-cross-origin' | 'unsafe-url';
+type ResponseType =  'basic' | 'cors' | 'default' | 'error' | 'opaque' | 'opaqueredirect' ;
 
 type RequestOptions = {
-  body?: Blob | FormData | URLSearchParams | string;
+    body?: Blob | FormData | URLSearchParams | string;
 
-  cache?: 'default' | 'no-store' | 'reload' | 'no-cache' | 'force-cache' | 'only-if-cached';
-  credentials?: 'omit' | 'same-origin' | 'include';
-  headers?: HeadersInit; 
-  integrity?: string;
-  method?: 'GET' | 'POST';
-  mode?: 'cors' | 'no-cors' | 'same-origin';
-  redirect?: 'follow' | 'error' | 'manual';
-  referrer?: string
-}
-
-declare class Body {
-  bodyUsed: boolean;
-
-  arrayBuffer(): Promise<ArrayBuffer>;
-  blob(): Promise<Blob>;
-  formData(): Promise<FormData>;
-  json(): Promise<Object>;
-  text(): Promise<string>;
+    cache?: CacheType;
+    credentials?: CredentialsType;
+    headers?: HeadersInit; 
+    integrity?: string;
+    method?: MethodType;
+    mode?: ModeType;
+    redirect?: RedirectType;
+    referrer?: string;
+    referrerPolicy?: ReferrerPolicyType;
 }
 
 type ResponseOptions = {
-  status?: number;
-  statusText?: string;
-  headers?: HeadersInit
+    status?: number;
+    statusText?: string;
+    headers?: HeadersInit
 }
 
-declare class Response mixins Body {
-  constructor(input: string | URLSearchParams | FormData | Blob, init: ResponseOptions): void;
-  clone(): Response;
-  error(): Response;
-  redirect(url: string, status: number): Response;
+declare class Response {
+    constructor(input?: string | URLSearchParams | FormData | Blob, init?: ResponseOptions): void;
+    clone(): Response;
+    static error(): Response;
+    static redirect(url: string, status: number): Response;
 
-  type: string;
-  url: string;
-  useFinalUrl: boolean;
-  status: number;
-  ok: boolean;
-  statusText: string;
-  headers: Headers;
+    type: ResponseType;
+    url: string;
+    useFinalURL: boolean;
+    ok: boolean;
+    status: number;
+    statusText: string;
+    headers: Headers;
+
+    // Body methods and attributes
+    bodyUsed: boolean;
+
+    arrayBuffer(): Promise<ArrayBuffer>;
+    blob(): Promise<Blob>;
+    formData(): Promise<FormData>;
+    json(): Promise<Object>;
+    text(): Promise<string>;
 }
 
-declare class Request mixins Body {
-  constructor(input: string | Request, init?: RequestOptions): void;
-  clone(): Request;
+declare class Request {
+    constructor(input: string | Request, init?: RequestOptions): void;
+    clone(): Request;
 
-  url: string;  
+    url: string;	
 
-  cache: 'default' | 'no-store' | 'reload' | 'no-cache' | 'force-cache' | 'only-if-cached';
-  credentials: 'omit' | 'same-origin' | 'include';
-  headers: Headers;
-  integrity: string;
-  method: 'GET' | 'POST';
-  mode: 'cors' | 'no-cors' | 'same-origin';
-  redirect: 'follow' | 'error' | 'manual';
-  referrer: string;
+    cache: CacheType;
+    credentials: CredentialsType;
+    headers: Headers;
+    integrity: string;
+    method: MethodType;
+    mode: ModeType;
+    redirect: RedirectType;
+    referrer: string;
+    referrerPolicy: ReferrerPolicyType;
+
+    // Body methods and attributes
+    bodyUsed: boolean;
+
+    arrayBuffer(): Promise<ArrayBuffer>;
+    blob(): Promise<Blob>;
+    formData(): Promise<FormData>;
+    json(): Promise<Object>;
+    text(): Promise<string>;
 }
 
-declare function fetch(input: string | Request, init?: RequestOptions): Promise<Response>; 
+declare function fetch(input: string | Request, init?: RequestOptions): Promise<Response>;
