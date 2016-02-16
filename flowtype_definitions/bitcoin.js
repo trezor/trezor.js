@@ -2,35 +2,35 @@
  * Type definitions for bitcoinjs-lib
  */
 
-type Network = {
-    messagePrefix: string;
-    bip32: {
-        public: number;
-        private: number;
-    };
-    pubKeyHash: number;
-    scriptHash: number;
-    wif: number;
-    dustTreshold: number;
-    feePerKB: number;
-}
-
-type Input = {
-    script: Buffer;
-    hash: Buffer;
-    index: number;
-    sequence: number;
-};
-
-type Output = {
-    script: Buffer;
-    value: number;
-};
-
 declare module 'bitcoinjs-lib' {
 
+    declare type Network = {
+        messagePrefix: string;
+        bip32: {
+            public: number;
+            private: number;
+        };
+        pubKeyHash: number;
+        scriptHash: number;
+        wif: number;
+        dustThreshold: number;
+        feePerKB: number;
+    }
+
+    declare type Output = {
+        script: Buffer;
+        value: number;
+    };
+
+    declare type Input = {
+        script: Buffer;
+        hash: Buffer;
+        index: number;
+        sequence: number;
+    };
+
     declare var address: {
-        fromBase58(address: string): {hash: Buffer, version: number};
+        fromBase58Check(address: string): {hash: Buffer, version: number};
         fromOutputScript(script: Buffer, network?: Network): string;
     };
 
@@ -39,16 +39,21 @@ declare module 'bitcoinjs-lib' {
         pubKeyHashOutput(pkh: Buffer): Buffer;
         scriptHashOutput(sho: Buffer): Buffer;
     };
+
+    declare var crypto: {
+        hash256(buffer: Buffer): Buffer;
+    }
     
     declare class ECPair {
         d: ?Buffer;
         Q: ?Buffer;
         constructor(d: ?Buffer, Q: ?Buffer): void;
+        getPublicKeyBuffer(): Buffer;
     }
 
     declare class HDNode {
         depth: number;
-        fingerprint: number;
+        parentFingerprint: number;
         index: number;
         keyPair: ECPair;
         chainCode: Buffer;
@@ -58,6 +63,8 @@ declare module 'bitcoinjs-lib' {
         ): HDNode;
         derive(index: number): HDNode;
         toBase58(): string;
+        getAddress(): string;
+        getIdentifier(): Buffer;
         constructor(keyPair: ECPair, chainCode: Buffer): void;
     }
 
@@ -70,8 +77,15 @@ declare module 'bitcoinjs-lib' {
         ins: Array<Input>;
         outs: Array<Output>;
         toHex(): string;
+        addInput(hash: Buffer, index: number, sequence?: number, scriptSig?: Buffer): void;
+        addOutput(scriptPubKey: Buffer, value: number): void;
+        getHash(): Buffer;
+        toBuffer(): Buffer;
+        getId(): string;
+
+        static isCoinbaseHash(buffer: Buffer): boolean;
     }
-    
+
     declare var networks: {[key: string]: Network}
 }
 
