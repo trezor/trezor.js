@@ -50,6 +50,15 @@ declare class ChromeRuntime {
   onMessage: ChromeOnMessage;
   getManifest(): Object;
   id: string;
+
+  // you cannot typecheck well something with first optional parameter
+  // that sometimes *has* to be ommitted
+  sendMessage(
+      extensionIdOrMessage: string | Object, 
+      messageOrOptions: Object, 
+      optionsOrCallback: Object | (response?: mixed) => void, 
+      callback?: (response?: mixed) => void
+  ): void;
 }
 
 type ChromeStorageItems = { [key:string]: any}
