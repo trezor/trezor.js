@@ -77,7 +77,7 @@ declare module 'bitcoinjs-lib' {
         ins: Array<Input>;
         outs: Array<Output>;
         toHex(): string;
-        addInput(hash: Buffer, index: number, sequence?: number, scriptSig?: Buffer): void;
+        addInput(hash: Buffer, index: number, sequence?: ?number, scriptSig?: Buffer): void;
         addOutput(scriptPubKey: Buffer, value: number): void;
         getHash(): Buffer;
         toBuffer(): Buffer;
