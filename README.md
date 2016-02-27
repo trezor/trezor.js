@@ -76,6 +76,8 @@ You cannot connect to transport layers from anywhere on the internet. Your URL n
 
 `localhost` is specifically whitelisted, so you can experiment on `http://localhost/*`. If you want to add your url in order to make a TREZOR web application, [make a pull request to this file](https://github.com/trezor/trezor-common/blob/master/signer/config.json).
 
+
+
 Using trezor.js
 -----
 All the code examples are written with the assumption trezor.js is imported to the `trezor` variable. So, for example
@@ -84,6 +86,10 @@ All the code examples are written with the assumption trezor.js is imported to t
      var trezor = require('trezor.js'); // if you are using the npm version
      import * as trezor from 'trezor.js'; // dtto, with ES6 syntax
 
+
+### Example
+
+In `doc/` folder there are two examples. `example-list` is using the API, documented below. `example-lowlevel` is using more low-level API.
 
 ### DeviceList
 `DeviceList` is class that lists devices and emits events on any change.
