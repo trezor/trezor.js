@@ -1,6 +1,7 @@
 [ignore]
 .*/node_modules/bitcoinjs-lib/.*
 .*/node_modules/events/.*
+.*/node_modules/fetch/.*
 
 [include]
 ../node_modules/ecurve/
