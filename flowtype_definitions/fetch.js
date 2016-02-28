@@ -115,3 +115,8 @@ declare class Request {
 }
 
 declare function fetch(input: string | Request, init?: RequestOptions): Promise<Response>;
+
+// flow hack
+declare module 'fetch' {
+}
+
