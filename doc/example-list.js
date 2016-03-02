@@ -89,7 +89,10 @@ function passphraseCallback(callback) {
  * @param {Function<Error, string>} callback
  */
 function pinCallback(type, callback) {
-    // We should ask the user for PIN and send it back as '1234', where 1 is the
-    // top left position, 2 is the top middle position, etc.
+    // We should ask the user for PIN and send back number positions encoded as string '1234'.
+    // Where 1 is the bottom left position, 7 is the top left position, etc.
+    // 7 8 9
+    // 4 5 6
+    // 1 2 3
     throw new Error('Nothing defined');
 }
