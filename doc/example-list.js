@@ -63,6 +63,21 @@ list.on('error', function (error) {
     console.error('List error:', error);
 });
 
+// On connecting unacquired device
+list.on('connectUnacquired', function (device) {
+    askUserForceAcquire(function() {
+        device.steal().then(function() {
+            console.log("steal done. now wait for another connect");
+        });
+    });
+});
+
+// an example function, that asks user for acquiring and
+// calls callback if use agrees
+// (in here, we will call agree always, since it's just an example)
+function askUserForceAcquire(callback) {
+    return setTimeout(callback, 1000);
+}
 
 /**
  * @param {string}
@@ -95,4 +110,9 @@ function pinCallback(type, callback) {
     // 4 5 6
     // 1 2 3
     throw new Error('Nothing defined');
+}
+
+// you should do this to release devices on reload
+window.onbeforeunload = function() {
+    list.onbeforeunload();
 }
