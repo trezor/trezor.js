@@ -1,20 +1,21 @@
 [ignore]
 .*/node_modules/bitcoinjs-lib/.*
 .*/node_modules/events/.*
-.*/node_modules/fetch/.*
+.*/node_modules/whatwg-fetch/.*
 
 [include]
-../node_modules/ecurve/
-../node_modules/fetch/
 ../node_modules/babel-polyfill/
+../node_modules/ecurve/
 ../node_modules/randombytes/
+../node_modules/semver-compare/
 ../node_modules/sync-request/
 ../node_modules/traverse/
 ../node_modules/unorm/
+../node_modules/whatwg-fetch/
 
 [libs]
-../flowtype_definitions/chrome.js
-../flowtype_definitions/fetch.js
 ../flowtype_definitions/bitcoin.js
+../flowtype_definitions/chrome.js
+../flowtype_definitions/whatwg-fetch.js
 
 [options]

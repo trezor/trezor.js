@@ -1,8 +1,8 @@
 /* @flow */
+
 // this part of spec is not finished yet, apparently
 // https://stackoverflow.com/questions/35296664/can-fetch-get-object-as-headers
 type HeadersInit = Headers | {[key: string]: string};
-
 
 // TODO Heades and URLSearchParams are almost the same thing.
 // Could it somehow be abstracted away?
@@ -17,7 +17,7 @@ declare class Headers {
     has(name: string): boolean;
     keys(): Iterator<string>;
     set(name: string, value: string): void;
-    values(): Iterator<string>; 
+    values(): Iterator<string>;
 }
 
 declare class URLSearchParams {
@@ -31,7 +31,7 @@ declare class URLSearchParams {
     has(name: string): boolean;
     keys(): Iterator<string>;
     set(name: string, value: string): void;
-    values(): Iterator<string>; 
+    values(): Iterator<string>;
 }
 
 type CacheType =  'default' | 'no-store' | 'reload' | 'no-cache' | 'force-cache' | 'only-if-cached';
@@ -92,7 +92,7 @@ declare class Request {
     constructor(input: string | Request, init?: RequestOptions): void;
     clone(): Request;
 
-    url: string;	
+    url: string;
 
     cache: CacheType;
     credentials: CredentialsType;
@@ -116,7 +116,8 @@ declare class Request {
 
 declare function fetch(input: string | Request, init?: RequestOptions): Promise<Response>;
 
-// flow hack
 declare module 'fetch' {
 }
 
+declare module 'whatwg-fetch' {
+}

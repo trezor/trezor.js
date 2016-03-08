@@ -65,14 +65,14 @@ declare class ChromeRuntime {
     getPlatformInfo(callback: (platformInfo: ChromePlatformInfo) => void): void,
 
     sendMessage(
-        extensionId: string,
         message: any,
-        options?: {includeTlsChannelId: boolean},
+        options?: {includeTlsChannelId?: boolean},
         callback?: (response?: any) => void
     ): void;
     sendMessage(
+        extensionId: string,
         message: any,
-        options?: {includeTlsChannelId: boolean},
+        options?: {includeTlsChannelId?: boolean},
         callback?: (response?: any) => void
     ): void;
 }
