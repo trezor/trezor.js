@@ -25,16 +25,28 @@ type ChromeHidGetDevicesOptions = {
 }
 
 declare class ChromeHid {
-    getDevices: (options: ChromeHidGetDevicesOptions,
-                 callback: (i: Array<ChromeHidDeviceInfo>) => void) => void;
-
-    send: (connectionId: number, reportId: number, data: ArrayBuffer, callback: () => void) => void;
-
-    receive: (connectionId: number, callback: (reportId: number, data: ArrayBuffer) => void) => void;
-
-    connect: (deviceId: number, callback: (connection: {connectionId: number}) => void) => void;
-
-    disconnect: (connectionId: number, callback: () => void) => void;
+    getDevices: (
+        options: ChromeHidGetDevicesOptions,
+        callback: (i: Array<ChromeHidDeviceInfo>) => void
+    ) => void;
+    send: (
+        connectionId: number,
+        reportId: number,
+        data: ArrayBuffer,
+        callback: () => void
+    ) => void;
+    receive: (
+        connectionId: number,
+        callback: (reportId: number, data: ArrayBuffer) => void
+    ) => void;
+    connect: (
+        deviceId: number,
+        callback: (connection: {connectionId: number}) => void
+    ) => void;
+    disconnect: (
+        connectionId: number,
+        callback: () => void
+    ) => void;
 }
 
 declare class ChromePlatformInfo {
@@ -44,20 +56,24 @@ declare class ChromePlatformInfo {
 }
 
 declare class ChromeRuntime {
+    id: string;
     lastError: string;
-    getPlatformInfo(callback: (platformInfo: ChromePlatformInfo) => void): void,
     onMessageExternal: ChromeOnMessage;
     onMessage: ChromeOnMessage;
-    getManifest(): Object;
-    id: string;
 
-    // you cannot typecheck well something with first optional parameter
-    // that sometimes *has* to be ommitted
+    getManifest(): Object;
+    getPlatformInfo(callback: (platformInfo: ChromePlatformInfo) => void): void,
+
     sendMessage(
-        extensionIdOrMessage: string | Object,
-        messageOrOptions: Object,
-        optionsOrCallback: Object | (response?: mixed) => void,
-        callback?: (response?: mixed) => void
+        extensionId: string,
+        message: any,
+        options?: {includeTlsChannelId: boolean},
+        callback?: (response?: any) => void
+    ): void;
+    sendMessage(
+        message: any,
+        options?: {includeTlsChannelId: boolean},
+        callback?: (response?: any) => void
     ): void;
 }
 
