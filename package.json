@@ -27,6 +27,7 @@
             "es2015"
           ],
           "plugins": [
+            "transform-object-rest-spread",
             "transform-flow-strip-types",
             "transform-class-properties",
             "add-module-exports"
@@ -45,6 +46,7 @@
     "babel-plugin-add-module-exports": "^0.1.2",
     "babel-plugin-transform-class-properties": "^6.4.0",
     "babel-plugin-transform-flow-strip-types": "^6.4.0",
+    "babel-plugin-transform-object-rest-spread": "^6.6.5",
     "browserify": "^13.0.0"
   },
   "dependencies": {
