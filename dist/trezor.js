@@ -797,7 +797,7 @@ var Device = function (_EventEmitter) {
                 }, function (error) {
                     // transport error means that something happened on transport level
                     // no need to do release, since that is done on that level anyway
-                    if (error.transportError) {
+                    if (error != null && error.transportError) {
                         throw error;
                     }
 
