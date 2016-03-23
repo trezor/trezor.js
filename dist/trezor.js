@@ -553,6 +553,7 @@ var Device = function (_EventEmitter) {
         var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Device).call(this));
 
         _this.activityInProgress = false;
+        _this.connected = true;
         _this.disconnectEvent = new _flowEvents.Event0('disconnect', _this);
         _this.changedSessionsEvent = new _flowEvents.Event2('changedSessions', _this);
         _this.sendEvent = new _flowEvents.Event2('send', _this);
@@ -569,6 +570,7 @@ var Device = function (_EventEmitter) {
         // === mutable properties
         // features get reloaded after every initialization
         _this.features = features;
+        _this.connected = true;
 
         _this._watch();
         return _this;
@@ -604,6 +606,9 @@ var Device = function (_EventEmitter) {
         value: function run(fn, options) {
             var _this2 = this;
 
+            if (!this.connected) {
+                return Promise.reject(new Error('Device disconnected.'));
+            }
             var options_ = options == null ? {} : options;
             var aggressive = !!options_.aggressive;
             var skipFinalReload = !!options_.skipFinalReload;
@@ -806,6 +811,7 @@ var Device = function (_EventEmitter) {
                     this.disconnectEvent.emit();
                     this.deviceList.disconnectEvent.removeListener(onDisconnect);
                     this.deviceList.changedSessionsEvent.removeListener(onChangedSessions);
+                    this.connected = false;
                 }
             }.bind(this));
         }
@@ -1018,6 +1024,7 @@ var Event0 = exports.Event0 = function () {
     }, {
         key: 'listenerCount',
         value: function listenerCount() {
+            /* $FlowIssue - https://github.com/facebook/flow/pull/1563 */
             return this.parent.listenerCount(this.type);
         }
     }]);
@@ -1061,6 +1068,7 @@ var Event1 = exports.Event1 = function () {
     }, {
         key: 'listenerCount',
         value: function listenerCount() {
+            /* $FlowIssue - https://github.com/facebook/flow/pull/1563 */
             return this.parent.listenerCount(this.type);
         }
     }]);
@@ -1104,6 +1112,7 @@ var Event2 = exports.Event2 = function () {
     }, {
         key: 'listenerCount',
         value: function listenerCount() {
+            /* $FlowIssue - https://github.com/facebook/flow/pull/1563 */
             return this.parent.listenerCount(this.type);
         }
     }]);
@@ -1336,7 +1345,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.udevInstallers = udevInstallers;
 exports.latestVersion = latestVersion;
+exports.latestVersionAsync = latestVersionAsync;
 exports.installers = installers;
+
+var _http = require('./http');
+
+var _http2 = _interopRequireDefault(_http);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 var DATA_DOMAIN = 'https://mytrezor.s3.amazonaws.com';
 
 function fillInstallerUrl(installer) {
@@ -1403,8 +1420,23 @@ function udevInstallers(options) {
 function latestVersion(options) {
     var o = options || {};
     var bridgeUrl = o.bridgeUrl || BRIDGE_VERSION_URL;
-    var version = requestUri(bridgeUrl).trim();
+    var version_ = _http2.default.sync(bridgeUrl);
+    if (typeof version_ !== 'string') {
+        throw new Error('Wrong version load result.');
+    }
+    var version = version_.trim();
     return version;
+}
+
+function latestVersionAsync(options) {
+    var o = options || {};
+    var bridgeUrl = o.bridgeUrl || BRIDGE_VERSION_URL;
+    return (0, _http2.default)(bridgeUrl).then(function (version_) {
+        if (typeof version_ !== 'string') {
+            throw new Error('Wrong version load result.');
+        }
+        return version_.trim();
+    });
 }
 
 // Returns a list of bridge installers, with download URLs and a mark on
@@ -1461,20 +1493,7 @@ function preferredPlatform() {
     return 'win32';
 }
 
-function requestUri(url) {
-    var req = new XMLHttpRequest();
-
-    req.open('get', url, false);
-    req.send();
-
-    if (req.status !== 200) {
-        throw new Error('Failed to GET ' + url);
-    }
-
-    return req.responseText;
-}
-
-},{}],10:[function(require,module,exports){
+},{"./http":7}],10:[function(require,module,exports){
 /*  weak */
 'use strict';
 
@@ -2285,7 +2304,13 @@ var _http = require('../http');
 
 var _http2 = _interopRequireDefault(_http);
 
+var _installers = require('../installers');
+
+var installers = _interopRequireWildcard(_installers);
+
 var _checks = require('./checks');
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2402,6 +2427,7 @@ var HttpTransport = function () {
         key: 'create',
         value: function create() {
             var url = arguments.length <= 0 || arguments[0] === undefined ? DEFAULT_URL : arguments[0];
+            var bridgeVersionUrl = arguments[1];
 
             console.log('[trezor] Attempting to load HTTP transport at', url);
             return HttpTransport.status(url).then(function (info) {
@@ -2410,6 +2436,12 @@ var HttpTransport = function () {
             }, function (error) {
                 console.warn('[trezor] Failed to load HTTP transport', error);
                 throw error;
+            }).then(function (transport) {
+                return installers.latestVersionAsync({ bridgeUrl: bridgeVersionUrl }).then(function (version) {
+                    var isOutdated = (0, _semverCompare2.default)(transport.version, version) < 0;
+                    transport.isOutdated = isOutdated;
+                    return transport;
+                });
             });
         }
     }, {
@@ -2446,7 +2478,7 @@ function callOptions(sessionId, type, message) {
 }
 module.exports = exports['default'];
 
-},{"../http":7,"./checks":12,"semver-compare":379}],15:[function(require,module,exports){
+},{"../http":7,"../installers":9,"./checks":12,"semver-compare":379}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2475,10 +2507,10 @@ var _http4 = _interopRequireDefault(_http3);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Attempts to load any available HW transport layer.
-function loadTransport() {
+function loadTransport(bridgeVersionUrl) {
     var ch = _chromeExtension2.default.create();
     var h = ch.catch(function () {
-        return _http2.default.create();
+        return _http2.default.create(bridgeVersionUrl);
     });
     var p = h.catch(function () {
         return _plugin2.default.create();
@@ -2507,7 +2539,7 @@ function initTransport() {
 
     // const configUrl: string = options.configUrl == null ? CONFIG_URL : options.configUrl;
 
-    return loadTransport().then(function (t) {
+    return loadTransport(options.bridgeVersionUrl).then(function (t) {
         if (options.config != null) {
             return t.configure(options.config);
         } else {
@@ -2866,8 +2898,6 @@ var _randombytes = require('randombytes');
 
 var _randombytes2 = _interopRequireDefault(_randombytes);
 
-var _flowEvents = require('../flow-events');
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -3068,6 +3098,7 @@ var CallHelper = exports.CallHelper = function () {
                     if (err || passphrase == null) {
                         reject(err);
                     } else {
+                        /* $FlowIssue - https://github.com/facebook/flow/pull/1562 */
                         resolve(passphrase.normalize('NFKD'));
                     }
                 })) {
@@ -3100,7 +3131,7 @@ var CallHelper = exports.CallHelper = function () {
 }();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../flow-events":6,"randombytes":367}],20:[function(require,module,exports){
+},{"randombytes":367}],20:[function(require,module,exports){
 (function (Buffer){
 
 'use strict';
