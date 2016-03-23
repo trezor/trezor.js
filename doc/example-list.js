@@ -2,6 +2,7 @@
 
 // in case of browserify
 //var trezor = require('trezor.js');
+//require('babel-polyfill');
 
 // in case of just including trezor.js
  var trezor = window.trezor;
