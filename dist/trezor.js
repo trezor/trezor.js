@@ -723,7 +723,7 @@ var Device = function (_EventEmitter) {
             var _this5 = this;
 
             return new Promise(function (resolve, reject) {
-                var _onDisconnect = void 0;
+                var _onDisconnect = function onDisconnect() {};
                 var onUpdate = function onUpdate() {
                     var updatedSession = _this5.deviceList.getSession(_this5.originalDescriptor.path);
                     if (updatedSession == null) {
@@ -2468,8 +2468,21 @@ var HttpTransport = function () {
                     var isOutdated = (0, _semverCompare2.default)(transport.version, version) < 0;
                     transport.isOutdated = isOutdated;
                     return transport;
+                }, function () {
+                    // latest.txt CORS error shouldn't bring trezor.js down :/
+                    return transport;
                 });
             });
+        }
+
+        // deprecated
+
+    }, {
+        key: 'connect',
+        value: function connect() {
+            var url = arguments.length <= 0 || arguments[0] === undefined ? DEFAULT_URL : arguments[0];
+
+            return HttpTransport.status(url);
         }
     }, {
         key: 'status',
@@ -2537,7 +2550,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function loadTransport(bridgeVersionUrl) {
     var ch = _chromeExtension2.default.create();
     var h = ch.catch(function () {
-        return _http2.default.create(bridgeVersionUrl);
+        return _http2.default.create(undefined, bridgeVersionUrl);
     });
     var p = h.catch(function () {
         return _plugin2.default.create();
@@ -2835,7 +2848,7 @@ var UnacquiredDevice = function (_EventEmitter) {
         value: function _watchConnectDisconnect(onConnect, onDisconnect) {
             var _this2 = this;
 
-            var _disconnectListener = void 0;
+            var _disconnectListener = function disconnectListener() {};
             var connectListener = function connectListener(device, unacquiredDevice) {
                 if (_this2 === unacquiredDevice) {
                     _this2.deviceList.connectEvent.removeListener(connectListener);
