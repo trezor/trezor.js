@@ -4,7 +4,6 @@
 .*/node_modules/whatwg-fetch/.*
 
 [include]
-../node_modules/babel-polyfill/
 ../node_modules/ecurve/
 ../node_modules/randombytes/
 ../node_modules/semver-compare/
