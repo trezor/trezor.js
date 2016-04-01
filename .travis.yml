@@ -5,5 +5,10 @@ node_js:
   - "4.1"
   - "4.0"
 
+before_script:
+  - npm install -g eslint@2.2.0 eslint-plugin-flow-vars babel-eslint eslint-plugin-standard eslint-plugin-promise flow-bin
+
 script:
   - npm build
+  - eslint lib/
+  - cd lib && flow check

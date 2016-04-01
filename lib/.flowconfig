@@ -1,16 +1,23 @@
 [ignore]
+.*/node_modules/bitcoinjs-lib/.*
+.*/node_modules/events/.*
+.*/node_modules/whatwg-fetch/.*
 
 [include]
-../node_modules/util/
-../node_modules/events/
-../node_modules/extend/
+../node_modules/ecurve/
 ../node_modules/randombytes/
-../node_modules/unorm/
-../node_modules/traverse/
-../node_modules/superagent/
+../node_modules/semver-compare/
 ../node_modules/sync-request/
+../node_modules/traverse/
+../node_modules/unorm/
+../node_modules/whatwg-fetch/
 
 [libs]
+../flowtype_definitions/bitcoin.js
 ../flowtype_definitions/chrome.js
+../flowtype_definitions/whatwg-fetch.js
 
 [options]
+esproposal.class_static_fields=enable
+esproposal.class_instance_fields=enable
+suppress_comment=\\(.\\|\n\\)*\\$FlowIssue

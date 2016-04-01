@@ -1,40 +1,52 @@
 declare class Chrome {
-  hid: ChromeHid;
-  runtime: ChromeRuntime;
-  storage: ChromeStorage;
-  app: ChromeApp;
-  browser: ChromeBrowser;
+    hid: ChromeHid;
+    runtime: ChromeRuntime;
+    storage: ChromeStorage;
+    app: ChromeApp;
+    browser: ChromeBrowser;
 }
 
 declare var chrome: Chrome;
 
 declare class ChromeHidDeviceInfo {
-  deviceId: number;
-  vendorId: number;
-  productId: number;
-  collections: Array<{usagePage: number, usage: number, reportIds:Array<number>}>;
-  maxInputReportSize: number;
-  maxOutputReportSize: number;
-  maxFeatureReportSize: number;
-  reportDescriptor: ArrayBuffer;
+    deviceId: number;
+    vendorId: number;
+    productId: number;
+    collections: Array<{usagePage: number, usage: number, reportIds:Array<number>}>;
+    maxInputReportSize: number;
+    maxOutputReportSize: number;
+    maxFeatureReportSize: number;
+    reportDescriptor: ArrayBuffer;
 }
 
 type ChromeHidGetDevicesOptions = {
-   vendorId? : number;
-   productId? : number;
+    vendorId? : number;
+    productId? : number;
 }
 
 declare class ChromeHid {
-  getDevices: (options: ChromeHidGetDevicesOptions,
-               callback: (i: Array<ChromeHidDeviceInfo>) => void) => void;
-
-  send: (connectionId: number, reportId: number, data: ArrayBuffer, callback: () => void) => void;
-  
-  receive: (connectionId: number, callback: (reportId: number, data: ArrayBuffer) => void) => void;
-
-  connect: (deviceId: number, callback: (connection: {connectionId: number}) => void) => void;
-
-  disconnect: (connectionId: number, callback: () => void) => void;
+    getDevices: (
+        options: ChromeHidGetDevicesOptions,
+        callback: (i: Array<ChromeHidDeviceInfo>) => void
+    ) => void;
+    send: (
+        connectionId: number,
+        reportId: number,
+        data: ArrayBuffer,
+        callback: () => void
+    ) => void;
+    receive: (
+        connectionId: number,
+        callback: (reportId: number, data: ArrayBuffer) => void
+    ) => void;
+    connect: (
+        deviceId: number,
+        callback: (connection: {connectionId: number}) => void
+    ) => void;
+    disconnect: (
+        connectionId: number,
+        callback: () => void
+    ) => void;
 }
 
 declare class ChromePlatformInfo {
@@ -44,12 +56,25 @@ declare class ChromePlatformInfo {
 }
 
 declare class ChromeRuntime {
-  lastError: string;
-  getPlatformInfo(callback: (platformInfo: ChromePlatformInfo) => void): void,
-  onMessageExternal: ChromeOnMessage;
-  onMessage: ChromeOnMessage;
-  getManifest(): Object;
-  id: string;
+    id: string;
+    lastError: string;
+    onMessageExternal: ChromeOnMessage;
+    onMessage: ChromeOnMessage;
+
+    getManifest(): Object;
+    getPlatformInfo(callback: (platformInfo: ChromePlatformInfo) => void): void,
+
+    sendMessage(
+        message: any,
+        options?: {includeTlsChannelId?: boolean},
+        callback?: (response?: any) => void
+    ): void;
+    sendMessage(
+        extensionId: string,
+        message: any,
+        options?: {includeTlsChannelId?: boolean},
+        callback?: (response?: any) => void
+    ): void;
 }
 
 type ChromeStorageItems = { [key:string]: any}
@@ -93,12 +118,12 @@ declare class ChromeOnMessage {
 }
 
 declare class ChromeApp {
-    runtime: ChromeAppRuntime;   
+    runtime: ChromeAppRuntime;
     window: ChromeAppWindow;
 }
 
 declare class ChromeAppRuntime {
-    onLaunched: ChromeAppOnLaunched;        
+    onLaunched: ChromeAppOnLaunched;
 }
 
 declare class ChromeAppOnLaunched {
@@ -131,7 +156,3 @@ declare class ChromeAppWindow {
     create: (url: string, options: {innerBounds: ChromeBoundsSpecification}, callback: (createdWindow: ChromeAppWindow) => void) => void;
     onClosed: ChromeAppWindowOnClosed;
 }
-
-
-
-
