@@ -41,7 +41,7 @@ Then you can easily install trezor.js with npm
 #### Flow
 trezor.js is annotated with [Flow](https://github.com/facebook/flow) types; if you want to use Flow and use the previous setup, it will use the right types. Note that you might have to set up `.flowconfig` to include all the modules and interface files in [our flowconfig](https://github.com/trezor/trezor.js/blob/master/lib/.flowconfig)
 
-(We usually test Flow types with the current master at the time.)
+(We usually test Flow types with the current Flow master at the time.)
 
 Install by copying
 -----
