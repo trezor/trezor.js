@@ -178,7 +178,7 @@ Note that the lenght of the action is not tied to the actual device actions. You
 | `send` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being sent to Trezor with a given type |  
 | `receive` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being received from Trezor with a given type |  
 | `button` | type:&nbsp;string | User needs to confirm something on the device |
-| `pin` | type:&nbsp;string<br>callback:&nbsp;(error: Error, pin: string)=&gt;void | The device asks for PIN.<br>You can either send PIN or send Error back to the device. You need to do one for the flow to continue.<br>PIN is randomized depending on device display; top left is "1", bottom right is "9". "123" means the top row on the display. |
+| `pin` | type:&nbsp;string<br>callback:&nbsp;(error: Error, pin: string)=&gt;void | The device asks for PIN.<br>You can either send PIN or send Error back to the device. You need to do one for the flow to continue.<br>PIN is randomized depending on device display; top right is "9", bottom left is "1". "123" means the bottom row on the display. |
 | `passphrase` | callback:&nbsp;(error: Error, passphrase: string)=&gt;void | The device asks for passhprase.<br>You can either send passphrase or send Error back to the device. You need to do one for the flow to continue. |
 | `word` | callback:&nbsp;(error: Error, word: string)=&gt;void | The device asks for word (on device recovery).<br>You can either send word or send Error back to the device. You need to do one for the flow to continue. |
 
