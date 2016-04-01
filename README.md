@@ -14,7 +14,7 @@ Run:
      
 Install by npm
 -----
-TODO: write better
+<!-- TODO: write better -->
 
 The library is using new babelify with Babel 6 with several plugins. You will need to install the following packages:
 
