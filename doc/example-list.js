@@ -40,7 +40,7 @@ list.on('connect', function (device) {
             (0 | hardeningConstant) >>> 0,
             0,
             0
-        ], {coin_name: "Bitcoin"}, true)
+        ], 'bitcoin', true)
     })
     .then(function (result) {
         console.log('Address:', result.message.address);
