@@ -2547,10 +2547,10 @@ var _http4 = _interopRequireDefault(_http3);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Attempts to load any available HW transport layer.
-function loadTransport(bridgeVersionUrl) {
+function loadTransport(bridgeUrl, bridgeVersionUrl) {
     var ch = _chromeExtension2.default.create();
     var h = ch.catch(function () {
-        return _http2.default.create(undefined, bridgeVersionUrl);
+        return _http2.default.create(bridgeUrl, bridgeVersionUrl);
     });
     var p = h.catch(function () {
         return _plugin2.default.create();
