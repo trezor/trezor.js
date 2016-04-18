@@ -94,7 +94,7 @@ var DescriptorStream = function (_EventEmitter) {
     function DescriptorStream(transport) {
         _classCallCheck(this, DescriptorStream);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DescriptorStream).call(this));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DescriptorStream).call(this, 'descriptor-stream'));
 
         _this.listening = false;
         _this.previous = null;
@@ -149,6 +149,7 @@ var DescriptorStream = function (_EventEmitter) {
         key: '_diff',
         value: function _diff(descriptors) {
             var previous = this.previous || [];
+            console.log('[trezor.js descriptor-stream] _diff', descriptors, previous);
             var connected = descriptors.filter(function (d) {
                 return previous.find(function (x) {
                     return x.path === d.path;
@@ -175,6 +176,7 @@ var DescriptorStream = function (_EventEmitter) {
             var released = changedSessions.filter(function (descriptor) {
                 return descriptor.session == null;
             });
+            console.log('[trezor.js descriptor-stream] _diff changedSessions ', changedSessions, acquired, released);
 
             var didUpdate = connected.length + disconnected.length + changedSessions.length > 0;
 
@@ -278,12 +280,11 @@ var DeviceList = function (_EventEmitter) {
     function DeviceList(options) {
         _classCallCheck(this, DeviceList);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DeviceList).call(this));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DeviceList).call(this, 'device-list'));
 
         _this.stream = null;
         _this.devices = {};
         _this.unacquiredDevices = {};
-        _this.devicesPromises = {};
         _this.sessions = {};
         _this.errorEvent = new _flowEvents.Event1('error', _this);
         _this.transportEvent = new _flowEvents.Event1('transport', _this);
@@ -352,7 +353,6 @@ var DeviceList = function (_EventEmitter) {
             var path = descriptor.path;
             var pathStr = path.toString();
             var devRes = _device2.default.fromDescriptor(transport, descriptor, this).then(function (device) {
-                _this3.devices[pathStr] = device;
                 var previousDevice = _this3.unacquiredDevices[pathStr];
                 if (previousDevice != null) {
                     delete _this3.unacquiredDevices[pathStr];
@@ -384,10 +384,7 @@ var DeviceList = function (_EventEmitter) {
         value: function _createUnacquiredDevice(transport, descriptor, stream) {
             var _this4 = this;
 
-            var path = descriptor.path;
-            var pathStr = path.toString();
             var res = _unacquiredDevice2.default.fromDescriptor(transport, descriptor, this).then(function (device) {
-                _this4.unacquiredDevices[pathStr] = device;
                 console.log('Connected unacquired');
                 _this4.connectUnacquiredEvent.emit(device);
                 return device;
@@ -418,9 +415,19 @@ var DeviceList = function (_EventEmitter) {
 
                     // if descriptor is null => we can acquire the device
                     if (descriptor.session == null) {
-                        _this5.devicesPromises[path.toString()] = _this5._createDevice(transport, descriptor, stream);
+                        _this5._createDevice(transport, descriptor, stream).then(function (device) {
+                            if (device instanceof _device2.default) {
+                                _this5.devices[path.toString()] = device;
+                            } else {
+                                _this5.unacquiredDevices[path.toString()] = device;
+                            }
+                        }).catch(function (err) {
+                            console.log('[trezor.js device list] Cannot create device', err);
+                        });
                     } else {
-                        _this5.devicesPromises[path.toString()] = _this5._createUnacquiredDevice(transport, descriptor, stream);
+                        _this5._createUnacquiredDevice(transport, descriptor, stream).then(function (device) {
+                            _this5.unacquiredDevices[path.toString()] = device;
+                        });
                     }
                 });
 
@@ -440,29 +447,29 @@ var DeviceList = function (_EventEmitter) {
                     var e = _ref.e;
 
                     d.forEach(function (descriptor) {
-                        var path = descriptor.path;
-                        var deviceP = _this5.devicesPromises[path.toString()];
-                        deviceP.then(function (device) {
-                            if (device instanceof _device2.default) {
-                                e.emit(device);
-                            }
-                        });
+                        var pathStr = descriptor.path.toString();
+                        var device = _this5.devices[pathStr];
+                        if (device != null) {
+                            e.emit(device);
+                        }
                     });
                 });
 
                 diff.disconnected.forEach(function (descriptor) {
                     var path = descriptor.path;
                     var pathStr = path.toString();
-                    var deviceP = _this5.devicesPromises[pathStr];
-                    deviceP.then(function (device) {
-                        if (device instanceof _device2.default) {
-                            delete _this5.devices[pathStr];
-                            _this5.disconnectEvent.emit(device);
-                        } else {
-                            delete _this5.unacquiredDevices[pathStr];
-                            _this5.disconnectUnacquiredEvent.emit(device);
-                        }
-                    });
+
+                    var device = _this5.devices[pathStr];
+                    if (device != null) {
+                        delete _this5.devices[pathStr];
+                        _this5.disconnectEvent.emit(device);
+                    }
+
+                    var unacquiredDevice = _this5.unacquiredDevices[pathStr];
+                    if (unacquiredDevice != null) {
+                        delete _this5.unacquiredDevices[pathStr];
+                        _this5.disconnectUnacquiredEvent.emit(unacquiredDevice);
+                    }
                 });
 
                 diff.released.forEach(function (descriptor) {
@@ -488,9 +495,9 @@ var DeviceList = function (_EventEmitter) {
         }
     }, {
         key: 'onbeforeunload',
-        value: function onbeforeunload() {
+        value: function onbeforeunload(clearSession) {
             this.asArray().forEach(function (device) {
-                return device.onbeforeunload();
+                return device.onbeforeunload(clearSession);
             });
         }
     }]);
@@ -551,24 +558,42 @@ var Device = function (_EventEmitter) {
     function Device(transport, descriptor, features, deviceList) {
         _classCallCheck(this, Device);
 
-        // === immutable properties
-
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Device).call(this));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Device).call(this, 'device'));
 
         _this.activityInProgress = false;
         _this.connected = true;
+        _this.clearSession = false;
+        _this.clearSessionTime = 15 * 60 * 1000;
+        _this.clearSessionTimeout = null;
+        _this.clearSessionFuture = 0;
+        _this.rememberPlaintextPassphrase = false;
+        _this.rememberedPlaintextPasshprase = null;
         _this.disconnectEvent = new _flowEvents.Event0('disconnect', _this);
-        _this.changedSessionsEvent = new _flowEvents.Event2('changedSessions', _this);
-        _this.sendEvent = new _flowEvents.Event2('send', _this);
-        _this.receiveEvent = new _flowEvents.Event2('receive', _this);
-        _this.errorEvent = new _flowEvents.Event1('error', _this);
         _this.buttonEvent = new _flowEvents.Event1('button', _this);
-        _this.pinEvent = new _flowEvents.Event2('pin', _this);
+        _this.errorEvent = new _flowEvents.Event1('error', _this);
         _this.passphraseEvent = new _flowEvents.Event1('passphrase', _this);
         _this.wordEvent = new _flowEvents.Event1('word', _this);
+        _this.changedSessionsEvent = new _flowEvents.Event2('changedSessions', _this);
+        _this.pinEvent = new _flowEvents.Event2('pin', _this);
+        _this.receiveEvent = new _flowEvents.Event2('receive', _this);
+        _this.sendEvent = new _flowEvents.Event2('send', _this);
+
+        console.log('[trezor.js device] constructor');
+
+        // === immutable properties
         _this.transport = transport;
         _this.originalDescriptor = descriptor;
         _this.deviceList = deviceList;
+
+        if (_this.deviceList.options.clearSession) {
+            _this.clearSession = true;
+            if (_this.deviceList.options.clearSessionTime) {
+                _this.clearSessionTime = _this.deviceList.options.clearSessionTime;
+            }
+        }
+        if (_this.deviceList.options.rememberDevicePasshprase) {
+            _this.rememberPlaintextPassphrase = true;
+        }
 
         // === mutable properties
         // features get reloaded after every initialization
@@ -585,12 +610,15 @@ var Device = function (_EventEmitter) {
     // First parameter is a function that has two parameters
     // - first the session and second the fresh device features.
     // Note - when descriptor.path != null, this will steal the device from someone else
+    // in miliseconds
 
 
     _createClass(Device, [{
         key: 'waitForSessionAndRun',
-        value: function waitForSessionAndRun(fn) {
-            return this.run(fn, { waiting: true });
+        value: function waitForSessionAndRun(fn, options) {
+            console.log('[trezor.js device] waitForSessionAndRun');
+            var options_ = options == null ? {} : options;
+            return this.run(fn, _extends({}, options_, { waiting: true }));
         }
 
         // FOR DEBUGGING
@@ -609,6 +637,7 @@ var Device = function (_EventEmitter) {
         value: function run(fn, options) {
             var _this2 = this;
 
+            console.log('[trezor.js device] run');
             if (!this.connected) {
                 return Promise.reject(new Error('Device disconnected.'));
             }
@@ -623,6 +652,7 @@ var Device = function (_EventEmitter) {
             }
 
             this.activityInProgress = true;
+            this._stopClearSessionTimeout();
 
             var currentSession = this.deviceList.getSession(this.originalDescriptor.path);
             if (!aggressive && !waiting && currentSession != null) {
@@ -637,11 +667,28 @@ var Device = function (_EventEmitter) {
                 waitingPromise = this._waitForNullSession();
             }
 
+            var addClearSession = function addClearSession() {
+                if (_this2.clearSession) {
+                    _this2._startClearSessionTimeout();
+                }
+                return Promise.resolve();
+            };
+
+            var runFinal = function runFinal(res, error) {
+                if (error && error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE && waiting) {
+                    return Promise.resolve();
+                }
+                _this2.activityInProgress = false;
+                return addClearSession();
+            };
+
             return waitingPromise.then(function (resolvedSession) {
                 var descriptor = _extends({}, _this2.originalDescriptor, { session: resolvedSession });
-                return Device._run(function (session, features) {
+                return promiseFinally(Device._run(function (session, features) {
                     return _this2._runInside(fn, session, features, skipFinalReload);
-                }, _this2.transport, descriptor).catch(function (error) {
+                }, _this2.transport, descriptor, _this2.deviceList), function (res, error) {
+                    return runFinal(res, error);
+                }).catch(function (error) {
                     if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE && waiting) {
                         // trying again!!!
                         return _this2.run(fn, options);
@@ -656,6 +703,7 @@ var Device = function (_EventEmitter) {
         value: function _reloadFeaturesOrInitialize(session) {
             var _this3 = this;
 
+            console.log('[trezor.js device] _reloadFeaturesOrInitialize');
             var featuresPromise = void 0;
             if (this.atLeast('1.3.3')) {
                 featuresPromise = session.getFeatures();
@@ -668,85 +716,132 @@ var Device = function (_EventEmitter) {
             });
         }
     }, {
-        key: '_runInside',
-        value: function _runInside(fn, activeSession, features, skipFinalReload) {
+        key: '_startClearSessionTimeout',
+        value: function _startClearSessionTimeout() {
             var _this4 = this;
 
+            console.log('[trezor.js device] _startClearSessionTimeout');
+            this.clearSessionTimeout = window.setTimeout(function () {
+                var options = { onlyOneActivity: true };
+                _this4.run(function (session) {
+                    return session.clearSession();
+                }, options);
+
+                _this4.clearSessionTimeout = null;
+            }, this.clearSessionTime);
+            this.clearSessionFuture = Date.now() + this.clearSessionTime;
+        }
+    }, {
+        key: 'clearSessionRest',
+        value: function clearSessionRest() {
+            if (this.clearSessionTimeout == null) {
+                return 0;
+            } else {
+                return this.clearSessionFuture - Date.now();
+            }
+        }
+    }, {
+        key: '_stopClearSessionTimeout',
+        value: function _stopClearSessionTimeout() {
+            console.log('[trezor.js device] _stopClearSessionTimeout');
+            if (this.clearSessionTimeout != null) {
+                window.clearTimeout(this.clearSessionTimeout);
+                this.clearSessionTimeout = null;
+            }
+        }
+    }, {
+        key: 'forwardPassphrase',
+        value: function forwardPassphrase(source) {
+            var _this5 = this;
+
+            console.log('[trezor.js device] forward2');
+            source.on(function (arg) {
+                if (_this5.rememberedPlaintextPasshprase != null) {
+                    var p = _this5.rememberedPlaintextPasshprase;
+                    arg(null, p);
+                    return;
+                }
+                if (_this5.passphraseEvent.listenerCount() === 0) {
+                    if (typeof arg === 'function') {
+                        console.warn('[device] Passphrase callback not configured, cancelling request');
+                        arg(new Error('No passphrase callback'));
+                        return;
+                    }
+                }
+                var argAndRemember = function argAndRemember(e, passphrase) {
+                    if (_this5.rememberPlaintextPassphrase) {
+                        _this5.rememberedPlaintextPasshprase = passphrase;
+                    }
+                    arg(e, passphrase);
+                };
+                _this5.passphraseEvent.emit(argAndRemember);
+            });
+        }
+    }, {
+        key: '_runInside',
+        value: function _runInside(fn, activeSession, features, skipFinalReload) {
+            var _this6 = this;
+
+            console.log('[trezor.js device] _runInside');
             this.features = features;
             this.currentSessionObject = activeSession;
 
             forward2(activeSession.sendEvent, this.sendEvent);
             forward2(activeSession.receiveEvent, this.receiveEvent);
-            forward1(activeSession.errorEvent, this.errorEvent);
+            forwardError(activeSession.errorEvent, this.errorEvent);
 
             forward1(activeSession.buttonEvent, this.buttonEvent);
-            forward2(activeSession.pinEvent, this.pinEvent);
-            forward1(activeSession.wordEvent, this.wordEvent);
-            forward1(activeSession.passphraseEvent, this.passphraseEvent);
+            forwardCallback2(activeSession.pinEvent, this.pinEvent);
+            forwardCallback1(activeSession.wordEvent, this.wordEvent);
+            this.forwardPassphrase(activeSession.passphraseEvent);
 
-            var reloadFinal = function reloadFinal(err) {
-                var errIsTransport = err != null && err.transportError;
-                if (skipFinalReload || errIsTransport) {
+            var runFinal = function runFinal() {
+                activeSession.deactivateEvents();
+                _this6.currentSessionObject = null;
+
+                if (skipFinalReload) {
                     return Promise.resolve();
                 } else {
-                    return _this4._reloadFeaturesOrInitialize(activeSession);
+                    return _this6._reloadFeaturesOrInitialize(activeSession);
                 }
             };
 
-            var cleanupFinal = function cleanupFinal() {
-                activeSession.deactivateEvents();
-                _this4.activityInProgress = false;
-                _this4.currentSessionObject = null;
-            };
-
-            var runFinal = function runFinal(err) {
-                return reloadFinal(err).then(function () {
-                    return cleanupFinal();
-                }, function () {
-                    return cleanupFinal();
-                });
-            };
-
-            return Promise.resolve(fn(activeSession)).then(function (res) {
-                return runFinal(activeSession.lastCallError).then(function () {
-                    return res;
-                });
-            }, function (err) {
-                return runFinal(activeSession.lastCallError).then(function () {
-                    throw err;
-                });
+            return promiseFinally(Promise.resolve(fn(activeSession)), function () {
+                return runFinal();
             });
         }
     }, {
         key: '_waitForNullSession',
         value: function _waitForNullSession() {
-            var _this5 = this;
+            var _this7 = this;
 
+            console.log('[trezor.js device] _waitForNullSession');
             return new Promise(function (resolve, reject) {
                 var _onDisconnect = function onDisconnect() {};
                 var onUpdate = function onUpdate() {
-                    var updatedSession = _this5.deviceList.getSession(_this5.originalDescriptor.path);
+                    var updatedSession = _this7.deviceList.getSession(_this7.originalDescriptor.path);
                     if (updatedSession == null) {
-                        _this5.deviceList.disconnectEvent.removeListener(_onDisconnect);
-                        _this5.deviceList.updateEvent.removeListener(onUpdate);
+                        _this7.deviceList.disconnectEvent.removeListener(_onDisconnect);
+                        _this7.deviceList.updateEvent.removeListener(onUpdate);
                         resolve(updatedSession);
                     }
                 };
                 _onDisconnect = function onDisconnect(device) {
-                    if (device === _this5) {
-                        _this5.deviceList.disconnectEvent.removeListener(_onDisconnect);
-                        _this5.deviceList.updateEvent.removeListener(onUpdate);
-                        reject();
+                    if (device === _this7) {
+                        _this7.deviceList.disconnectEvent.removeListener(_onDisconnect);
+                        _this7.deviceList.updateEvent.removeListener(onUpdate);
+                        reject(new Error('Device disconnected'));
                     }
                 };
 
-                _this5.deviceList.updateEvent.on(onUpdate);
-                _this5.deviceList.disconnectEvent.on(_onDisconnect);
+                _this7.deviceList.updateEvent.on(onUpdate);
+                _this7.deviceList.disconnectEvent.on(_onDisconnect);
             });
         }
     }, {
         key: 'reloadFeatures',
         value: function reloadFeatures() {
+            console.log('[trezor.js device] reloadFeatures');
             return this.run(function () {
                 return true;
             });
@@ -760,6 +855,7 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'steal',
         value: function steal() {
+            console.log('[trezor.js device] steal');
             return this.run(function () {
                 return true;
             }, { aggressive: true });
@@ -767,26 +863,31 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'isBootloader',
         value: function isBootloader() {
+            console.log('[trezor.js device] isBootloader');
             return this.features.bootloader_mode;
         }
     }, {
         key: 'isInitialized',
         value: function isInitialized() {
+            console.log('[trezor.js device] isInitialized');
             return this.features.initialized;
         }
     }, {
         key: 'getVersion',
         value: function getVersion() {
+            console.log('[trezor.js device] getVersion');
             return [this.features.major_version, this.features.minor_version, this.features.patch_version].join('.');
         }
     }, {
         key: 'atLeast',
         value: function atLeast(version) {
+            console.log('[trezor.js device] atLeast');
             return (0, _semverCompare2.default)(this.getVersion(), version) >= 0;
         }
     }, {
         key: 'getCoin',
         value: function getCoin(name) {
+            console.log('[trezor.js device] getCoin');
             var coins = this.features.coins;
 
             for (var i = 0; i < coins.length; i++) {
@@ -799,11 +900,12 @@ var Device = function (_EventEmitter) {
     }, {
         key: '_watch',
         value: function _watch() {
-            var _this6 = this;
+            var _this8 = this;
 
+            console.log('[trezor.js device] _watch');
             var onChangedSessions = function onChangedSessions(device) {
-                if (device === _this6) {
-                    _this6.changedSessionsEvent.emit(_this6.isUsed(), _this6.isUsedHere());
+                if (device === _this8) {
+                    _this8.changedSessionsEvent.emit(_this8.isUsed(), _this8.isUsedHere());
                 }
             };
 
@@ -815,6 +917,11 @@ var Device = function (_EventEmitter) {
                     this.deviceList.disconnectEvent.removeListener(onDisconnect);
                     this.deviceList.changedSessionsEvent.removeListener(onChangedSessions);
                     this.connected = false;
+
+                    var events = [this.changedSessionsEvent, this.sendEvent, this.receiveEvent, this.errorEvent, this.buttonEvent, this.pinEvent, this.wordEvent];
+                    events.forEach(function (ev) {
+                        return ev.removeAllListeners();
+                    });
                 }
             }.bind(this));
         }
@@ -837,72 +944,110 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'onbeforeunload',
         value: function onbeforeunload() {
+            console.log('[trezor.js device] onbeforeunload');
             var currentSession = this.currentSessionObject;
             if (currentSession != null) {
                 if (currentSession.supportsSync) {
+                    if (this.clearSession) {
+                        currentSession.clearSessionSync();
+                    }
                     currentSession.releaseSync();
                 } else {
+                    // cannot run .then() in browser; so let's just fire and hope for the best
+                    if (this.clearSession) {
+                        currentSession.clearSession();
+                    }
                     currentSession.release();
                 }
             }
         }
     }], [{
         key: '_run',
-        value: function _run(fn, transport, descriptor) {
-            return Device._acquire(transport, descriptor).then(function (session) {
-                return session.initialize().then(function (res) {
+        value: function _run(fn, transport, descriptor, deviceList) {
+            console.log('[trezor.js device] static _run');
+            return Device._acquire(transport, descriptor, deviceList).then(function (session) {
+                return promiseFinally(session.initialize().then(function (res) {
                     return fn(session, res.message);
-                }).then(function (result) {
-                    // transport error means that something happened on transport level
-                    // no need to do release, since that is done on that level anyway
-                    var lastCallError = session.lastCallError;
-                    if (lastCallError != null && lastCallError.transportError) {
-                        return result;
-                    }
-
-                    return session.release().then(function () {
-                        return result;
-                    });
-                }, function (error) {
-                    // transport error means that something happened on transport level
-                    // no need to do release, since that is done on that level anyway
-                    var lastCallError = session.lastCallError;
-                    if (lastCallError != null && lastCallError.transportError) {
-                        throw error;
-                    }
-
-                    // we want to throw the original error, even if
-                    // the releasing fails for some reason
-                    // since the original error is more "important" than the release error
-                    return session.release().then(function () {
-                        throw error;
-                    }, function () {
-                        throw error;
-                    });
+                }), function () {
+                    return Device._release(descriptor, session, deviceList);
                 });
             });
         }
 
+        // _release is so complex, because two things happen at transport, with slight delay
+        // 1. release() call is successful
+        // 2. enumerate() returns with the empty session
+        // Because they don't happen immediately, but with a small delay, that can make an inconsistent state,
+        // when the device still looks like in use, but the activity is already finished.
+        // So instead we here wait until the device is marked as released even at enumerate.
+
+    }, {
+        key: '_release',
+        value: function _release(originalDescriptor, session, deviceList) {
+            var released = session.release();
+            var waitForEvent = new Promise(function (resolve, reject) {
+                var stream = deviceList.stream;
+                if (stream == null) {
+                    reject(new Error('Stream is null'));
+                } else {
+                    stream.releasedEvent.on(function onReleased(_ref) {
+                        var path = _ref.path;
+                        var session = _ref.session;
+
+                        if (path === originalDescriptor.path) {
+                            stream.releasedEvent.removeListener(onReleased);
+                            resolve();
+                        }
+                    });
+                }
+            });
+            return Promise.all([released, waitForEvent]);
+        }
+
+        // _acquire is complex, so that we are in a consistent state with enumerate() results
+        // If we didn't wait for that, it can happen that the whole acquire-action-release is FASTER,
+        // than two enumerations, so releasedEvent is never run.
         // note - when descriptor.path != null, this will steal the device from someone else
 
     }, {
         key: '_acquire',
-        value: function _acquire(transport, descriptor) {
-            return transport.acquire(descriptor, true).then(function (result) {
+        value: function _acquire(transport, descriptor, deviceList) {
+            console.log('[trezor.js device] static _acquire');
+            var sessionP = transport.acquire(descriptor, true).then(function (result) {
                 if (result.session == null) {
                     throw new Error('Session is null after acquire.');
                 }
                 return new _session2.default(transport, result.session, descriptor);
             });
+            var waitForEvent = new Promise(function (resolve, reject) {
+                var stream = deviceList.stream;
+                if (stream == null) {
+                    reject(new Error('Stream is null'));
+                } else {
+                    stream.acquiredEvent.on(function onAcquired(_ref2) {
+                        var path = _ref2.path;
+                        var session = _ref2.session;
+
+                        if (path === descriptor.path) {
+                            stream.acquiredEvent.removeListener(onAcquired);
+                            resolve();
+                        }
+                    });
+                }
+            });
+            return Promise.all([sessionP, waitForEvent]).then(function () {
+                return sessionP;
+            });
         }
     }, {
         key: 'fromDescriptor',
         value: function fromDescriptor(transport, originalDescriptor, deviceList) {
+            console.log('[trezor.js device] static fromDescriptor');
             // at this point I am assuming nobody else has the device
             var descriptor = _extends({}, originalDescriptor, { session: null });
             return Device._run(function (session, features) {
                 return new Device(transport, descriptor, features, deviceList);
-            }, transport, descriptor);
+            }, transport, descriptor, deviceList);
         }
     }]);
 
@@ -911,34 +1056,61 @@ var Device = function (_EventEmitter) {
 
 // Forwards events from source to target
 
-
 exports.default = Device;
-function forward1(source, target) {
+function forwardError(source, target) {
     source.on(function (arg) {
         if (target.listenerCount() === 0) {
-            if (target.type === 'error') {
-                return;
-            }
-            if (typeof arg === 'function') {
-                console.warn('[device] ' + target.type + 'callback not configured, cancelling request');
-                arg(new Error('No ' + target.type + ' callback'));
-                return;
-            }
+            return;
         }
+        target.emit(arg);
+    });
+}
+
+function forwardCallback1(source, target) {
+    source.on(function (arg) {
+        if (target.listenerCount() === 0) {
+            console.warn('[device] ' + target.type + 'callback not configured, cancelling request');
+            arg(new Error('No ' + target.type + ' callback'));
+            return;
+        }
+        target.emit(arg);
+    });
+}
+
+function forwardCallback2(source, target) {
+    source.on(function (arg, arg2) {
+        if (target.listenerCount() === 0) {
+            console.warn('[device] ' + target.type + 'callback not configured, cancelling request');
+            arg2(new Error('No ' + target.type + ' callback'));
+            return;
+        }
+        target.emit(arg, arg2);
+    });
+}
+
+function forward1(source, target) {
+    source.on(function (arg) {
         target.emit(arg);
     });
 }
 
 function forward2(source, target) {
     source.on(function (arg1, arg2) {
-        if (target.listenerCount() === 0) {
-            if (typeof arg2 === 'function') {
-                console.warn('[device] ' + target.type + 'callback not configured, cancelling request');
-                arg2(new Error('No ' + target.type + ' callback'));
-                return;
-            }
-        }
         target.emit(arg1, arg2);
+    });
+}
+
+function promiseFinally(p, fun) {
+    return p.then(function (res) {
+        return fun(res, null).then(function () {
+            return res;
+        });
+    }, function (err) {
+        return fun(null, err).then(function () {
+            throw err;
+        }, function () {
+            throw err;
+        });
     });
 }
 module.exports = exports['default'];
@@ -947,9 +1119,13 @@ module.exports = exports['default'];
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 exports.EventEmitter = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _events = require('events');
 
@@ -962,15 +1138,36 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 // avoids a bug in flowtype: https://github.com/facebook/flow/issues/545
 
 var EventEmitter = exports.EventEmitter = function (_EventEmitterOut) {
-  _inherits(EventEmitter, _EventEmitterOut);
+    _inherits(EventEmitter, _EventEmitterOut);
 
-  function EventEmitter() {
-    _classCallCheck(this, EventEmitter);
+    function EventEmitter(name) {
+        _classCallCheck(this, EventEmitter);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(EventEmitter).apply(this, arguments));
-  }
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(EventEmitter).call(this));
 
-  return EventEmitter;
+        _this.name = name;
+        return _this;
+    }
+
+    _createClass(EventEmitter, [{
+        key: 'emit',
+        value: function emit(event) {
+            var _get2;
+
+            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+                args[_key - 1] = arguments[_key];
+            }
+
+            if (this.name != null) {
+                var _console;
+
+                (_console = console).log.apply(_console, ['[trezor.js event ' + this.name + '] ' + event + ' : '].concat(args));
+            }
+            return (_get2 = _get(Object.getPrototypeOf(EventEmitter.prototype), 'emit', this)).call.apply(_get2, [this, event].concat(args));
+        }
+    }]);
+
+    return EventEmitter;
 }(_events.EventEmitter);
 
 },{"events":63}],6:[function(require,module,exports){
@@ -1210,125 +1407,125 @@ module.exports = exports['default'];
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
 exports.udevInstallers = exports.latestVersion = exports.installers = exports.http = exports.DeviceList = exports.DescriptorStream = exports.Device = exports.UnacquiredDevice = exports.Session = exports.PluginTransport = exports.ChromeExtensionTransport = exports.HttpTransport = exports.initTransport = exports.loadTransport = undefined;
 
 var _transport = require('./transport');
 
 Object.defineProperty(exports, 'loadTransport', {
-  enumerable: true,
-  get: function get() {
-    return _transport.loadTransport;
-  }
+    enumerable: true,
+    get: function get() {
+        return _transport.loadTransport;
+    }
 });
 Object.defineProperty(exports, 'initTransport', {
-  enumerable: true,
-  get: function get() {
-    return _transport.initTransport;
-  }
+    enumerable: true,
+    get: function get() {
+        return _transport.initTransport;
+    }
 });
 
 var _http = require('./transport/http');
 
 Object.defineProperty(exports, 'HttpTransport', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_http).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_http).default;
+    }
 });
 
 var _chromeExtension = require('./transport/chrome-extension');
 
 Object.defineProperty(exports, 'ChromeExtensionTransport', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_chromeExtension).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_chromeExtension).default;
+    }
 });
 
 var _plugin = require('./transport/plugin');
 
 Object.defineProperty(exports, 'PluginTransport', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_plugin).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_plugin).default;
+    }
 });
 
 var _session = require('./session');
 
 Object.defineProperty(exports, 'Session', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_session).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_session).default;
+    }
 });
 
 var _unacquiredDevice = require('./unacquired-device');
 
 Object.defineProperty(exports, 'UnacquiredDevice', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_unacquiredDevice).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_unacquiredDevice).default;
+    }
 });
 
 var _device = require('./device');
 
 Object.defineProperty(exports, 'Device', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_device).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_device).default;
+    }
 });
 
 var _descriptorStream = require('./descriptor-stream');
 
 Object.defineProperty(exports, 'DescriptorStream', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_descriptorStream).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_descriptorStream).default;
+    }
 });
 
 var _deviceList = require('./device-list');
 
 Object.defineProperty(exports, 'DeviceList', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_deviceList).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_deviceList).default;
+    }
 });
 
 var _http2 = require('./http');
 
 Object.defineProperty(exports, 'http', {
-  enumerable: true,
-  get: function get() {
-    return _interopRequireDefault(_http2).default;
-  }
+    enumerable: true,
+    get: function get() {
+        return _interopRequireDefault(_http2).default;
+    }
 });
 
 var _installers = require('./installers');
 
 Object.defineProperty(exports, 'installers', {
-  enumerable: true,
-  get: function get() {
-    return _installers.installers;
-  }
+    enumerable: true,
+    get: function get() {
+        return _installers.installers;
+    }
 });
 Object.defineProperty(exports, 'latestVersion', {
-  enumerable: true,
-  get: function get() {
-    return _installers.latestVersion;
-  }
+    enumerable: true,
+    get: function get() {
+        return _installers.latestVersion;
+    }
 });
 Object.defineProperty(exports, 'udevInstallers', {
-  enumerable: true,
-  get: function get() {
-    return _installers.udevInstallers;
-  }
+    enumerable: true,
+    get: function get() {
+        return _installers.udevInstallers;
+    }
 });
 
 require('whatwg-fetch');
@@ -1584,6 +1781,7 @@ function isInstalled(mimetype) {
 }
 
 },{}],11:[function(require,module,exports){
+(function (Buffer){
 
 'use strict';
 
@@ -1654,9 +1852,8 @@ var Session = function (_EventEmitter) {
     function Session(transport, sessionId, descriptor) {
         _classCallCheck(this, Session);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Session).call(this));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Session).call(this, 'session'));
 
-        _this.lastCallError = null;
         _this.sendEvent = new _flowEvents.Event2('send', _this);
         _this.receiveEvent = new _flowEvents.Event2('receive', _this);
         _this.errorEvent = new _flowEvents.Event1('error', _this);
@@ -1873,6 +2070,15 @@ var Session = function (_EventEmitter) {
             });
         }
     }, {
+        key: 'cipherKeyValueBuffer',
+        value: function cipherKeyValueBuffer(address_n, key, value, encrypt, ask_on_encrypt, ask_on_decrypt, iv // in hexadecimal
+        ) {
+            return this.cipherKeyValue(address_n, key, value, encrypt, ask_on_encrypt, ask_on_decrypt, iv).then(function (r) {
+                var val = r.message.value;
+                return new Buffer(val, 'hex');
+            });
+        }
+    }, {
         key: 'measureTx',
         value: function measureTx(inputs, outputs, coin) {
             return this.typedCall('EstimateTxSize', 'TxSize', {
@@ -1894,17 +2100,9 @@ var Session = function (_EventEmitter) {
     }, {
         key: 'typedCall',
         value: function typedCall(type, resType) {
-            var _this3 = this;
-
             var msg = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-            return this.callHelper.typedCall(type, resType, msg).then(function (result) {
-                _this3.lastCallError = null;
-                return result;
-            }, function (error) {
-                _this3.lastCallError = error;
-                throw error;
-            });
+            return this.callHelper.typedCall(type, resType, msg);
         }
 
         // sends a blocking message to an opened device. be careful, the whole
@@ -2013,7 +2211,8 @@ function wrapLoadDevice(settings, network_) {
     return settings;
 }
 
-},{"./events":5,"./flow-events":6,"./trezortypes":17,"./utils/call":19,"./utils/hdnode":20,"./utils/signbjstx":21,"./utils/signtx":22,"bitcoinjs-lib":38}],12:[function(require,module,exports){
+}).call(this,require("buffer").Buffer)
+},{"./events":5,"./flow-events":6,"./trezortypes":17,"./utils/call":19,"./utils/hdnode":20,"./utils/signbjstx":21,"./utils/signtx":22,"bitcoinjs-lib":38,"buffer":51}],12:[function(require,module,exports){
 
 'use strict';
 
@@ -2079,7 +2278,8 @@ function checkInfo(res) {
     if (typeof version !== 'string') {
         throw new Error('Wrong result type.');
     }
-    return { version: version };
+    var configured = !!res.configured;
+    return { version: version, configured: configured };
 }
 
 },{}],13:[function(require,module,exports){
@@ -2138,6 +2338,7 @@ var ChromeExtensionTransport = function () {
 
         this.supportsSync = false;
         this.version = '';
+        this.configured = false;
         this.lastUdevStatus = 'hide';
 
         this._id = id;
@@ -2205,7 +2406,7 @@ var ChromeExtensionTransport = function () {
         value: function acquire(device, checkPrevious) {
             var _this2 = this;
 
-            var resP = Promise.reject();
+            var resP = Promise.resolve();
 
             if (checkPrevious && (0, _semverCompare2.default)(this.version, '1.0.6') >= 0) {
                 resP = this._send({
@@ -2248,13 +2449,12 @@ var ChromeExtensionTransport = function () {
                 }
             }).then(function (res) {
                 return (0, _checks.checkCall)(res);
-            }).catch(function (r) {
+            }).then(function (r) {
                 return _this3.udevStatus().then(function () {
                     return r;
                 });
             }, function (err) {
                 return _this3.udevStatus().then(function () {
-                    err.transportError = true;
                     throw err;
                 });
             });
@@ -2289,8 +2489,10 @@ var ChromeExtensionTransport = function () {
                 return transport._ping().then(function () {
                     return transport._info().then(function (info) {
                         transport.version = info.version;
+                        transport.configured = info.configured;
                     }, function () {
                         transport.version = '1.0.0';
+                        transport.configured = false;
                     });
                 }).then(function () {
                     return transport;
@@ -2360,6 +2562,7 @@ var HttpTransport = function () {
 
         this.url = url;
         this.version = info.version;
+        this.configured = info.configured;
     }
 
     _createClass(HttpTransport, [{
@@ -2437,9 +2640,6 @@ var HttpTransport = function () {
         value: function call(sessionId, type, message) {
             return this._request(callOptions(sessionId, type, message)).then(function (r) {
                 return (0, _checks.checkCall)(r);
-            }).catch(function (err) {
-                err.transportError = true;
-                throw err;
             });
         }
 
@@ -2536,10 +2736,6 @@ var _chromeExtension = require('./chrome-extension');
 
 var _chromeExtension2 = _interopRequireDefault(_chromeExtension);
 
-var _plugin = require('./plugin');
-
-var _plugin2 = _interopRequireDefault(_plugin);
-
 var _http3 = require('../http');
 
 var _http4 = _interopRequireDefault(_http3);
@@ -2552,10 +2748,7 @@ function loadTransport(bridgeUrl, bridgeVersionUrl) {
     var h = ch.catch(function () {
         return _http2.default.create(bridgeUrl, bridgeVersionUrl);
     });
-    var p = h.catch(function () {
-        return _plugin2.default.create();
-    });
-    return p.catch(function () {
+    return h.catch(function () {
         throw new Error('No transport installed.');
     });
 }
@@ -2579,7 +2772,7 @@ function initTransport() {
 
     // const configUrl: string = options.configUrl == null ? CONFIG_URL : options.configUrl;
 
-    return loadTransport(options.bridgeVersionUrl).then(function (t) {
+    return loadTransport(undefined, options.bridgeVersionUrl).then(function (t) {
         if (options.config != null) {
             return t.configure(options.config);
         } else {
@@ -2595,7 +2788,7 @@ function withTimestamp(url) {
     return url + '?' + new Date().getTime();
 }
 
-},{"../http":7,"./chrome-extension":13,"./http":14,"./plugin":16}],16:[function(require,module,exports){
+},{"../http":7,"./chrome-extension":13,"./http":14}],16:[function(require,module,exports){
 /*  weak */
 'use strict';
 
@@ -2619,6 +2812,7 @@ function PluginTransport(plugin) {
 
 PluginTransport.prototype.supportsSync = false;
 PluginTransport.prototype.version = '1.0.5';
+PluginTransport.prototype.configured = true;
 
 // Injects the plugin and returns a PluginTransport.
 PluginTransport.create = function () {
@@ -2831,7 +3025,7 @@ var UnacquiredDevice = function (_EventEmitter) {
     function UnacquiredDevice(transport, descriptor, deviceList) {
         _classCallCheck(this, UnacquiredDevice);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UnacquiredDevice).call(this));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UnacquiredDevice).call(this, 'unacquired device'));
 
         _this.connectEvent = new _flowEvents.Event1('connect', _this);
         _this.disconnectEvent = new _flowEvents.Event0('disconnect', _this);
@@ -2886,15 +3080,19 @@ var UnacquiredDevice = function (_EventEmitter) {
                 _this3._watchConnectDisconnect(function (device) {
                     return resolve(device);
                 }, function () {
-                    return reject();
+                    return reject(new Error('Device disconnected before stealing'));
                 });
             });
             var currentSession = this.deviceList.getSession(this.originalDescriptor.path);
             var descriptor = _extends({}, this.originalDescriptor, { session: currentSession });
-            _device2.default._run(function () {
+
+            // if the run fails, I want to return that error, I guess
+            var aggressiveRunResult = _device2.default._run(function () {
                 return true;
-            }, this.transport, descriptor);
-            return result;
+            }, this.transport, descriptor, this.deviceList);
+            return aggressiveRunResult.then(function () {
+                return result;
+            });
         }
     }, {
         key: '_watch',
@@ -3124,7 +3322,7 @@ var CallHelper = exports.CallHelper = function () {
                     }
                 })) {
                     console.warn('[trezor] PIN callback not configured, cancelling request');
-                    reject();
+                    reject(new Error('PIN callback not configured'));
                 }
             });
         }
@@ -3143,7 +3341,7 @@ var CallHelper = exports.CallHelper = function () {
                     }
                 })) {
                     console.warn('[trezor] Passphrase callback not configured, cancelling request');
-                    reject();
+                    reject(new Error('Passphrase callback not configured'));
                 }
             });
         }
@@ -3161,7 +3359,7 @@ var CallHelper = exports.CallHelper = function () {
                     }
                 })) {
                     console.warn('[trezor] Word callback not configured, cancelling request');
-                    reject();
+                    reject(new Error('Word callback not configured'));
                 }
             });
         }
