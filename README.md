@@ -58,6 +58,11 @@ Compile with:
 
 This should build the library and copy it to `dist/trezor.js`.
 
+Polyfill
+---
+You need to import babel-polyfill to your application if you are using trezor.js, since we are using ES6.
+
+See https://www.npmjs.com/package/babel-polyfill
 
 Before using trezor.js
 ----
