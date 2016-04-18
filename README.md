@@ -62,7 +62,9 @@ Polyfill
 ---
 You need to import babel-polyfill to your application if you are using trezor.js, since we are using ES6.
 
-See https://www.npmjs.com/package/babel-polyfill
+See https://www.npmjs.com/package/babel-polyfill and https://babeljs.io/docs/usage/polyfill/
+
+You need to add that even if you are using compiled dist version of trezor.js.
 
 Before using trezor.js
 ----
