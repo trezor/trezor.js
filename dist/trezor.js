@@ -26,11 +26,10 @@ function exists() {
 }
 
 function send(extensionId, message) {
-    // console.log('Sending a message to ID', message, extensionId);
     return new Promise(function (resolve, reject) {
         var callback = function callback(response) {
             if (response === undefined) {
-                console.error('[trezor] Chrome runtime error', chrome.runtime.lastError);
+                console.error('[trezor.js] [chrome-messages] Chrome runtime error', chrome.runtime.lastError);
                 reject(chrome.runtime.lastError);
                 return;
             }
@@ -39,13 +38,12 @@ function send(extensionId, message) {
                 return;
             }
             if (response.type === 'response') {
-                // console.log('Response was', response);
                 resolve(response.body);
             } else if (response.type === 'error') {
-                console.error('[trezor] Error received', response);
+                console.error('[trezor.js] [chrome-messages] Error received', response);
                 reject(new Error(response.message));
             } else {
-                console.error('[trezor] Unknown response type ', response.type);
+                console.error('[trezor.js] [chrome-messages] Unknown response type ', response.type);
                 reject(new Error('Unknown response type ' + response.type));
             }
         };
@@ -70,6 +68,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _events = require('./events');
@@ -79,6 +79,8 @@ var _flowEvents = require('./flow-events');
 var _plugin = require('./transport/plugin');
 
 var _plugin2 = _interopRequireDefault(_plugin);
+
+var _connectionLock = require('./utils/connectionLock');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -94,10 +96,11 @@ var DescriptorStream = function (_EventEmitter) {
     function DescriptorStream(transport) {
         _classCallCheck(this, DescriptorStream);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DescriptorStream).call(this, 'descriptor-stream'));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DescriptorStream).call(this));
 
         _this.listening = false;
         _this.previous = null;
+        _this.current = [];
         _this.errorEvent = new _flowEvents.Event1('error', _this);
         _this.connectEvent = new _flowEvents.Event1('connect', _this);
         _this.disconnectEvent = new _flowEvents.Event1('disconnect', _this);
@@ -111,6 +114,21 @@ var DescriptorStream = function (_EventEmitter) {
     }
 
     _createClass(DescriptorStream, [{
+        key: 'setHard',
+        value: function setHard(path, session) {
+            if (this.previous != null) {
+                var copy = this.previous.map(function (d) {
+                    if (d.path.toString() === path.toString()) {
+                        return _extends({}, d, { session: session });
+                    } else {
+                        return d;
+                    }
+                });
+                this.current = copy;
+                this._reportChanges();
+            }
+        }
+    }, {
         key: 'listen',
         value: function listen() {
             var _this2 = this;
@@ -128,8 +146,8 @@ var DescriptorStream = function (_EventEmitter) {
                     return;
                 }
 
-                _this2._reportChanges(_this2._diff(descriptors));
-                _this2.previous = descriptors;
+                _this2.current = descriptors;
+                _this2._reportChanges();
 
                 if (_this2.listening) {
                     // handlers might have called stop()
@@ -147,9 +165,8 @@ var DescriptorStream = function (_EventEmitter) {
         }
     }, {
         key: '_diff',
-        value: function _diff(descriptors) {
-            var previous = this.previous || [];
-            console.log('[trezor.js descriptor-stream] _diff', descriptors, previous);
+        value: function _diff(previousN, descriptors) {
+            var previous = previousN || [];
             var connected = descriptors.filter(function (d) {
                 return previous.find(function (x) {
                     return x.path === d.path;
@@ -176,7 +193,6 @@ var DescriptorStream = function (_EventEmitter) {
             var released = changedSessions.filter(function (descriptor) {
                 return descriptor.session == null;
             });
-            console.log('[trezor.js descriptor-stream] _diff changedSessions ', changedSessions, acquired, released);
 
             var didUpdate = connected.length + disconnected.length + changedSessions.length > 0;
 
@@ -192,29 +208,33 @@ var DescriptorStream = function (_EventEmitter) {
         }
     }, {
         key: '_reportChanges',
-        value: function _reportChanges(diff) {
+        value: function _reportChanges() {
             var _this3 = this;
 
-            this.previous = diff.descriptors;
+            (0, _connectionLock.lock)(function () {
+                var diff = _this3._diff(_this3.previous, _this3.current);
+                _this3.previous = _this3.current;
 
-            if (diff.didUpdate) {
-                diff.connected.forEach(function (d) {
-                    _this3.connectEvent.emit(d);
-                });
-                diff.disconnected.forEach(function (d) {
-                    _this3.disconnectEvent.emit(d);
-                });
-                diff.acquired.forEach(function (d) {
-                    _this3.acquiredEvent.emit(d);
-                });
-                diff.released.forEach(function (d) {
-                    _this3.releasedEvent.emit(d);
-                });
-                diff.changedSessions.forEach(function (d) {
-                    _this3.changedSessionsEvent.emit(d);
-                });
-                this.updateEvent.emit(diff);
-            }
+                if (diff.didUpdate) {
+                    diff.connected.forEach(function (d) {
+                        _this3.connectEvent.emit(d);
+                    });
+                    diff.disconnected.forEach(function (d) {
+                        _this3.disconnectEvent.emit(d);
+                    });
+                    diff.acquired.forEach(function (d) {
+                        _this3.acquiredEvent.emit(d);
+                    });
+                    diff.released.forEach(function (d) {
+                        _this3.releasedEvent.emit(d);
+                    });
+                    diff.changedSessions.forEach(function (d) {
+                        _this3.changedSessionsEvent.emit(d);
+                    });
+                    _this3.updateEvent.emit(diff);
+                }
+                return Promise.resolve();
+            });
         }
     }]);
 
@@ -224,7 +244,7 @@ var DescriptorStream = function (_EventEmitter) {
 exports.default = DescriptorStream;
 module.exports = exports['default'];
 
-},{"./events":5,"./flow-events":6,"./transport/plugin":16}],3:[function(require,module,exports){
+},{"./events":5,"./flow-events":6,"./transport/plugin":16,"./utils/connectionLock":20}],3:[function(require,module,exports){
 
 'use strict';
 
@@ -280,7 +300,7 @@ var DeviceList = function (_EventEmitter) {
     function DeviceList(options) {
         _classCallCheck(this, DeviceList);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DeviceList).call(this, 'device-list'));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DeviceList).call(this));
 
         _this.stream = null;
         _this.devices = {};
@@ -346,50 +366,60 @@ var DeviceList = function (_EventEmitter) {
             }
         }
     }, {
+        key: '_createAndSaveDevice',
+        value: function _createAndSaveDevice(transport, descriptor, stream) {
+            var _this3 = this;
+
+            var path = descriptor.path.toString();
+            this._createDevice(transport, descriptor, stream).then(function (device) {
+                if (device instanceof _device2.default) {
+                    _this3.devices[path] = device;
+                } else {
+                    _this3.unacquiredDevices[path] = device;
+                }
+            }).catch(function (err) {
+                console.debug('[trezor.js] [device list] Cannot create device', err);
+            });
+        }
+    }, {
         key: '_createDevice',
         value: function _createDevice(transport, descriptor, stream) {
-            var _this3 = this;
+            var _this4 = this;
 
             var path = descriptor.path;
             var pathStr = path.toString();
             var devRes = _device2.default.fromDescriptor(transport, descriptor, this).then(function (device) {
-                var previousDevice = _this3.unacquiredDevices[pathStr];
+                var previousDevice = _this4.unacquiredDevices[pathStr];
                 if (previousDevice != null) {
-                    delete _this3.unacquiredDevices[pathStr];
+                    delete _this4.unacquiredDevices[pathStr];
                 }
-                _this3.connectEvent.emit(device, previousDevice);
+                _this4.connectEvent.emit(device, previousDevice);
                 return device;
             }).catch(function (error) {
                 if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE) {
-                    var previousDevice = _this3.unacquiredDevices[pathStr];
+                    var previousDevice = _this4.unacquiredDevices[pathStr];
                     if (previousDevice == null) {
-                        return _this3._createUnacquiredDevice(transport, descriptor, stream);
+                        return _this4._createUnacquiredDevice(transport, descriptor, stream);
                     }
-                } else {
-                    _this3.errorEvent.emit(error);
-                    throw error;
                 }
+                _this4.errorEvent.emit(error);
+                throw error;
             });
             return devRes;
         }
-
-        // FOR DEBUGGING
-        // emit(event: string, ...args: Array<any>) {
-        //     console.log("[device-list] Emitting", event, ...args);
-        //     super.emit(event, ...args);
-        // }
-
     }, {
         key: '_createUnacquiredDevice',
         value: function _createUnacquiredDevice(transport, descriptor, stream) {
-            var _this4 = this;
+            var _this5 = this;
 
+            // if (this.getSession(descriptor.path) == null) {
+            //     return Promise.reject("Device no longer connected.");
+            // }
             var res = _unacquiredDevice2.default.fromDescriptor(transport, descriptor, this).then(function (device) {
-                console.log('Connected unacquired');
-                _this4.connectUnacquiredEvent.emit(device);
+                _this5.connectUnacquiredEvent.emit(device);
                 return device;
             }).catch(function (error) {
-                _this4.errorEvent.emit(error);
+                _this5.errorEvent.emit(error);
             });
             return res;
         }
@@ -399,15 +429,24 @@ var DeviceList = function (_EventEmitter) {
             return this.sessions[path.toString()];
         }
     }, {
+        key: 'setHard',
+        value: function setHard(path, session) {
+            if (this.stream != null) {
+                this.stream.setHard(path, session);
+            }
+            this.sessions[path.toString()] = session;
+        }
+    }, {
         key: '_initStream',
         value: function _initStream(transport) {
-            var _this5 = this;
+            var _this6 = this;
 
             var stream = new _descriptorStream2.default(transport);
 
             stream.updateEvent.on(function (diff) {
+                _this6.sessions = {};
                 diff.descriptors.forEach(function (descriptor) {
-                    _this5.sessions[descriptor.path.toString()] = descriptor.session;
+                    _this6.sessions[descriptor.path.toString()] = descriptor.session;
                 });
 
                 diff.connected.forEach(function (descriptor) {
@@ -415,31 +454,23 @@ var DeviceList = function (_EventEmitter) {
 
                     // if descriptor is null => we can acquire the device
                     if (descriptor.session == null) {
-                        _this5._createDevice(transport, descriptor, stream).then(function (device) {
-                            if (device instanceof _device2.default) {
-                                _this5.devices[path.toString()] = device;
-                            } else {
-                                _this5.unacquiredDevices[path.toString()] = device;
-                            }
-                        }).catch(function (err) {
-                            console.log('[trezor.js device list] Cannot create device', err);
-                        });
+                        _this6._createAndSaveDevice(transport, descriptor, stream);
                     } else {
-                        _this5._createUnacquiredDevice(transport, descriptor, stream).then(function (device) {
-                            _this5.unacquiredDevices[path.toString()] = device;
+                        _this6._createUnacquiredDevice(transport, descriptor, stream).then(function (device) {
+                            _this6.unacquiredDevices[path.toString()] = device;
                         });
                     }
                 });
 
                 var events = [{
                     d: diff.changedSessions,
-                    e: _this5.changedSessionsEvent
+                    e: _this6.changedSessionsEvent
                 }, {
                     d: diff.acquired,
-                    e: _this5.acquiredEvent
+                    e: _this6.acquiredEvent
                 }, {
                     d: diff.released,
-                    e: _this5.releasedEvent
+                    e: _this6.releasedEvent
                 }];
 
                 events.forEach(function (_ref) {
@@ -448,7 +479,7 @@ var DeviceList = function (_EventEmitter) {
 
                     d.forEach(function (descriptor) {
                         var pathStr = descriptor.path.toString();
-                        var device = _this5.devices[pathStr];
+                        var device = _this6.devices[pathStr];
                         if (device != null) {
                             e.emit(device);
                         }
@@ -458,34 +489,34 @@ var DeviceList = function (_EventEmitter) {
                 diff.disconnected.forEach(function (descriptor) {
                     var path = descriptor.path;
                     var pathStr = path.toString();
-
-                    var device = _this5.devices[pathStr];
+                    var device = _this6.devices[pathStr];
                     if (device != null) {
-                        delete _this5.devices[pathStr];
-                        _this5.disconnectEvent.emit(device);
+                        delete _this6.devices[pathStr];
+                        _this6.disconnectEvent.emit(device);
                     }
 
-                    var unacquiredDevice = _this5.unacquiredDevices[pathStr];
+                    var unacquiredDevice = _this6.unacquiredDevices[pathStr];
                     if (unacquiredDevice != null) {
-                        delete _this5.unacquiredDevices[pathStr];
-                        _this5.disconnectUnacquiredEvent.emit(unacquiredDevice);
+                        delete _this6.unacquiredDevices[pathStr];
+                        _this6.disconnectUnacquiredEvent.emit(unacquiredDevice);
                     }
                 });
 
                 diff.released.forEach(function (descriptor) {
                     var path = descriptor.path;
-                    var device = _this5.unacquiredDevices[path.toString()];
+                    var device = _this6.unacquiredDevices[path.toString()];
 
                     if (device != null) {
-                        _this5._createDevice(transport, descriptor, stream);
+                        delete _this6.unacquiredDevices[path.toString()];
+                        _this6._createAndSaveDevice(transport, descriptor, stream);
                     }
                 });
 
-                _this5.updateEvent.emit(diff);
+                _this6.updateEvent.emit(diff);
             });
 
             stream.errorEvent.on(function (error) {
-                _this5.errorEvent.emit(error);
+                _this6.errorEvent.emit(error);
                 stream.stop();
             });
 
@@ -539,6 +570,8 @@ var _session = require('./session');
 
 var _session2 = _interopRequireDefault(_session);
 
+var _connectionLock = require('./utils/connectionLock');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -555,10 +588,14 @@ var WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 var Device = function (_EventEmitter) {
     _inherits(Device, _EventEmitter);
 
+    // in miliseconds
+
     function Device(transport, descriptor, features, deviceList) {
         _classCallCheck(this, Device);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Device).call(this, 'device'));
+        // === immutable properties
+
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Device).call(this));
 
         _this.activityInProgress = false;
         _this.connected = true;
@@ -577,10 +614,7 @@ var Device = function (_EventEmitter) {
         _this.pinEvent = new _flowEvents.Event2('pin', _this);
         _this.receiveEvent = new _flowEvents.Event2('receive', _this);
         _this.sendEvent = new _flowEvents.Event2('send', _this);
-
-        console.log('[trezor.js device] constructor');
-
-        // === immutable properties
+        _this._stolenEvent = new _flowEvents.Event0('stolen', _this);
         _this.transport = transport;
         _this.originalDescriptor = descriptor;
         _this.deviceList = deviceList;
@@ -610,22 +644,14 @@ var Device = function (_EventEmitter) {
     // First parameter is a function that has two parameters
     // - first the session and second the fresh device features.
     // Note - when descriptor.path != null, this will steal the device from someone else
-    // in miliseconds
 
 
     _createClass(Device, [{
         key: 'waitForSessionAndRun',
         value: function waitForSessionAndRun(fn, options) {
-            console.log('[trezor.js device] waitForSessionAndRun');
             var options_ = options == null ? {} : options;
             return this.run(fn, _extends({}, options_, { waiting: true }));
         }
-
-        // FOR DEBUGGING
-        // emit(event: string, ...args: Array<any>) {
-        //     console.log("[device] Emitting", event, ...args);
-        //     super.emit(event, ...args);
-        // }
 
         // Initializes device with the given descriptor,
         // runs a given function and then releases the session.
@@ -637,7 +663,6 @@ var Device = function (_EventEmitter) {
         value: function run(fn, options) {
             var _this2 = this;
 
-            console.log('[trezor.js device] run');
             if (!this.connected) {
                 return Promise.reject(new Error('Device disconnected.'));
             }
@@ -667,28 +692,75 @@ var Device = function (_EventEmitter) {
                 waitingPromise = this._waitForNullSession();
             }
 
-            var addClearSession = function addClearSession() {
-                if (_this2.clearSession) {
-                    _this2._startClearSessionTimeout();
+            var runFinal = function runFinal(res, error) {
+                if (!(error && error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE && waiting)) {
+                    if (_this2.clearSession) {
+                        _this2._startClearSessionTimeout();
+                    }
                 }
                 return Promise.resolve();
             };
 
-            var runFinal = function runFinal(res, error) {
-                if (error && error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE && waiting) {
-                    return Promise.resolve();
-                }
-                _this2.activityInProgress = false;
-                return addClearSession();
-            };
-
             return waitingPromise.then(function (resolvedSession) {
                 var descriptor = _extends({}, _this2.originalDescriptor, { session: resolvedSession });
-                return promiseFinally(Device._run(function (session, features) {
+
+                // This is a bit overengineered, but I am not sure how to do it otherwise
+                // I want the action to stop when the device is stolen,
+                // but I don't want to add listener events that are never removed...
+                // So I combine emitters and promises
+                var e = new _events.EventEmitter();
+                var stolenP = new Promise(function (resolve, reject) {
+                    var onceStolen = function onceStolen() {
+                        e.removeAllListeners();
+                        reject(new Error('The action was interrupted by another application.'));
+                    };
+                    _this2._stolenEvent.once(onceStolen);
+                    e.once('done', function () {
+                        _this2._stolenEvent.removeListener(onceStolen);
+                        resolve();
+                    });
+                });
+
+                var res = Device._run(function (session, features) {
                     return _this2._runInside(fn, session, features, skipFinalReload);
-                }, _this2.transport, descriptor, _this2.deviceList), function (res, error) {
+                }, _this2.transport, descriptor, _this2.deviceList, function (session) {
+                    _this2.currentSessionObject = session;
+                }, function (error) {
+                    _this2.currentSessionObject = null;
+                    _this2.activityInProgress = false;
+                    if (error != null && _this2.connected) {
+                        return new Promise(function (resolve, reject) {
+                            var onDisconnect = function onDisconnect() {};
+                            var onChanged = function onChanged() {
+                                if (_this2.isStolen()) {
+                                    _this2._stolenEvent.emit();
+                                }
+                                _this2.disconnectEvent.removeListener(onDisconnect);
+                                resolve();
+                            };
+                            onDisconnect = function onDisconnect() {
+                                _this2.changedSessionsEvent.removeListener(onChanged);
+                                resolve();
+                            };
+                            _this2.changedSessionsEvent.once(onChanged);
+                            _this2.disconnectEvent.once(onDisconnect);
+                        });
+                    } else {
+                        return Promise.resolve();
+                    }
+                });
+
+                return promiseFinally(Promise.all([promiseFinally(res, function (ok, err) {
+                    e.emit('done');
+                    return Promise.resolve();
+                }), stolenP]).then(function () {
+                    return res;
+                }), function (res, error) {
                     return runFinal(res, error);
                 }).catch(function (error) {
+                    if (!_this2.connected) {
+                        throw new Error('Device was disconnected during action.');
+                    }
                     if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE && waiting) {
                         // trying again!!!
                         return _this2.run(fn, options);
@@ -703,7 +775,6 @@ var Device = function (_EventEmitter) {
         value: function _reloadFeaturesOrInitialize(session) {
             var _this3 = this;
 
-            console.log('[trezor.js device] _reloadFeaturesOrInitialize');
             var featuresPromise = void 0;
             if (this.atLeast('1.3.3')) {
                 featuresPromise = session.getFeatures();
@@ -720,7 +791,6 @@ var Device = function (_EventEmitter) {
         value: function _startClearSessionTimeout() {
             var _this4 = this;
 
-            console.log('[trezor.js device] _startClearSessionTimeout');
             this.clearSessionTimeout = window.setTimeout(function () {
                 var options = { onlyOneActivity: true };
                 _this4.run(function (session) {
@@ -743,7 +813,6 @@ var Device = function (_EventEmitter) {
     }, {
         key: '_stopClearSessionTimeout',
         value: function _stopClearSessionTimeout() {
-            console.log('[trezor.js device] _stopClearSessionTimeout');
             if (this.clearSessionTimeout != null) {
                 window.clearTimeout(this.clearSessionTimeout);
                 this.clearSessionTimeout = null;
@@ -754,7 +823,6 @@ var Device = function (_EventEmitter) {
         value: function forwardPassphrase(source) {
             var _this5 = this;
 
-            console.log('[trezor.js device] forward2');
             source.on(function (arg) {
                 if (_this5.rememberedPlaintextPasshprase != null) {
                     var p = _this5.rememberedPlaintextPasshprase;
@@ -763,7 +831,7 @@ var Device = function (_EventEmitter) {
                 }
                 if (_this5.passphraseEvent.listenerCount() === 0) {
                     if (typeof arg === 'function') {
-                        console.warn('[device] Passphrase callback not configured, cancelling request');
+                        console.warn('[trezor.js] [device] Passphrase callback not configured, cancelling request');
                         arg(new Error('No passphrase callback'));
                         return;
                     }
@@ -782,9 +850,7 @@ var Device = function (_EventEmitter) {
         value: function _runInside(fn, activeSession, features, skipFinalReload) {
             var _this6 = this;
 
-            console.log('[trezor.js device] _runInside');
             this.features = features;
-            this.currentSessionObject = activeSession;
 
             forward2(activeSession.sendEvent, this.sendEvent);
             forward2(activeSession.receiveEvent, this.receiveEvent);
@@ -797,7 +863,6 @@ var Device = function (_EventEmitter) {
 
             var runFinal = function runFinal() {
                 activeSession.deactivateEvents();
-                _this6.currentSessionObject = null;
 
                 if (skipFinalReload) {
                     return Promise.resolve();
@@ -815,7 +880,6 @@ var Device = function (_EventEmitter) {
         value: function _waitForNullSession() {
             var _this7 = this;
 
-            console.log('[trezor.js device] _waitForNullSession');
             return new Promise(function (resolve, reject) {
                 var _onDisconnect = function onDisconnect() {};
                 var onUpdate = function onUpdate() {
@@ -841,7 +905,6 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'reloadFeatures',
         value: function reloadFeatures() {
-            console.log('[trezor.js device] reloadFeatures');
             return this.run(function () {
                 return true;
             });
@@ -855,7 +918,6 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'steal',
         value: function steal() {
-            console.log('[trezor.js device] steal');
             return this.run(function () {
                 return true;
             }, { aggressive: true });
@@ -863,31 +925,26 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'isBootloader',
         value: function isBootloader() {
-            console.log('[trezor.js device] isBootloader');
             return this.features.bootloader_mode;
         }
     }, {
         key: 'isInitialized',
         value: function isInitialized() {
-            console.log('[trezor.js device] isInitialized');
             return this.features.initialized;
         }
     }, {
         key: 'getVersion',
         value: function getVersion() {
-            console.log('[trezor.js device] getVersion');
             return [this.features.major_version, this.features.minor_version, this.features.patch_version].join('.');
         }
     }, {
         key: 'atLeast',
         value: function atLeast(version) {
-            console.log('[trezor.js device] atLeast');
             return (0, _semverCompare2.default)(this.getVersion(), version) >= 0;
         }
     }, {
         key: 'getCoin',
         value: function getCoin(name) {
-            console.log('[trezor.js device] getCoin');
             var coins = this.features.coins;
 
             for (var i = 0; i < coins.length; i++) {
@@ -902,15 +959,16 @@ var Device = function (_EventEmitter) {
         value: function _watch() {
             var _this8 = this;
 
-            console.log('[trezor.js device] _watch');
             var onChangedSessions = function onChangedSessions(device) {
                 if (device === _this8) {
                     _this8.changedSessionsEvent.emit(_this8.isUsed(), _this8.isUsedHere());
+                    if (_this8.isStolen() && _this8.activityInProgress) {
+                        _this8._stolenEvent.emit();
+                    }
                 }
             };
 
             this.deviceList.changedSessionsEvent.on(onChangedSessions);
-
             this.deviceList.disconnectEvent.on(function onDisconnect(device) {
                 if (device === this) {
                     this.disconnectEvent.emit();
@@ -923,6 +981,7 @@ var Device = function (_EventEmitter) {
                         return ev.removeAllListeners();
                     });
                 }
+                return Promise.resolve();
             }.bind(this));
         }
     }, {
@@ -934,17 +993,35 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'isUsedHere',
         value: function isUsedHere() {
-            return this.isUsed() && this.activityInProgress;
+            var session = this.deviceList.getSession(this.originalDescriptor.path);
+            var mySession = this.currentSessionObject != null ? this.currentSessionObject.getId() : null;
+            return session != null && mySession === session;
         }
     }, {
         key: 'isUsedElsewhere',
         value: function isUsedElsewhere() {
-            return this.isUsed() && !this.activityInProgress;
+            return this.isUsed() && !this.isUsedHere();
+        }
+    }, {
+        key: 'isStolen',
+        value: function isStolen() {
+            if (!this.isUsed()) {
+                if (this.currentSessionObject != null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                if (this.currentSessionObject != null) {
+                    return !this.isUsedHere();
+                } else {
+                    return true;
+                }
+            }
         }
     }, {
         key: 'onbeforeunload',
         value: function onbeforeunload() {
-            console.log('[trezor.js device] onbeforeunload');
             var currentSession = this.currentSessionObject;
             if (currentSession != null) {
                 if (currentSession.supportsSync) {
@@ -963,86 +1040,56 @@ var Device = function (_EventEmitter) {
         }
     }], [{
         key: '_run',
-        value: function _run(fn, transport, descriptor, deviceList) {
-            console.log('[trezor.js device] static _run');
-            return Device._acquire(transport, descriptor, deviceList).then(function (session) {
+        value: function _run(fn, transport, descriptor, deviceList, onAcquire, onRelease) {
+            return Device._acquire(transport, descriptor, deviceList, onAcquire).then(function (session) {
                 return promiseFinally(session.initialize().then(function (res) {
                     return fn(session, res.message);
                 }), function () {
-                    return Device._release(descriptor, session, deviceList);
+                    return Device._release(descriptor, session, deviceList, onRelease);
                 });
             });
         }
 
-        // _release is so complex, because two things happen at transport, with slight delay
-        // 1. release() call is successful
-        // 2. enumerate() returns with the empty session
-        // Because they don't happen immediately, but with a small delay, that can make an inconsistent state,
-        // when the device still looks like in use, but the activity is already finished.
-        // So instead we here wait until the device is marked as released even at enumerate.
+        // Release and acquire are quite complex,
+        // because we have to deal with various race conditions
+        // for multitasking
 
     }, {
         key: '_release',
-        value: function _release(originalDescriptor, session, deviceList) {
-            var released = session.release();
-            var waitForEvent = new Promise(function (resolve, reject) {
-                var stream = deviceList.stream;
-                if (stream == null) {
-                    reject(new Error('Stream is null'));
-                } else {
-                    stream.releasedEvent.on(function onReleased(_ref) {
-                        var path = _ref.path;
-                        var session = _ref.session;
-
-                        if (path === originalDescriptor.path) {
-                            stream.releasedEvent.removeListener(onReleased);
-                            resolve();
-                        }
-                    });
-                }
+        value: function _release(originalDescriptor, session, deviceList, onRelease) {
+            var released = (0, _connectionLock.lock)(function () {
+                return session.release();
             });
-            return Promise.all([released, waitForEvent]);
+            return promiseFinally(released, function (res, error) {
+                if (error == null) {
+                    deviceList.setHard(originalDescriptor.path, null);
+                }
+                if (onRelease != null) {
+                    return onRelease(error);
+                }
+                return Promise.resolve();
+            });
         }
-
-        // _acquire is complex, so that we are in a consistent state with enumerate() results
-        // If we didn't wait for that, it can happen that the whole acquire-action-release is FASTER,
-        // than two enumerations, so releasedEvent is never run.
-        // note - when descriptor.path != null, this will steal the device from someone else
-
     }, {
         key: '_acquire',
-        value: function _acquire(transport, descriptor, deviceList) {
-            console.log('[trezor.js device] static _acquire');
-            var sessionP = transport.acquire(descriptor, true).then(function (result) {
+        value: function _acquire(transport, descriptor, deviceList, onAcquire) {
+            return (0, _connectionLock.lock)(function () {
+                return transport.acquire(descriptor, true);
+            }).then(function (result) {
                 if (result.session == null) {
                     throw new Error('Session is null after acquire.');
                 }
-                return new _session2.default(transport, result.session, descriptor);
-            });
-            var waitForEvent = new Promise(function (resolve, reject) {
-                var stream = deviceList.stream;
-                if (stream == null) {
-                    reject(new Error('Stream is null'));
-                } else {
-                    stream.acquiredEvent.on(function onAcquired(_ref2) {
-                        var path = _ref2.path;
-                        var session = _ref2.session;
-
-                        if (path === descriptor.path) {
-                            stream.acquiredEvent.removeListener(onAcquired);
-                            resolve();
-                        }
-                    });
+                deviceList.setHard(descriptor.path, result.session);
+                var session = new _session2.default(transport, result.session, descriptor);
+                if (onAcquire != null) {
+                    onAcquire(session);
                 }
-            });
-            return Promise.all([sessionP, waitForEvent]).then(function () {
-                return sessionP;
+                return session;
             });
         }
     }, {
         key: 'fromDescriptor',
         value: function fromDescriptor(transport, originalDescriptor, deviceList) {
-            console.log('[trezor.js device] static fromDescriptor');
             // at this point I am assuming nobody else has the device
             var descriptor = _extends({}, originalDescriptor, { session: null });
             return Device._run(function (session, features) {
@@ -1069,7 +1116,7 @@ function forwardError(source, target) {
 function forwardCallback1(source, target) {
     source.on(function (arg) {
         if (target.listenerCount() === 0) {
-            console.warn('[device] ' + target.type + 'callback not configured, cancelling request');
+            console.warn('[trezor.js] [device] ' + target.type + 'callback not configured, cancelling request');
             arg(new Error('No ' + target.type + ' callback'));
             return;
         }
@@ -1080,7 +1127,7 @@ function forwardCallback1(source, target) {
 function forwardCallback2(source, target) {
     source.on(function (arg, arg2) {
         if (target.listenerCount() === 0) {
-            console.warn('[device] ' + target.type + 'callback not configured, cancelling request');
+            console.warn('[trezor.js] [device] ' + target.type + 'callback not configured, cancelling request');
             arg2(new Error('No ' + target.type + ' callback'));
             return;
         }
@@ -1115,17 +1162,13 @@ function promiseFinally(p, fun) {
 }
 module.exports = exports['default'];
 
-},{"./events":5,"./flow-events":6,"./session":11,"semver-compare":87}],5:[function(require,module,exports){
+},{"./events":5,"./flow-events":6,"./session":11,"./utils/connectionLock":20,"semver-compare":88}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
 exports.EventEmitter = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _events = require('events');
 
@@ -1138,39 +1181,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 // avoids a bug in flowtype: https://github.com/facebook/flow/issues/545
 
 var EventEmitter = exports.EventEmitter = function (_EventEmitterOut) {
-    _inherits(EventEmitter, _EventEmitterOut);
+  _inherits(EventEmitter, _EventEmitterOut);
 
-    function EventEmitter(name) {
-        _classCallCheck(this, EventEmitter);
+  function EventEmitter() {
+    _classCallCheck(this, EventEmitter);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(EventEmitter).call(this));
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(EventEmitter).apply(this, arguments));
+  }
 
-        _this.name = name;
-        return _this;
-    }
-
-    _createClass(EventEmitter, [{
-        key: 'emit',
-        value: function emit(event) {
-            var _get2;
-
-            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-                args[_key - 1] = arguments[_key];
-            }
-
-            if (this.name != null) {
-                var _console;
-
-                (_console = console).log.apply(_console, ['[trezor.js event ' + this.name + '] ' + event + ' : '].concat(args));
-            }
-            return (_get2 = _get(Object.getPrototypeOf(EventEmitter.prototype), 'emit', this)).call.apply(_get2, [this, event].concat(args));
-        }
-    }]);
-
-    return EventEmitter;
+  return EventEmitter;
 }(_events.EventEmitter);
 
-},{"events":63}],6:[function(require,module,exports){
+},{"events":64}],6:[function(require,module,exports){
 
 
 // Simple wrapper for typechecking events
@@ -1224,7 +1246,6 @@ var Event0 = exports.Event0 = function () {
     }, {
         key: 'listenerCount',
         value: function listenerCount() {
-            /* $FlowIssue - https://github.com/facebook/flow/pull/1563 */
             return this.parent.listenerCount(this.type);
         }
     }]);
@@ -1268,7 +1289,6 @@ var Event1 = exports.Event1 = function () {
     }, {
         key: 'listenerCount',
         value: function listenerCount() {
-            /* $FlowIssue - https://github.com/facebook/flow/pull/1563 */
             return this.parent.listenerCount(this.type);
         }
     }]);
@@ -1312,7 +1332,6 @@ var Event2 = exports.Event2 = function () {
     }, {
         key: 'listenerCount',
         value: function listenerCount() {
-            /* $FlowIssue - https://github.com/facebook/flow/pull/1563 */
             return this.parent.listenerCount(this.type);
         }
     }]);
@@ -1320,7 +1339,7 @@ var Event2 = exports.Event2 = function () {
     return Event2;
 }();
 
-},{"events":63}],7:[function(require,module,exports){
+},{"events":64}],7:[function(require,module,exports){
 
 'use strict';
 
@@ -1402,7 +1421,7 @@ request.sync = function (options) {
 };
 module.exports = exports['default'];
 
-},{"sync-request/browser.js":98}],8:[function(require,module,exports){
+},{"sync-request/browser.js":99}],8:[function(require,module,exports){
 
 'use strict';
 
@@ -1534,7 +1553,7 @@ require('unorm');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./descriptor-stream":2,"./device":4,"./device-list":3,"./http":7,"./installers":9,"./session":11,"./transport":15,"./transport/chrome-extension":13,"./transport/http":14,"./transport/plugin":16,"./unacquired-device":18,"unorm":102,"whatwg-fetch":106}],9:[function(require,module,exports){
+},{"./descriptor-stream":2,"./device":4,"./device-list":3,"./http":7,"./installers":9,"./session":11,"./transport":15,"./transport/chrome-extension":13,"./transport/http":14,"./transport/plugin":16,"./unacquired-device":18,"unorm":103,"whatwg-fetch":107}],9:[function(require,module,exports){
 
 'use strict';
 
@@ -1852,7 +1871,7 @@ var Session = function (_EventEmitter) {
     function Session(transport, sessionId, descriptor) {
         _classCallCheck(this, Session);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Session).call(this, 'session'));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Session).call(this));
 
         _this.sendEvent = new _flowEvents.Event2('send', _this);
         _this.receiveEvent = new _flowEvents.Event2('receive', _this);
@@ -1895,7 +1914,7 @@ var Session = function (_EventEmitter) {
     }, {
         key: 'release',
         value: function release() {
-            console.log('[trezor] Releasing session');
+            console.log('[trezor.js] [session] releasing');
             return this._transport.release(this._sessionId);
         }
 
@@ -1907,7 +1926,7 @@ var Session = function (_EventEmitter) {
             if (!this.supportsSync) {
                 throw new Error('Blocking release is not supported');
             }
-            console.log('[trezor] Releasing session synchronously');
+            console.log('[trezor.js] [session] Releasing session synchronously');
             return this._transport.releaseSync(this._sessionId);
         }
     }, {
@@ -2123,7 +2142,7 @@ var Session = function (_EventEmitter) {
                 var verified = res.message.address === address;
 
                 if (!verified) {
-                    console.error('Address verification failed', {
+                    console.warn('[trezor.js] [session] Address verification failed', {
                         path: path,
                         jsAddress: address,
                         trezorAddress: res.message.address
@@ -2212,7 +2231,7 @@ function wrapLoadDevice(settings, network_) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./events":5,"./flow-events":6,"./trezortypes":17,"./utils/call":19,"./utils/hdnode":20,"./utils/signbjstx":21,"./utils/signtx":22,"bitcoinjs-lib":38,"buffer":51}],12:[function(require,module,exports){
+},{"./events":5,"./flow-events":6,"./trezortypes":17,"./utils/call":19,"./utils/hdnode":21,"./utils/signbjstx":22,"./utils/signtx":23,"bitcoinjs-lib":39,"buffer":52}],12:[function(require,module,exports){
 
 'use strict';
 
@@ -2482,7 +2501,7 @@ var ChromeExtensionTransport = function () {
         value: function create() {
             var id = arguments.length <= 0 || arguments[0] === undefined ? EXTENSION_ID : arguments[0];
 
-            console.log('[trezor] Attempting to load Chrome Extension transport at', id);
+            console.log('[trezor.js] [chrome-extension] Attempting to load Chrome Extension transport at', id);
             return ChromeMessages.exists().then(function () {
                 return new ChromeExtensionTransport(id);
             }).then(function (transport) {
@@ -2498,10 +2517,10 @@ var ChromeExtensionTransport = function () {
                     return transport;
                 });
             }).then(function (transport) {
-                console.log('[trezor] Loaded Chrome Extension transport');
+                console.log('[trezor.js] [chrome-extension] Loaded Chrome Extension transport');
                 return transport;
             }, function (error) {
-                console.warn('[trezor] Failed to load Chrome Extension transport', error);
+                console.warn('[trezor.js] [chrome-extension] Failed to load Chrome Extension transport', error);
                 throw error;
             });
         }
@@ -2513,7 +2532,7 @@ var ChromeExtensionTransport = function () {
 exports.default = ChromeExtensionTransport;
 module.exports = exports['default'];
 
-},{"../chrome-messages":1,"./checks":12,"semver-compare":87}],14:[function(require,module,exports){
+},{"../chrome-messages":1,"./checks":12,"semver-compare":88}],14:[function(require,module,exports){
 
 'use strict';
 
@@ -2587,22 +2606,21 @@ var HttpTransport = function () {
     }, {
         key: 'enumerate',
         value: function enumerate(wait, previous) {
-            if (wait && previous != null && (0, _semverCompare2.default)(this.version, '1.1.3') >= 0) {
-                return this._request({
-                    method: 'POST',
-                    url: '/listen',
-                    body: previous
-                }).then(function (r) {
-                    return (0, _checks.checkEnumerate)(r);
-                });
-            }
+            var listenWithPrevious = !!wait && previous != null && (0, _semverCompare2.default)(this.version, '1.1.3') >= 0;
 
-            return this._request({
+            var enRes = listenWithPrevious ? this._request({
+                method: 'POST',
+                url: '/listen',
+                body: previous
+            }) : this._request({
                 method: 'GET',
                 url: wait ? '/listen' : '/enumerate'
-            }).then(function (r) {
+            });
+
+            var checked = enRes.then(function (r) {
                 return (0, _checks.checkEnumerate)(r);
             });
+            return checked;
         }
     }, {
         key: 'acquire',
@@ -2656,12 +2674,12 @@ var HttpTransport = function () {
             var url = arguments.length <= 0 || arguments[0] === undefined ? DEFAULT_URL : arguments[0];
             var bridgeVersionUrl = arguments[1];
 
-            console.log('[trezor] Attempting to load HTTP transport at', url);
+            console.log('[trezor.js] [http] Attempting to load HTTP transport at', url);
             return HttpTransport.status(url).then(function (info) {
-                console.log('[trezor] Loaded HTTP transport', info);
+                console.log('[trezor.js] [http] Loaded HTTP transport', info);
                 return new HttpTransport(url, (0, _checks.checkInfo)(info));
             }, function (error) {
-                console.warn('[trezor] Failed to load HTTP transport', error);
+                console.warn('[trezor.js] [http] Failed to load HTTP transport', error);
                 throw error;
             }).then(function (transport) {
                 return installers.latestVersionAsync({ bridgeUrl: bridgeVersionUrl }).then(function (version) {
@@ -2718,7 +2736,7 @@ function callOptions(sessionId, type, message) {
 }
 module.exports = exports['default'];
 
-},{"../http":7,"../installers":9,"./checks":12,"semver-compare":87}],15:[function(require,module,exports){
+},{"../http":7,"../installers":9,"./checks":12,"semver-compare":88}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2985,7 +3003,7 @@ PluginTransport.prototype.call = function (deviceDescriptor, type, message) {
 };
 module.exports = exports['default'];
 
-},{"../plugin":10,"traverse":100}],17:[function(require,module,exports){
+},{"../plugin":10,"traverse":101}],17:[function(require,module,exports){
 
 'use strict';
 
@@ -3025,7 +3043,7 @@ var UnacquiredDevice = function (_EventEmitter) {
     function UnacquiredDevice(transport, descriptor, deviceList) {
         _classCallCheck(this, UnacquiredDevice);
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UnacquiredDevice).call(this, 'unacquired device'));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UnacquiredDevice).call(this));
 
         _this.connectEvent = new _flowEvents.Event1('connect', _this);
         _this.disconnectEvent = new _flowEvents.Event0('disconnect', _this);
@@ -3042,7 +3060,7 @@ var UnacquiredDevice = function (_EventEmitter) {
         value: function _watchConnectDisconnect(onConnect, onDisconnect) {
             var _this2 = this;
 
-            var _disconnectListener = function disconnectListener() {};
+            var _disconnectListener = function disconnectListener(dev) {};
             var connectListener = function connectListener(device, unacquiredDevice) {
                 if (_this2 === unacquiredDevice) {
                     _this2.deviceList.connectEvent.removeListener(connectListener);
@@ -3053,10 +3071,11 @@ var UnacquiredDevice = function (_EventEmitter) {
             _disconnectListener = function disconnectListener(unacquiredDevice) {
                 if (_this2 === unacquiredDevice) {
                     _this2.deviceList.connectEvent.removeListener(connectListener);
-                    _this2.deviceList.disconnectEvent.removeListener(_disconnectListener);
+                    _this2.deviceList.disconnectUnacquiredEvent.removeListener(_disconnectListener);
                     onDisconnect();
                 }
             };
+
             this.deviceList.connectEvent.on(connectListener);
             this.deviceList.disconnectUnacquiredEvent.on(_disconnectListener);
         }
@@ -3197,17 +3216,17 @@ var CallHelper = exports.CallHelper = function () {
 
             var logMessage = filterForLog(type, msg);
 
-            console.log('[trezor] Sending', type, logMessage);
+            console.log('[trezor.js] [call] Sending', type, logMessage);
             this.session.sendEvent.emit(type, msg);
 
             return this.transport.call(this.sessionId, type, msg).then(function (res) {
                 var logMessage = filterForLog(res.type, res.message);
 
-                console.log('[trezor] Received', res.type, logMessage);
+                console.log('[trezor.js] [call] Received', res.type, logMessage);
                 _this.session.receiveEvent.emit(res.type, res.message);
                 return res;
             }, function (err) {
-                console.log('[trezord] Received error', err);
+                console.log('[trezor.js] [call] Received error', err);
                 _this.session.errorEvent.emit(err);
                 throw err;
             });
@@ -3222,7 +3241,7 @@ var CallHelper = exports.CallHelper = function () {
             }
 
             var logMessage = filterForLog(type, msg);
-            console.log('[trezor] Sending', type, logMessage);
+            console.log('[trezor.js] [call] Sending sync', type, logMessage);
 
             this.session.sendEvent.emit(type, msg);
 
@@ -3230,13 +3249,13 @@ var CallHelper = exports.CallHelper = function () {
                 var res = this.transport.callSync(this.sessionId, type, msg);
 
                 logMessage = filterForLog(res.type, res.message);
-                console.log('[trezor] Received', res.type, logMessage);
+                console.log('[trezor.js] [call] Received sync', res.type, logMessage);
 
                 this.session.receiveEvent.emit(res.type, res.message);
 
                 return res;
             } catch (err) {
-                console.log('[trezord] Received error', err);
+                console.log('[trezor.js] [call] Received error sync', err);
                 this.session.errorEvent.emit(err);
                 throw err;
             }
@@ -3321,7 +3340,7 @@ var CallHelper = exports.CallHelper = function () {
                         resolve(pin);
                     }
                 })) {
-                    console.warn('[trezor] PIN callback not configured, cancelling request');
+                    console.warn('[trezor.js] [call] PIN callback not configured, cancelling request');
                     reject(new Error('PIN callback not configured'));
                 }
             });
@@ -3336,11 +3355,10 @@ var CallHelper = exports.CallHelper = function () {
                     if (err || passphrase == null) {
                         reject(err);
                     } else {
-                        /* $FlowIssue - https://github.com/facebook/flow/pull/1562 */
                         resolve(passphrase.normalize('NFKD'));
                     }
                 })) {
-                    console.warn('[trezor] Passphrase callback not configured, cancelling request');
+                    console.warn('[trezor.js] [call] Passphrase callback not configured, cancelling request');
                     reject(new Error('Passphrase callback not configured'));
                 }
             });
@@ -3358,7 +3376,7 @@ var CallHelper = exports.CallHelper = function () {
                         resolve(word.toLocaleLowerCase());
                     }
                 })) {
-                    console.warn('[trezor] Word callback not configured, cancelling request');
+                    console.warn('[trezor.js] [call] Word callback not configured, cancelling request');
                     reject(new Error('Word callback not configured'));
                 }
             });
@@ -3369,7 +3387,26 @@ var CallHelper = exports.CallHelper = function () {
 }();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"randombytes":75}],20:[function(require,module,exports){
+},{"randombytes":76}],20:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.lock = lock;
+var currentP = Promise.resolve();
+
+function lock(fn) {
+    var res = currentP.then(function () {
+        return fn();
+    });
+    currentP = res.catch(function () {
+        return true;
+    });
+    return res;
+}
+
+},{}],21:[function(require,module,exports){
 (function (Buffer){
 
 'use strict';
@@ -3479,7 +3516,7 @@ function getHDNode(session, path) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"../trezortypes":17,"bitcoinjs-lib":38,"buffer":51,"ecurve":60}],21:[function(require,module,exports){
+},{"../trezortypes":17,"bitcoinjs-lib":39,"buffer":52,"ecurve":61}],22:[function(require,module,exports){
 (function (Buffer){
 
 'use strict';
@@ -3645,7 +3682,7 @@ function reverseBuffer(buf) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"../trezortypes":17,"./hdnode":20,"bitcoinjs-lib":38,"buffer":51}],22:[function(require,module,exports){
+},{"../trezortypes":17,"./hdnode":21,"bitcoinjs-lib":39,"buffer":52}],23:[function(require,module,exports){
 
 'use strict';
 
@@ -3773,7 +3810,7 @@ function signTx(session, inputs, outputs, txs, coin) {
     });
 }
 
-},{"../trezortypes":17}],23:[function(require,module,exports){
+},{"../trezortypes":17}],24:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -4134,7 +4171,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":105}],24:[function(require,module,exports){
+},{"util/":106}],25:[function(require,module,exports){
 'use strict'
 
 exports.toByteArray = toByteArray
@@ -4250,7 +4287,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 // (public) Constructor
 function BigInteger(a, b, c) {
   if (!(this instanceof BigInteger))
@@ -5763,7 +5800,7 @@ BigInteger.valueOf = nbv
 
 module.exports = BigInteger
 
-},{"../package.json":28}],26:[function(require,module,exports){
+},{"../package.json":29}],27:[function(require,module,exports){
 (function (Buffer){
 // FIXME: Kind of a weird way to throw exceptions, consider removing
 var assert = require('assert')
@@ -5858,14 +5895,14 @@ BigInteger.prototype.toHex = function(size) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./bigi":25,"assert":23,"buffer":51}],27:[function(require,module,exports){
+},{"./bigi":26,"assert":24,"buffer":52}],28:[function(require,module,exports){
 var BigInteger = require('./bigi')
 
 //addons
 require('./convert')
 
 module.exports = BigInteger
-},{"./bigi":25,"./convert":26}],28:[function(require,module,exports){
+},{"./bigi":26,"./convert":27}],29:[function(require,module,exports){
 module.exports={
   "_args": [
     [
@@ -5957,7 +5994,7 @@ module.exports={
   "version": "1.4.1"
 }
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 (function (Buffer){
 // Reference https://github.com/bitcoin/bips/blob/master/bip-0066.mediawiki
 // Format: 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S]
@@ -6072,7 +6109,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":51}],30:[function(require,module,exports){
+},{"buffer":52}],31:[function(require,module,exports){
 (function (Buffer){
 var bs58check = require('bs58check')
 var bscript = require('./script')
@@ -6129,7 +6166,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./networks":40,"./script":42,"./types":45,"bs58check":48,"buffer":51,"typeforce":101}],31:[function(require,module,exports){
+},{"./networks":41,"./script":43,"./types":46,"bs58check":49,"buffer":52,"typeforce":102}],32:[function(require,module,exports){
 (function (Buffer){
 var bufferutils = require('./bufferutils')
 var bcrypto = require('./crypto')
@@ -6251,7 +6288,7 @@ Block.prototype.toHex = function (headersOnly) {
 module.exports = Block
 
 }).call(this,require("buffer").Buffer)
-},{"./bufferutils":32,"./crypto":33,"./transaction":43,"buffer":51}],32:[function(require,module,exports){
+},{"./bufferutils":33,"./crypto":34,"./transaction":44,"buffer":52}],33:[function(require,module,exports){
 (function (Buffer){
 var opcodes = require('./opcodes')
 
@@ -6437,7 +6474,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./opcodes":41,"buffer":51,"buffer-equals":49,"buffer-reverse":50}],33:[function(require,module,exports){
+},{"./opcodes":42,"buffer":52,"buffer-equals":50,"buffer-reverse":51}],34:[function(require,module,exports){
 var createHash = require('create-hash')
 
 function hash160 (buffer) {
@@ -6468,7 +6505,7 @@ module.exports = {
   sha256: sha256
 }
 
-},{"create-hash":54}],34:[function(require,module,exports){
+},{"create-hash":55}],35:[function(require,module,exports){
 (function (Buffer){
 var createHmac = require('create-hmac')
 var typeforce = require('typeforce')
@@ -6721,7 +6758,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./ecsignature":36,"./types":45,"bigi":27,"buffer":51,"create-hmac":57,"ecurve":60,"typeforce":101}],35:[function(require,module,exports){
+},{"./ecsignature":37,"./types":46,"bigi":28,"buffer":52,"create-hmac":58,"ecurve":61,"typeforce":102}],36:[function(require,module,exports){
 (function (Buffer){
 var bcrypto = require('./crypto')
 var bs58check = require('bs58check')
@@ -6857,7 +6894,7 @@ ECPair.prototype.verify = function (hash, signature) {
 module.exports = ECPair
 
 }).call(this,require("buffer").Buffer)
-},{"./crypto":33,"./ecdsa":34,"./networks":40,"./types":45,"bigi":27,"bs58check":48,"buffer":51,"ecurve":60,"randombytes":75,"typeforce":101,"wif":107}],36:[function(require,module,exports){
+},{"./crypto":34,"./ecdsa":35,"./networks":41,"./types":46,"bigi":28,"bs58check":49,"buffer":52,"ecurve":61,"randombytes":76,"typeforce":102,"wif":108}],37:[function(require,module,exports){
 (function (Buffer){
 var bip66 = require('bip66')
 var typeforce = require('typeforce')
@@ -6948,7 +6985,7 @@ ECSignature.prototype.toScriptSignature = function (hashType) {
 module.exports = ECSignature
 
 }).call(this,require("buffer").Buffer)
-},{"./types":45,"bigi":27,"bip66":29,"buffer":51,"typeforce":101}],37:[function(require,module,exports){
+},{"./types":46,"bigi":28,"bip66":30,"buffer":52,"typeforce":102}],38:[function(require,module,exports){
 (function (Buffer){
 var base58check = require('bs58check')
 var bcrypto = require('./crypto')
@@ -7238,7 +7275,7 @@ HDNode.prototype.toString = HDNode.prototype.toBase58
 module.exports = HDNode
 
 }).call(this,require("buffer").Buffer)
-},{"./crypto":33,"./ecpair":35,"./networks":40,"./types":45,"bigi":27,"bs58check":48,"buffer":51,"create-hmac":57,"ecurve":60,"typeforce":101}],38:[function(require,module,exports){
+},{"./crypto":34,"./ecpair":36,"./networks":41,"./types":46,"bigi":28,"bs58check":49,"buffer":52,"create-hmac":58,"ecurve":61,"typeforce":102}],39:[function(require,module,exports){
 module.exports = {
   Block: require('./block'),
   ECPair: require('./ecpair'),
@@ -7256,7 +7293,7 @@ module.exports = {
   script: require('./script')
 }
 
-},{"./address":30,"./block":31,"./bufferutils":32,"./crypto":33,"./ecpair":35,"./ecsignature":36,"./hdnode":37,"./message":39,"./networks":40,"./opcodes":41,"./script":42,"./transaction":43,"./transaction_builder":44}],39:[function(require,module,exports){
+},{"./address":31,"./block":32,"./bufferutils":33,"./crypto":34,"./ecpair":36,"./ecsignature":37,"./hdnode":38,"./message":40,"./networks":41,"./opcodes":42,"./script":43,"./transaction":44,"./transaction_builder":45}],40:[function(require,module,exports){
 (function (Buffer){
 var bufferutils = require('./bufferutils')
 var bcrypto = require('./crypto')
@@ -7314,7 +7351,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./bufferutils":32,"./crypto":33,"./ecdsa":34,"./ecpair":35,"./ecsignature":36,"./networks":40,"bigi":27,"buffer":51}],40:[function(require,module,exports){
+},{"./bufferutils":33,"./crypto":34,"./ecdsa":35,"./ecpair":36,"./ecsignature":37,"./networks":41,"bigi":28,"buffer":52}],41:[function(require,module,exports){
 // https://en.bitcoin.it/wiki/List_of_address_prefixes
 // Dogecoin BIP32 is a proposed standard: https://bitcointalk.org/index.php?topic=409731
 
@@ -7365,7 +7402,7 @@ module.exports = {
   }
 }
 
-},{}],41:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 module.exports={
   "OP_FALSE": 0,
   "OP_0": 0,
@@ -7495,7 +7532,7 @@ module.exports={
   "OP_INVALIDOPCODE": 255
 }
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 (function (Buffer){
 var bip66 = require('bip66')
 var bufferutils = require('./bufferutils')
@@ -7899,7 +7936,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./bufferutils":32,"./opcodes":41,"./types":45,"bip66":29,"buffer":51,"typeforce":101}],43:[function(require,module,exports){
+},{"./bufferutils":33,"./opcodes":42,"./types":46,"bip66":30,"buffer":52,"typeforce":102}],44:[function(require,module,exports){
 (function (Buffer){
 var bcrypto = require('./crypto')
 var bscript = require('./script')
@@ -8218,7 +8255,7 @@ Transaction.prototype.setInputScript = function (index, scriptSig) {
 module.exports = Transaction
 
 }).call(this,require("buffer").Buffer)
-},{"./bufferutils":32,"./crypto":33,"./opcodes":41,"./script":42,"./types":45,"buffer":51,"typeforce":101}],44:[function(require,module,exports){
+},{"./bufferutils":33,"./crypto":34,"./opcodes":42,"./script":43,"./types":46,"buffer":52,"typeforce":102}],45:[function(require,module,exports){
 (function (Buffer){
 var baddress = require('./address')
 var bcrypto = require('./crypto')
@@ -8663,7 +8700,7 @@ TransactionBuilder.prototype.sign = function (index, keyPair, redeemScript, hash
 module.exports = TransactionBuilder
 
 }).call(this,require("buffer").Buffer)
-},{"./address":30,"./crypto":33,"./ecpair":35,"./ecsignature":36,"./networks":40,"./opcodes":41,"./script":42,"./transaction":43,"buffer":51,"buffer-equals":49}],45:[function(require,module,exports){
+},{"./address":31,"./crypto":34,"./ecpair":36,"./ecsignature":37,"./networks":41,"./opcodes":42,"./script":43,"./transaction":44,"buffer":52,"buffer-equals":50}],46:[function(require,module,exports){
 var typeforce = require('typeforce')
 
 function nBuffer (value, n) {
@@ -8726,9 +8763,9 @@ for (var typeName in typeforce) {
 
 module.exports = types
 
-},{"typeforce":101}],46:[function(require,module,exports){
+},{"typeforce":102}],47:[function(require,module,exports){
 
-},{}],47:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 // Base58 encoding/decoding
 // Originally written by Mike Hearn for BitcoinJ
 // Copyright (c) 2011 Google Inc
@@ -8815,7 +8852,7 @@ module.exports = {
   decode: decode
 }
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 (function (Buffer){
 'use strict'
 
@@ -8860,7 +8897,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bs58":47,"buffer":51,"create-hash":54}],49:[function(require,module,exports){
+},{"bs58":48,"buffer":52,"create-hash":55}],50:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 module.exports = function (a, b) {
@@ -8890,7 +8927,7 @@ module.exports = function (a, b) {
 };
 
 }).call(this,{"isBuffer":require("../is-buffer/index.js")})
-},{"../is-buffer/index.js":67}],50:[function(require,module,exports){
+},{"../is-buffer/index.js":68}],51:[function(require,module,exports){
 (function (Buffer){
 module.exports = function reverse (src) {
   var buffer = new Buffer(src.length)
@@ -8904,7 +8941,7 @@ module.exports = function reverse (src) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":51}],51:[function(require,module,exports){
+},{"buffer":52}],52:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -10370,7 +10407,7 @@ function blitBuffer (src, dst, offset, length) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":24,"ieee754":65,"isarray":68}],52:[function(require,module,exports){
+},{"base64-js":25,"ieee754":66,"isarray":69}],53:[function(require,module,exports){
 (function (Buffer){
 var Transform = require('stream').Transform
 var inherits = require('inherits')
@@ -10464,7 +10501,7 @@ CipherBase.prototype._toString = function (value, enc, final) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":51,"inherits":66,"stream":96,"string_decoder":97}],53:[function(require,module,exports){
+},{"buffer":52,"inherits":67,"stream":97,"string_decoder":98}],54:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -10575,7 +10612,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":67}],54:[function(require,module,exports){
+},{"../../is-buffer/index.js":68}],55:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var inherits = require('inherits')
@@ -10631,7 +10668,7 @@ module.exports = function createHash (alg) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./md5":56,"buffer":51,"cipher-base":52,"inherits":66,"ripemd160":86,"sha.js":89}],55:[function(require,module,exports){
+},{"./md5":57,"buffer":52,"cipher-base":53,"inherits":67,"ripemd160":87,"sha.js":90}],56:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var intSize = 4;
@@ -10668,7 +10705,7 @@ function hash(buf, fn, hashSize, bigEndian) {
 }
 exports.hash = hash;
 }).call(this,require("buffer").Buffer)
-},{"buffer":51}],56:[function(require,module,exports){
+},{"buffer":52}],57:[function(require,module,exports){
 'use strict';
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
@@ -10825,7 +10862,7 @@ function bit_rol(num, cnt)
 module.exports = function md5(buf) {
   return helpers.hash(buf, core_md5, 16);
 };
-},{"./helpers":55}],57:[function(require,module,exports){
+},{"./helpers":56}],58:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var createHash = require('create-hash/browser');
@@ -10897,7 +10934,7 @@ module.exports = function createHmac(alg, key) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":51,"create-hash/browser":54,"inherits":66,"stream":96}],58:[function(require,module,exports){
+},{"buffer":52,"create-hash/browser":55,"inherits":67,"stream":97}],59:[function(require,module,exports){
 var assert = require('assert')
 var BigInteger = require('bigi')
 
@@ -10973,7 +11010,7 @@ Curve.prototype.validate = function(Q) {
 
 module.exports = Curve
 
-},{"./point":62,"assert":23,"bigi":27}],59:[function(require,module,exports){
+},{"./point":63,"assert":24,"bigi":28}],60:[function(require,module,exports){
 module.exports={
   "secp128r1": {
     "p": "fffffffdffffffffffffffffffffffff",
@@ -11040,7 +11077,7 @@ module.exports={
   }
 }
 
-},{}],60:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 var Point = require('./point')
 var Curve = require('./curve')
 
@@ -11052,7 +11089,7 @@ module.exports = {
   getCurveByName: getCurveByName
 }
 
-},{"./curve":58,"./names":61,"./point":62}],61:[function(require,module,exports){
+},{"./curve":59,"./names":62,"./point":63}],62:[function(require,module,exports){
 var BigInteger = require('bigi')
 
 var curves = require('./curves')
@@ -11075,7 +11112,7 @@ function getCurveByName(name) {
 
 module.exports = getCurveByName
 
-},{"./curve":58,"./curves":59,"bigi":27}],62:[function(require,module,exports){
+},{"./curve":59,"./curves":60,"bigi":28}],63:[function(require,module,exports){
 (function (Buffer){
 var assert = require('assert')
 var BigInteger = require('bigi')
@@ -11328,7 +11365,7 @@ Point.prototype.toString = function () {
 module.exports = Point
 
 }).call(this,require("buffer").Buffer)
-},{"assert":23,"bigi":27,"buffer":51}],63:[function(require,module,exports){
+},{"assert":24,"bigi":28,"buffer":52}],64:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -11628,7 +11665,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],64:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 'use strict';
 
 module.exports = Response;
@@ -11673,7 +11710,7 @@ Response.prototype.getBody = function (encoding) {
   return encoding ? this.body.toString(encoding) : this.body;
 };
 
-},{}],65:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -11759,7 +11796,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],66:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -11784,7 +11821,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],67:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 /**
  * Determine if an object is Buffer
  *
@@ -11803,14 +11840,14 @@ module.exports = function (obj) {
     ))
 }
 
-},{}],68:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],69:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -11834,7 +11871,7 @@ function nextTick(fn) {
 }
 
 }).call(this,require('_process'))
-},{"_process":70}],70:[function(require,module,exports){
+},{"_process":71}],71:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -11927,7 +11964,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],71:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 'use strict';
 
 var Stringify = require('./stringify');
@@ -11938,7 +11975,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":72,"./stringify":73}],72:[function(require,module,exports){
+},{"./parse":73,"./stringify":74}],73:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -12104,7 +12141,7 @@ module.exports = function (str, opts) {
     return Utils.compact(obj);
 };
 
-},{"./utils":74}],73:[function(require,module,exports){
+},{"./utils":75}],74:[function(require,module,exports){
 'use strict';
 
 var Utils = require('./utils');
@@ -12237,7 +12274,7 @@ module.exports = function (object, opts) {
     return keys.join(delimiter);
 };
 
-},{"./utils":74}],74:[function(require,module,exports){
+},{"./utils":75}],75:[function(require,module,exports){
 'use strict';
 
 var hexTable = (function () {
@@ -12401,7 +12438,7 @@ exports.isBuffer = function (obj) {
     return !!(obj.constructor && obj.constructor.isBuffer && obj.constructor.isBuffer(obj));
 };
 
-},{}],75:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 (function (process,global,Buffer){
 'use strict'
 
@@ -12441,10 +12478,10 @@ function randomBytes (size, cb) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"_process":70,"buffer":51}],76:[function(require,module,exports){
+},{"_process":71,"buffer":52}],77:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":77}],77:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":78}],78:[function(require,module,exports){
 // a duplex stream is just a stream that is both readable and writable.
 // Since JS doesn't have multiple prototypal inheritance, this class
 // prototypally inherits from Readable, and then parasitically from
@@ -12520,7 +12557,7 @@ function forEach(xs, f) {
     f(xs[i], i);
   }
 }
-},{"./_stream_readable":79,"./_stream_writable":81,"core-util-is":53,"inherits":66,"process-nextick-args":69}],78:[function(require,module,exports){
+},{"./_stream_readable":80,"./_stream_writable":82,"core-util-is":54,"inherits":67,"process-nextick-args":70}],79:[function(require,module,exports){
 // a passthrough stream.
 // basically just the most minimal sort of Transform stream.
 // Every written chunk gets output as-is.
@@ -12547,7 +12584,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":80,"core-util-is":53,"inherits":66}],79:[function(require,module,exports){
+},{"./_stream_transform":81,"core-util-is":54,"inherits":67}],80:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -13430,7 +13467,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'))
-},{"./_stream_duplex":77,"_process":70,"buffer":51,"core-util-is":53,"events":63,"inherits":66,"isarray":68,"process-nextick-args":69,"string_decoder/":97,"util":46}],80:[function(require,module,exports){
+},{"./_stream_duplex":78,"_process":71,"buffer":52,"core-util-is":54,"events":64,"inherits":67,"isarray":69,"process-nextick-args":70,"string_decoder/":98,"util":47}],81:[function(require,module,exports){
 // a transform stream is a readable/writable stream where you do
 // something with the data.  Sometimes it's called a "filter",
 // but that's not a great name for it, since that implies a thing where
@@ -13611,7 +13648,7 @@ function done(stream, er) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":77,"core-util-is":53,"inherits":66}],81:[function(require,module,exports){
+},{"./_stream_duplex":78,"core-util-is":54,"inherits":67}],82:[function(require,module,exports){
 (function (process){
 // A bit simpler than readable streams.
 // Implement an async ._write(chunk, encoding, cb), and it'll handle all
@@ -14130,10 +14167,10 @@ function CorkedRequest(state) {
   };
 }
 }).call(this,require('_process'))
-},{"./_stream_duplex":77,"_process":70,"buffer":51,"core-util-is":53,"events":63,"inherits":66,"process-nextick-args":69,"util-deprecate":103}],82:[function(require,module,exports){
+},{"./_stream_duplex":78,"_process":71,"buffer":52,"core-util-is":54,"events":64,"inherits":67,"process-nextick-args":70,"util-deprecate":104}],83:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":78}],83:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":79}],84:[function(require,module,exports){
 var Stream = (function (){
   try {
     return require('st' + 'ream'); // hack to fix a circular dependency issue when used with browserify
@@ -14147,13 +14184,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":77,"./lib/_stream_passthrough.js":78,"./lib/_stream_readable.js":79,"./lib/_stream_transform.js":80,"./lib/_stream_writable.js":81}],84:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":78,"./lib/_stream_passthrough.js":79,"./lib/_stream_readable.js":80,"./lib/_stream_transform.js":81,"./lib/_stream_writable.js":82}],85:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":80}],85:[function(require,module,exports){
+},{"./lib/_stream_transform.js":81}],86:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":81}],86:[function(require,module,exports){
+},{"./lib/_stream_writable.js":82}],87:[function(require,module,exports){
 (function (Buffer){
 /*
 CryptoJS v3.1.2
@@ -14367,7 +14404,7 @@ function ripemd160 (message) {
 module.exports = ripemd160
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":51}],87:[function(require,module,exports){
+},{"buffer":52}],88:[function(require,module,exports){
 module.exports = function cmp (a, b) {
     var pa = a.split('.');
     var pb = b.split('.');
@@ -14382,7 +14419,7 @@ module.exports = function cmp (a, b) {
     return 0;
 };
 
-},{}],88:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 (function (Buffer){
 // prototype class for hash functions
 function Hash (blockSize, finalSize) {
@@ -14455,7 +14492,7 @@ Hash.prototype._update = function () {
 module.exports = Hash
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":51}],89:[function(require,module,exports){
+},{"buffer":52}],90:[function(require,module,exports){
 var exports = module.exports = function SHA (algorithm) {
   algorithm = algorithm.toLowerCase()
 
@@ -14472,7 +14509,7 @@ exports.sha256 = require('./sha256')
 exports.sha384 = require('./sha384')
 exports.sha512 = require('./sha512')
 
-},{"./sha":90,"./sha1":91,"./sha224":92,"./sha256":93,"./sha384":94,"./sha512":95}],90:[function(require,module,exports){
+},{"./sha":91,"./sha1":92,"./sha224":93,"./sha256":94,"./sha384":95,"./sha512":96}],91:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-0, as defined
@@ -14569,7 +14606,7 @@ Sha.prototype._hash = function () {
 module.exports = Sha
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":88,"buffer":51,"inherits":66}],91:[function(require,module,exports){
+},{"./hash":89,"buffer":52,"inherits":67}],92:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
@@ -14671,7 +14708,7 @@ Sha1.prototype._hash = function () {
 module.exports = Sha1
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":88,"buffer":51,"inherits":66}],92:[function(require,module,exports){
+},{"./hash":89,"buffer":52,"inherits":67}],93:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -14727,7 +14764,7 @@ Sha224.prototype._hash = function () {
 module.exports = Sha224
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":88,"./sha256":93,"buffer":51,"inherits":66}],93:[function(require,module,exports){
+},{"./hash":89,"./sha256":94,"buffer":52,"inherits":67}],94:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -14865,7 +14902,7 @@ Sha256.prototype._hash = function () {
 module.exports = Sha256
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":88,"buffer":51,"inherits":66}],94:[function(require,module,exports){
+},{"./hash":89,"buffer":52,"inherits":67}],95:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var SHA512 = require('./sha512')
@@ -14925,7 +14962,7 @@ Sha384.prototype._hash = function () {
 module.exports = Sha384
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":88,"./sha512":95,"buffer":51,"inherits":66}],95:[function(require,module,exports){
+},{"./hash":89,"./sha512":96,"buffer":52,"inherits":67}],96:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var Hash = require('./hash')
@@ -15188,7 +15225,7 @@ Sha512.prototype._hash = function () {
 module.exports = Sha512
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":88,"buffer":51,"inherits":66}],96:[function(require,module,exports){
+},{"./hash":89,"buffer":52,"inherits":67}],97:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15317,7 +15354,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":63,"inherits":66,"readable-stream/duplex.js":76,"readable-stream/passthrough.js":82,"readable-stream/readable.js":83,"readable-stream/transform.js":84,"readable-stream/writable.js":85}],97:[function(require,module,exports){
+},{"events":64,"inherits":67,"readable-stream/duplex.js":77,"readable-stream/passthrough.js":83,"readable-stream/readable.js":84,"readable-stream/transform.js":85,"readable-stream/writable.js":86}],98:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15540,7 +15577,7 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":51}],98:[function(require,module,exports){
+},{"buffer":52}],99:[function(require,module,exports){
 'use strict';
 
 var Response = require('http-response-object');
@@ -15606,7 +15643,7 @@ function doRequest(method, url, options) {
   return new Response(xhr.status, headers, xhr.responseText);
 }
 
-},{"http-response-object":64,"then-request/lib/handle-qs.js":99}],99:[function(require,module,exports){
+},{"http-response-object":65,"then-request/lib/handle-qs.js":100}],100:[function(require,module,exports){
 'use strict';
 
 var parse = require('qs').parse;
@@ -15630,7 +15667,7 @@ function handleQs(url, query) {
   return start + qs + end;
 }
 
-},{"qs":71}],100:[function(require,module,exports){
+},{"qs":72}],101:[function(require,module,exports){
 var traverse = module.exports = function (obj) {
     return new Traverse(obj);
 };
@@ -15946,7 +15983,7 @@ var hasOwnProperty = Object.hasOwnProperty || function (obj, key) {
     return key in obj;
 };
 
-},{}],101:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 
@@ -16262,7 +16299,7 @@ module.exports.TfTypeError = TfTypeError
 module.exports.TfPropertyTypeError = TfPropertyTypeError
 
 }).call(this,{"isBuffer":require("../is-buffer/index.js")})
-},{"../is-buffer/index.js":67,"inherits":66}],102:[function(require,module,exports){
+},{"../is-buffer/index.js":68,"inherits":67}],103:[function(require,module,exports){
 (function (root) {
    "use strict";
 
@@ -16706,7 +16743,7 @@ UChar.udata={
    }
 }(this));
 
-},{}],103:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 (function (global){
 
 /**
@@ -16777,14 +16814,14 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],104:[function(require,module,exports){
+},{}],105:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],105:[function(require,module,exports){
+},{}],106:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -17374,7 +17411,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":104,"_process":70,"inherits":66}],106:[function(require,module,exports){
+},{"./support/isBuffer":105,"_process":71,"inherits":67}],107:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -17765,7 +17802,7 @@ function hasOwnProperty(obj, prop) {
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],107:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 (function (Buffer){
 var bs58check = require('bs58check')
 
@@ -17823,5 +17860,5 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bs58check":48,"buffer":51}]},{},[8])(8)
+},{"bs58check":49,"buffer":52}]},{},[8])(8)
 });
