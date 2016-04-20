@@ -66,6 +66,8 @@ See https://www.npmjs.com/package/babel-polyfill and https://babeljs.io/docs/usa
 
 You need to add that even if you are using compiled dist version of trezor.js.
 
+(A version of this is in doc/polyfill.js, but it won't be kept updated.)
+
 Before using trezor.js
 ----
 Before you can use trezor.js in your web app, the *end user* has to install one of our transport layers. Also, the web app's URL has to be whitelisted specifically.
