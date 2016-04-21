@@ -15,7 +15,6 @@
 [libs]
 ../flowtype_definitions/bitcoin.js
 ../flowtype_definitions/chrome.js
-../flowtype_definitions/whatwg-fetch.js
 
 [options]
 esproposal.class_static_fields=enable
