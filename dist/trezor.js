@@ -791,6 +791,9 @@ var Device = function (_EventEmitter) {
         value: function _startClearSessionTimeout() {
             var _this4 = this;
 
+            if (this.features.bootloader_mode) {
+                return;
+            }
             this.clearSessionTimeout = window.setTimeout(function () {
                 var options = { onlyOneActivity: true };
                 _this4.run(function (session) {
