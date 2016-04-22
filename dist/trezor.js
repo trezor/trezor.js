@@ -302,6 +302,7 @@ var DeviceList = function (_EventEmitter) {
 
         var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(DeviceList).call(this));
 
+        _this.transportLoading = true;
         _this.stream = null;
         _this.devices = {};
         _this.unacquiredDevices = {};
@@ -324,6 +325,7 @@ var DeviceList = function (_EventEmitter) {
 
         _this.transportEvent.on(function (transport) {
             _this.transport = transport;
+            _this.transportLoading = false;
 
             _this._initStream(transport);
         });
