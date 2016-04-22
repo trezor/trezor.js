@@ -297,6 +297,8 @@ var WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 var DeviceList = function (_EventEmitter) {
     _inherits(DeviceList, _EventEmitter);
 
+    // acquiringDevices -> when going from unacquired to normal
+
     function DeviceList(options) {
         _classCallCheck(this, DeviceList);
 
@@ -340,6 +342,9 @@ var DeviceList = function (_EventEmitter) {
         }, 0);
         return _this;
     }
+
+    // creating - when anything happens at all
+
 
     _createClass(DeviceList, [{
         key: 'asArray',
@@ -458,8 +463,10 @@ var DeviceList = function (_EventEmitter) {
                     if (descriptor.session == null) {
                         _this6._createAndSaveDevice(transport, descriptor, stream);
                     } else {
+                        _this6.creatingDevices[path.toString()] = true;
                         _this6._createUnacquiredDevice(transport, descriptor, stream).then(function (device) {
                             _this6.unacquiredDevices[path.toString()] = device;
+                            delete _this6.creatingDevices[path.toString()];
                             _this6.connectUnacquiredEvent.emit(device);
                         });
                     }
@@ -534,7 +541,7 @@ var DeviceList = function (_EventEmitter) {
         value: function onUnacquiredConnect(unacquiredDevice, listener) {
             var path = unacquiredDevice.originalDescriptor.path.toString();
             if (this.unacquiredDevices[path] == null) {
-                if (this.acquiringDevices[path] != null) {
+                if (this.creatingDevices[path] != null) {
                     this.connectEvent.on(listener);
                 } else if (this.devices[path] != null) {
                     listener(this.devices[path], unacquiredDevice);
@@ -1052,17 +1059,23 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'isStolen',
         value: function isStolen() {
-            if (!this.isUsed()) {
-                if (this.currentSessionObject != null) {
-                    return true;
+            var shouldBeUsedHere = this.currentSessionObject != null;
+
+            if (this.isUsed()) {
+                if (shouldBeUsedHere) {
+                    // is used and should be used here => returns true if it's used elsewhere
+                    return this.isUsedElsewhere();
                 } else {
-                    return false;
+                    // is used and should not be used => returns true
+                    return true;
                 }
             } else {
-                if (this.currentSessionObject != null) {
-                    return !this.isUsedHere();
-                } else {
+                if (shouldBeUsedHere) {
+                    // isn't used and should be used => stolen (??)
                     return true;
+                } else {
+                    // isn't used and shouldn't be used => nothing
+                    return false;
                 }
             }
         }
