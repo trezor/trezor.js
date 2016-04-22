@@ -305,6 +305,8 @@ var DeviceList = function (_EventEmitter) {
         _this.stream = null;
         _this.devices = {};
         _this.unacquiredDevices = {};
+        _this.acquiringDevices = {};
+        _this.creatingDevices = {};
         _this.sessions = {};
         _this.errorEvent = new _flowEvents.Event1('error', _this);
         _this.transportEvent = new _flowEvents.Event1('transport', _this);
@@ -371,11 +373,17 @@ var DeviceList = function (_EventEmitter) {
             var _this3 = this;
 
             var path = descriptor.path.toString();
+            this.creatingDevices[path] = true;
             this._createDevice(transport, descriptor, stream, previous).then(function (device) {
                 if (device instanceof _device2.default) {
                     _this3.devices[path] = device;
+                    delete _this3.acquiringDevices[path];
+                    delete _this3.creatingDevices[path];
+                    _this3.connectEvent.emit(device, previous);
                 } else {
+                    delete _this3.creatingDevices[path];
                     _this3.unacquiredDevices[path] = device;
+                    _this3.connectUnacquiredEvent.emit(device);
                 }
             }).catch(function (err) {
                 console.debug('[trezor.js] [device list] Cannot create device', err);
@@ -386,16 +394,15 @@ var DeviceList = function (_EventEmitter) {
         value: function _createDevice(transport, descriptor, stream, previous) {
             var _this4 = this;
 
-            var path = descriptor.path;
-            var pathStr = path.toString();
             var devRes = _device2.default.fromDescriptor(transport, descriptor, this).then(function (device) {
-                _this4.connectEvent.emit(device, previous);
                 return device;
             }).catch(function (error) {
                 if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE) {
-                    var previousDevice = _this4.unacquiredDevices[pathStr];
-                    if (previousDevice == null) {
+                    if (previous == null) {
                         return _this4._createUnacquiredDevice(transport, descriptor, stream);
+                    } else {
+                        _this4.unacquiredDevices[previous.originalDescriptor.path.toString()] = previous;
+                        return previous;
                     }
                 }
                 _this4.errorEvent.emit(error);
@@ -412,7 +419,6 @@ var DeviceList = function (_EventEmitter) {
             //     return Promise.reject("Device no longer connected.");
             // }
             var res = _unacquiredDevice2.default.fromDescriptor(transport, descriptor, this).then(function (device) {
-                _this5.connectUnacquiredEvent.emit(device);
                 return device;
             }).catch(function (error) {
                 _this5.errorEvent.emit(error);
@@ -454,6 +460,7 @@ var DeviceList = function (_EventEmitter) {
                     } else {
                         _this6._createUnacquiredDevice(transport, descriptor, stream).then(function (device) {
                             _this6.unacquiredDevices[path.toString()] = device;
+                            _this6.connectUnacquiredEvent.emit(device);
                         });
                     }
                 });
@@ -505,6 +512,7 @@ var DeviceList = function (_EventEmitter) {
                     if (device != null) {
                         var previous = _this6.unacquiredDevices[path.toString()];
                         delete _this6.unacquiredDevices[path.toString()];
+                        _this6.acquiringDevices[path.toString()] = previous;
                         _this6._createAndSaveDevice(transport, descriptor, stream, previous);
                     }
                 });
@@ -520,6 +528,44 @@ var DeviceList = function (_EventEmitter) {
             stream.listen();
 
             this.streamEvent.emit(stream);
+        }
+    }, {
+        key: 'onUnacquiredConnect',
+        value: function onUnacquiredConnect(unacquiredDevice, listener) {
+            var path = unacquiredDevice.originalDescriptor.path.toString();
+            if (this.unacquiredDevices[path] == null) {
+                if (this.acquiringDevices[path] != null) {
+                    this.connectEvent.on(listener);
+                } else if (this.devices[path] != null) {
+                    listener(this.devices[path], unacquiredDevice);
+                }
+            } else {
+                this.connectEvent.on(listener);
+            }
+        }
+    }, {
+        key: 'onUnacquiredDisconnect',
+        value: function onUnacquiredDisconnect(unacquiredDevice, listener) {
+            var path = unacquiredDevice.originalDescriptor.path.toString();
+            if (this.unacquiredDevices[path] == null) {
+                if (this.acquiringDevices[path] != null) {
+                    this.disconnectUnacquiredEvent.on(listener);
+                } else if (this.devices[path] == null) {
+                    listener(unacquiredDevice);
+                }
+            } else {
+                this.disconnectUnacquiredEvent.on(listener);
+            }
+        }
+    }, {
+        key: 'onDisconnect',
+        value: function onDisconnect(device, listener) {
+            var path = device.originalDescriptor.path.toString();
+            if (this.devices[path] == null && this.creatingDevices[path] == null) {
+                listener(device);
+            } else {
+                this.disconnectEvent.on(listener);
+            }
         }
     }, {
         key: 'onbeforeunload',
@@ -884,7 +930,8 @@ var Device = function (_EventEmitter) {
                 var _onDisconnect = function onDisconnect() {};
                 var onUpdate = function onUpdate() {
                     var updatedSession = _this7.deviceList.getSession(_this7.originalDescriptor.path);
-                    if (updatedSession == null) {
+                    var device = _this7.deviceList.devices[_this7.originalDescriptor.path.toString()];
+                    if (updatedSession == null && device != null) {
                         _this7.deviceList.disconnectEvent.removeListener(_onDisconnect);
                         _this7.deviceList.updateEvent.removeListener(onUpdate);
                         resolve(updatedSession);
@@ -897,9 +944,9 @@ var Device = function (_EventEmitter) {
                         reject(new Error('Device disconnected'));
                     }
                 };
-
+                onUpdate();
                 _this7.deviceList.updateEvent.on(onUpdate);
-                _this7.deviceList.disconnectEvent.on(_onDisconnect);
+                _this7.deviceList.onDisconnect(_this7, _onDisconnect);
             });
         }
     }, {
@@ -967,22 +1014,22 @@ var Device = function (_EventEmitter) {
                     }
                 }
             };
+            var onDisconnect = function onDisconnect(device) {
+                if (device === _this8) {
+                    _this8.disconnectEvent.emit();
+                    _this8.deviceList.disconnectEvent.removeListener(onDisconnect);
+                    _this8.deviceList.changedSessionsEvent.removeListener(onChangedSessions);
+                    _this8.connected = false;
 
-            this.deviceList.changedSessionsEvent.on(onChangedSessions);
-            this.deviceList.disconnectEvent.on(function onDisconnect(device) {
-                if (device === this) {
-                    this.disconnectEvent.emit();
-                    this.deviceList.disconnectEvent.removeListener(onDisconnect);
-                    this.deviceList.changedSessionsEvent.removeListener(onChangedSessions);
-                    this.connected = false;
-
-                    var events = [this.changedSessionsEvent, this.sendEvent, this.receiveEvent, this.errorEvent, this.buttonEvent, this.pinEvent, this.wordEvent];
+                    var events = [_this8.changedSessionsEvent, _this8.sendEvent, _this8.receiveEvent, _this8.errorEvent, _this8.buttonEvent, _this8.pinEvent, _this8.wordEvent];
                     events.forEach(function (ev) {
                         return ev.removeAllListeners();
                     });
                 }
-                return Promise.resolve();
-            }.bind(this));
+            };
+            onChangedSessions(this);
+            this.deviceList.changedSessionsEvent.on(onChangedSessions);
+            this.deviceList.onDisconnect(this, onDisconnect);
         }
     }, {
         key: 'isUsed',
@@ -3075,9 +3122,8 @@ var UnacquiredDevice = function (_EventEmitter) {
                     onDisconnect();
                 }
             };
-
-            this.deviceList.connectEvent.on(connectListener);
-            this.deviceList.disconnectUnacquiredEvent.on(_disconnectListener);
+            this.deviceList.onUnacquiredConnect(this, connectListener);
+            this.deviceList.onUnacquiredDisconnect(this, _disconnectListener);
         }
 
         // returns Promise just to be similar to Device.fromPath
