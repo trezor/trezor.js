@@ -297,8 +297,6 @@ var WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 var DeviceList = function (_EventEmitter) {
     _inherits(DeviceList, _EventEmitter);
 
-    // acquiringDevices -> when going from unacquired to normal
-
     function DeviceList(options) {
         _classCallCheck(this, DeviceList);
 
@@ -307,7 +305,6 @@ var DeviceList = function (_EventEmitter) {
         _this.stream = null;
         _this.devices = {};
         _this.unacquiredDevices = {};
-        _this.acquiringDevices = {};
         _this.creatingDevices = {};
         _this.sessions = {};
         _this.errorEvent = new _flowEvents.Event1('error', _this);
@@ -342,9 +339,6 @@ var DeviceList = function (_EventEmitter) {
         }, 0);
         return _this;
     }
-
-    // creating - when anything happens at all
-
 
     _createClass(DeviceList, [{
         key: 'asArray',
@@ -382,7 +376,6 @@ var DeviceList = function (_EventEmitter) {
             this._createDevice(transport, descriptor, stream, previous).then(function (device) {
                 if (device instanceof _device2.default) {
                     _this3.devices[path] = device;
-                    delete _this3.acquiringDevices[path];
                     delete _this3.creatingDevices[path];
                     _this3.connectEvent.emit(device, previous);
                 } else {
@@ -519,7 +512,6 @@ var DeviceList = function (_EventEmitter) {
                     if (device != null) {
                         var previous = _this6.unacquiredDevices[path.toString()];
                         delete _this6.unacquiredDevices[path.toString()];
-                        _this6.acquiringDevices[path.toString()] = previous;
                         _this6._createAndSaveDevice(transport, descriptor, stream, previous);
                     }
                 });
@@ -555,7 +547,7 @@ var DeviceList = function (_EventEmitter) {
         value: function onUnacquiredDisconnect(unacquiredDevice, listener) {
             var path = unacquiredDevice.originalDescriptor.path.toString();
             if (this.unacquiredDevices[path] == null) {
-                if (this.acquiringDevices[path] != null) {
+                if (this.creatingDevices[path] != null) {
                     this.disconnectUnacquiredEvent.on(listener);
                 } else if (this.devices[path] == null) {
                     listener(unacquiredDevice);
