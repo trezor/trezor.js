@@ -26,9 +26,9 @@ list.on('connect', function (device) {
     });
 
     // You generally want to filter out devices connected in bootloader mode:
-    if (device.isBootloader()) {
-        throw new Error('Device is in bootloader mode, re-connected it');
-    }
+    //if (device.isBootloader()) {
+    //    throw new Error('Device is in bootloader mode, re-connected it');
+    //}
 
     var hardeningConstant = 0x80000000;
 

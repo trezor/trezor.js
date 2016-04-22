@@ -367,11 +367,11 @@ var DeviceList = function (_EventEmitter) {
         }
     }, {
         key: '_createAndSaveDevice',
-        value: function _createAndSaveDevice(transport, descriptor, stream) {
+        value: function _createAndSaveDevice(transport, descriptor, stream, previous) {
             var _this3 = this;
 
             var path = descriptor.path.toString();
-            this._createDevice(transport, descriptor, stream).then(function (device) {
+            this._createDevice(transport, descriptor, stream, previous).then(function (device) {
                 if (device instanceof _device2.default) {
                     _this3.devices[path] = device;
                 } else {
@@ -383,17 +383,13 @@ var DeviceList = function (_EventEmitter) {
         }
     }, {
         key: '_createDevice',
-        value: function _createDevice(transport, descriptor, stream) {
+        value: function _createDevice(transport, descriptor, stream, previous) {
             var _this4 = this;
 
             var path = descriptor.path;
             var pathStr = path.toString();
             var devRes = _device2.default.fromDescriptor(transport, descriptor, this).then(function (device) {
-                var previousDevice = _this4.unacquiredDevices[pathStr];
-                if (previousDevice != null) {
-                    delete _this4.unacquiredDevices[pathStr];
-                }
-                _this4.connectEvent.emit(device, previousDevice);
+                _this4.connectEvent.emit(device, previous);
                 return device;
             }).catch(function (error) {
                 if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE) {
@@ -507,8 +503,9 @@ var DeviceList = function (_EventEmitter) {
                     var device = _this6.unacquiredDevices[path.toString()];
 
                     if (device != null) {
+                        var previous = _this6.unacquiredDevices[path.toString()];
                         delete _this6.unacquiredDevices[path.toString()];
-                        _this6._createAndSaveDevice(transport, descriptor, stream);
+                        _this6._createAndSaveDevice(transport, descriptor, stream, previous);
                     }
                 });
 
