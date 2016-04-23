@@ -19,7 +19,11 @@ Install by npm
 The library is using new babelify with Babel 6 with several plugins. You will need to install the following packages:
 
      npm install --save-dev babelify #have to use 7 or newer
-     npm install --save-dev babel-preset-es2015 babel-plugin-add-module-exports babel-plugin-transform-class-properties babel-plugin-transform-object-rest-spread babel-plugin-transform-flow-strip-types
+     npm install --save-dev babel-preset-es2015 \
+     		babel-plugin-add-module-exports \
+     		babel-plugin-transform-class-properties \
+              	babel-plugin-transform-object-rest-spread \
+              	babel-plugin-transform-flow-strip-types
      
 and then use following setup in babelify (in gulp, webpack, or anywhere you use it) in order for the library to compile correctly
 
