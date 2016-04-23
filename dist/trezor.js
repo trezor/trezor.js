@@ -669,7 +669,7 @@ var Device = function (_EventEmitter) {
                 _this.clearSessionTime = _this.deviceList.options.clearSessionTime;
             }
         }
-        if (_this.deviceList.options.rememberDevicePasshprase) {
+        if (_this.deviceList.options.rememberDevicePassphrase) {
             _this.rememberPlaintextPassphrase = true;
         }
 
