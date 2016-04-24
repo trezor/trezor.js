@@ -696,6 +696,12 @@ var Device = function (_EventEmitter) {
             var options_ = options == null ? {} : options;
             return this.run(fn, _extends({}, options_, { waiting: true }));
         }
+    }, {
+        key: 'runAggressive',
+        value: function runAggressive(fn, options) {
+            var options_ = options == null ? {} : options;
+            return this.run(fn, _extends({}, options_, { aggressive: true }));
+        }
 
         // Initializes device with the given descriptor,
         // runs a given function and then releases the session.
