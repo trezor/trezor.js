@@ -3100,11 +3100,14 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var UnacquiredDevice = function (_EventEmitter) {
     _inherits(UnacquiredDevice, _EventEmitter);
 
+    // note - if the device is changed to Device, this is also false
+
     function UnacquiredDevice(transport, descriptor, deviceList) {
         _classCallCheck(this, UnacquiredDevice);
 
         var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UnacquiredDevice).call(this));
 
+        _this.connected = true;
         _this.connectEvent = new _flowEvents.Event1('connect', _this);
         _this.disconnectEvent = new _flowEvents.Event0('disconnect', _this);
 
@@ -3178,9 +3181,11 @@ var UnacquiredDevice = function (_EventEmitter) {
             var _this4 = this;
 
             this._watchConnectDisconnect(function (device) {
-                return _this4.connectEvent.emit(device);
+                _this4.connected = false;
+                _this4.connectEvent.emit(device);
             }, function () {
-                return _this4.disconnectEvent.emit();
+                _this4.connected = false;
+                _this4.disconnectEvent.emit();
             });
         }
     }], [{
