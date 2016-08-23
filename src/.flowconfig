@@ -7,8 +7,6 @@
 ../node_modules/ecurve/
 ../node_modules/randombytes/
 ../node_modules/semver-compare/
-../node_modules/sync-request/
-../node_modules/traverse/
 ../node_modules/unorm/
 ../node_modules/node-fetch/
 ../node_modules/whatwg-fetch/
