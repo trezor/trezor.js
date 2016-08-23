@@ -3,10 +3,10 @@
 
 import {EventEmitter} from './events';
 import {Event1} from './flow-events';
-import PluginTransport from './transport/plugin';
 
 import {lock} from './utils/connectionLock';
-import type {Transport, DeviceDescriptor} from './transport';
+
+import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
 
 export type DeviceDescriptorDiff = {
     connected: Array<DeviceDescriptor>,
@@ -38,10 +38,10 @@ export default class DescriptorStream extends EventEmitter {
         this.transport = transport;
     }
 
-    setHard(path: (string|number), session: ?(string | number)) {
+    setHard(path: string, session: ?string) {
         if (this.previous != null) {
             const copy = this.previous.map(d => {
-                if (d.path.toString() === path.toString()) {
+                if (d.path === path) {
                     return {...d, session};
                 } else {
                     return d;
@@ -55,12 +55,12 @@ export default class DescriptorStream extends EventEmitter {
     listen() {
         // if we are not enumerating for the first time, we can let
         // the transport to block until something happens
-        const supportsWaiting = !(this.transport instanceof PluginTransport);
-        const waitForEvent = supportsWaiting && this.previous !== null;
+        const waitForEvent = this.previous !== null;
 
         this.listening = true;
         const previous = this.previous || [];
-        this.transport.enumerate(waitForEvent, previous).then(descriptors => {
+        const promise = waitForEvent ? this.transport.listen(previous) : this.transport.enumerate();
+        promise.then(descriptors => {
             if (!this.listening) {  // do not continue if stop() was called
                 return;
             }

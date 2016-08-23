@@ -3,55 +3,46 @@ trezor.js
 
 [![Build Status](https://travis-ci.org/trezor/trezor.js.svg?branch=master)](https://travis-ci.org/trezor/trezor.js)
 
-High-level Javascript API for Bitcoin Trezor
+Javascript API for Bitcoin TREZOR.
 
+Use this library if you want deeper integration of TREZOR into your web-app or node app.
 
-Install with bower
-----
-Run:
+You should first look at [TREZOR Connect](https://github.com/trezor/connect) - a very simple and high-level API - if it's not enough. The upside of using Connect is that you don't need to deal with device management and message sending; however, the amount of things you can do through Connect is limited and you cannot customize the UI. With trezor.js, you can do everything that's possible with TREZOR. (We use trezor.js for myTREZOR itself.)
 
-     bower install --save trezor/trezor.js
-     
-Install by npm
+Version 5 can be used in both node and browserify. It's gone through a big refactoring, so it's still beta. We started publishing trezor.js to npm with version 5 and newer
+
+Install with npm
 -----
-<!-- TODO: write better -->
 
-The library is using new babelify with Babel 6 with several plugins. You will need to install the following packages:
+`npm install --save trezor.js`
 
-     npm install --save-dev babelify #have to use 7 or newer
-     npm install --save-dev babel-preset-es2015 \
-     		babel-plugin-add-module-exports \
-     		babel-plugin-transform-class-properties \
-     		babel-plugin-transform-object-rest-spread \
-     		babel-plugin-transform-flow-strip-types
-     
-and then use following setup in babelify (in gulp, webpack, or anywhere you use it) in order for the library to compile correctly
+We are dependent (through trezor-link) on `node-hid`, which is compiled C++ package. If there is some problems, just write us an issue.
 
-````
-presets: [
-    "es2015"
-],
-plugins: [
-    "transform-flow-strip-types",
-    "transform-class-properties",
-    "transform-object-rest-spread"
-    "add-module-exports"
-]
-````
+#### Using in node
+We are using ES6+, cross-compiled to be compatible with node 5 or newer.
 
-Then you can easily install trezor.js with npm
+So if you use trezor.js in node with node 5 or newer, you should be OK. (See also below "Using in node")
 
-    npm install --save trezor/trezor.js
+#### Using in browserify
+
+If you are using browserify, the correct transforms should be used automatically; you will have to install (and probably `--save-dev`) `babelify` and `babel-preset-es2015`.
+
+We use some ES6 methods (Array.find etc), that aren't in all browsers as of now, so if you are targetting older browsers/mobile browsers, you have to add babel polyfill. See https://www.npmjs.com/package/babel-polyfill and https://babeljs.io/docs/usage/polyfill/
+
+An outdated (but working) version of babel polyfill is in example-browser/polyfill.js. But `require('babel-polyfill')` should be enough.
+
+#### Examples
+
+Examples of usage are in `example-browser/` and `example-node/`.
 
 #### Flow
 trezor.js is annotated with [Flow](https://github.com/facebook/flow) types; if you want to use Flow and use the previous setup, it will use the right types. Note that you might have to set up `.flowconfig` to include all the modules and interface files in [our flowconfig](https://github.com/trezor/trezor.js/blob/master/lib/.flowconfig)
 
-(We usually test Flow types with the current Flow master at the time.)
-
 Install by copying
 -----
-Just download and copy `dist/trezor.js` from the repo. It is expected to be up to date to
-the latest master commit.
+Just download and copy `dist/trezor.js` or `dist/trezor.min.js` from the repo. It is built on every version upgrade.
+
+Again, you might have to add polyfill, see above.
 
 Compile
 -----
@@ -59,23 +50,13 @@ Compile
 Compile with:
 
 	npm install
-	npm run build
+	make build
 
-This should build the library and copy it to `dist/trezor.js`.
+This will cross-compile from `src/` to `lib` (with copying of the flow files) and also build `dist/`.
 
-Polyfill
----
-You need to import babel-polyfill to your application if you are using trezor.js, since we are using ES6.
-
-See https://www.npmjs.com/package/babel-polyfill and https://babeljs.io/docs/usage/polyfill/
-
-You need to add that even if you are using compiled dist version of trezor.js.
-
-(A version of this is in doc/polyfill.js, but it won't be kept updated.)
-
-Before using trezor.js
+Using trezor.js in a web app
 ----
-Before you can use trezor.js in your web app, the *end user* has to install one of our transport layers. Also, the web app's URL has to be whitelisted specifically.
+If you are using trezor.js in a web app, the *end user* has to install one of our transport layers. Also, the web app's URL has to be whitelisted specifically by SatoshiLabs.
 
 #### Transport layers
 We have two transport layers. The user needs to install one of them.
@@ -90,9 +71,13 @@ You cannot connect to transport layers from anywhere on the internet. Your URL n
 
 `localhost` is specifically whitelisted, so you can experiment on `http://localhost/*`. If you want to add your url in order to make a TREZOR web application, [make a pull request to this file](https://github.com/trezor/trezor-common/blob/master/signer/config.json).
 
+Using trezor.js in a node app
+-----
+In a node app, trezor.js will first try to contact trezord (see above). If the trezord daemon isn't installed, trezor.js will use node-hid layer and the app will communicate with TREZOR directly.
 
+You need to require trezor.js like `require('trezor.js/lib/node')` in order to use the correct transport layers. See the example.
 
-Using trezor.js
+trezor.js API
 -----
 All the code examples are written with the assumption trezor.js is imported to the `trezor` variable. So, for example
      
@@ -106,6 +91,7 @@ All the code examples are written with the assumption trezor.js is imported to t
 In `doc/` folder there are two examples. `example-list` is using the API, documented below. `example-lowlevel` is using more low-level API.
 
 ### DeviceList
+
 `DeviceList` is class that lists devices and emits events on any change.
 
     var list = new trezor.DeviceList();
@@ -118,7 +104,7 @@ or
 
 * `configUrl`: if you want to use your own URL for config file
 * `config`: if you want to use your own config file. The value should be a hex string.
-* `transport`: if you want to provide your own Transport object.
+* `transport`: if you want to provide your own Transport object (from `trezor-link` module)
 
 The config should be available either on [github](https://github.com/trezor/webwallet-data/blob/master/config_signed.bin), on [Amazon AWS](http://mytrezor.s3.amazonaws.com/config_signed.bin), or on [mytrezor.com](http://mytrezor.com/data/config_signed.bin). The AWS URL is hardcoded and is used by default, so you don't have to worry about it if you don't want to.
 
@@ -140,7 +126,6 @@ The config should be available either on [github](https://github.com/trezor/webw
 * `deviceList.transport` - object, representing transport layer. You might use it in the following way:
     * if it's null, it means no transport layer was yet set up -- or the setup failed (nothing installed).
     * you can look at the `deviceList.transport.version` property, you can read the version as a string
-    * you can test `deviceList.transport instanceof trezor.HttpTransport` and `deviceList.transport instanceof trezor.ChromeExtensionTransport` to get which transport layer is used
 
 See [multitasking](#multitasking) for info on acquiring.
 
@@ -240,6 +225,7 @@ Note that the lenght of the action is not tied to the actual device actions. You
 
 | method | parameters | return type | description |
 |--------|------------|-------------|-------------|
+| typedCall | type:&nbsp;string<br>resType:&nbsp;string<br>message:&nbsp;Object | Promise&lt;Response&gt; | More low-level API. Sends message and returns message of given type.<br><br>Note that while this is low-level, it still doesn't return "intermediary" messages like asking for PIN and passhprase; those are emitted as events by Device and Session. |
 | getEntropy | size:&nbsp;number | Promise&lt;Response<br>&lt;{ bytes:&nbsp;string }&gt;&gt;&gt; | random data |
 | getAddress | path:&nbsp;Array&lt;number&gt;<br>coin:&nbsp;string<br>display:&nbsp;boolean | Promise&lt;Response<br>&lt;{ address:&nbsp;string }&gt;&gt;&gt; | Gets address with a given path.<br>Coin is the name of coin ("bitcoin", "testnet", "litecoin",...)<br>if `display` is true, the address is displayed on TREZOR and user has to confirm. |
 | verifyAddress | path:&nbsp;Array&lt;number&gt;<br>refAddress:&nbsp;string&nbsp;<br>coin:&nbsp;string&nbsp; | Promise&lt;boolean&gt; | Gets address with the given path, displays it on display and compares to the `refAddress`.<br><br>Note: promise doesn't reject on different result, but resolves with **false**. It rejects on user not confirming on device. |

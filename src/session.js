@@ -12,10 +12,7 @@ import {CallHelper} from './utils/call';
 
 import * as trezor from './trezortypes';
 import type {TxInfo} from './utils/signbjstx';
-import type {
-    Transport,
-    DeviceDescriptor,
-} from './transport';
+import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
 
 export type MessageResponse<T> = {
     type: string;
@@ -40,10 +37,10 @@ export type DefaultMessageResponse = MessageResponse<Object>;
 //
 export default class Session extends EventEmitter {
     _transport: Transport;
-    _sessionId: number | string;
+    _sessionId: string;
     _descriptor: DeviceDescriptor;
-    supportsSync: boolean;
     callHelper: CallHelper;
+    debug: boolean;
 
     sendEvent: Event2<string, Object> = new Event2('send', this);
     receiveEvent: Event2<string, Object> = new Event2('receive', this);
@@ -55,13 +52,13 @@ export default class Session extends EventEmitter {
 
     static LABEL_MAX_LENGTH: number = 16;
 
-    constructor(transport: Transport, sessionId: number | string, descriptor: DeviceDescriptor) {
+    constructor(transport: Transport, sessionId: string, descriptor: DeviceDescriptor, debug: boolean) {
         super();
         this._transport = transport;
         this._sessionId = sessionId;
         this._descriptor = descriptor;
-        this.supportsSync = !!transport.supportsSync;
-        this.callHelper = new CallHelper(transport, sessionId, this.supportsSync, this);
+        this.callHelper = new CallHelper(transport, sessionId, this);
+        this.debug = debug;
     }
 
     deactivateEvents() {
@@ -77,11 +74,11 @@ export default class Session extends EventEmitter {
         events.forEach(ev => ev.removeAllListeners());
     }
 
-    getId(): (number|string) {
+    getId(): (string) {
         return this._sessionId;
     }
 
-    getPath(): (number|string) {
+    getPath(): (string) {
         return this._descriptor.path;
     }
 
@@ -90,17 +87,10 @@ export default class Session extends EventEmitter {
     }
 
     release(): Promise<void> {
-        console.log('[trezor.js] [session] releasing');
-        return this._transport.release(this._sessionId);
-    }
-
-    // blocks the browser thread, be careful
-    releaseSync(): void {
-        if (!this.supportsSync) {
-            throw new Error('Blocking release is not supported');
+        if (this.debug) {
+            console.log('[trezor.js] [session] releasing');
         }
-        console.log('[trezor.js] [session] Releasing session synchronously');
-        return this._transport.releaseSync(this._sessionId);
+        return this._transport.release(this._sessionId);
     }
 
     initialize(): Promise<MessageResponse<trezor.Features>> {
@@ -178,11 +168,6 @@ export default class Session extends EventEmitter {
 
     clearSession(settings?: {}): Promise<MessageResponse<trezor.Success>> {
         return this.typedCall('ClearSession', 'Success', settings);
-    }
-
-    // blocks the browser thread, be careful
-    clearSessionSync(settings?: {}): MessageResponse<trezor.Success> {
-        return this._callSync('ClearSession', settings);
     }
 
     changePin(remove: ?boolean): Promise<MessageResponse<trezor.Success>> {
@@ -315,23 +300,18 @@ export default class Session extends EventEmitter {
         return this.callHelper.typedCall(type, resType, msg);
     }
 
-    // sends a blocking message to an opened device. be careful, the whole
-    // tab thread gets blocked and does not respond. also, we don't do any
-    // timeouts here.
-    _callSync(type: string, msg: Object = {}): DefaultMessageResponse {
-        return this.callHelper.callSync(type, msg);
-    }
-
     verifyAddress(path: Array<number>, address: string, coin: string | trezor.CoinType): Promise<boolean> {
         return this.getAddress(path, coin, true).then((res) => {
             const verified = res.message.address === address;
 
             if (!verified) {
-                console.warn('[trezor.js] [session] Address verification failed', {
-                    path: path,
-                    jsAddress: address,
-                    trezorAddress: res.message.address,
-                });
+                if (this.debug) {
+                    console.warn('[trezor.js] [session] Address verification failed', {
+                        path: path,
+                        jsAddress: address,
+                        trezorAddress: res.message.address,
+                    });
+                }
             }
 
             return verified;

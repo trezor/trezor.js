@@ -3,19 +3,29 @@
 
 import {EventEmitter} from './events';
 import {Event1, Event2} from './flow-events';
-import {initTransport} from './transport';
 import DescriptorStream from './descriptor-stream';
 import Device from './device';
 import UnacquiredDevice from './unacquired-device';
 
 import type {DeviceDescriptorDiff} from './descriptor-stream';
+
 import type {
-    Transport,
-    DeviceDescriptor,
-} from './transport';
+  Transport,
+  TrezorDeviceInfoWithSession as DeviceDescriptor,
+} from 'trezor-link';
+
+import type LowlevelTransport from 'trezor-link/lib/lowlevel';
+import type NodeHidPlugin from 'trezor-link/lib/lowlevel/node-hid';
+
+import BridgeTransport from 'trezor-link/lib/bridge';
+import FallbackTransport from 'trezor-link/lib/fallback';
+
+const CONFIG_URL = 'https://wallet.mytrezor.com/data/config_signed.bin';
 
 export type DeviceListOptions = {
+    debug?: boolean;
     transport?: Transport;
+    nodeTransport?: Transport;
     configUrl?: string;
     config?: string;
     bridgeVersionUrl?: string;
@@ -39,6 +49,26 @@ const WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 //
 export default class DeviceList extends EventEmitter {
 
+    // will be set if started by node.js
+    static _LowlevelTransport: ?Class<LowlevelTransport> = null;
+    static _NodeHidPlugin: ?Class<NodeHidPlugin> = null;
+
+    // slight hack to make Flow happy, but to allow Node to set its own fetch
+    // Request, RequestOptions and Response are built-in types of Flow for fetch API
+    static _fetch: (input: string | Request, init?: RequestOptions) => Promise<Response> =
+        typeof window === 'undefined'
+        ? () => Promise.reject()
+        : window.fetch;
+
+    static _isNode: boolean = false;
+
+    static _setNode(LowlevelTransport: Class<LowlevelTransport>, NodeHidPlugin: Class<NodeHidPlugin>, fetch: any) {
+        DeviceList._isNode = true;
+        DeviceList._LowlevelTransport = LowlevelTransport;
+        DeviceList._NodeHidPlugin = NodeHidPlugin;
+        DeviceList._fetch = fetch;
+    }
+
     options: DeviceListOptions;
     transport: ?Transport;
     transportLoading: boolean = true;
@@ -48,7 +78,7 @@ export default class DeviceList extends EventEmitter {
 
     creatingDevices: {[k: string]: boolean} = {};
 
-    sessions: {[path: string]: ?(string|number)} = {};
+    sessions: {[path: string]: ?string} = {};
 
     errorEvent: Event1<Error> = new Event1('error', this);
     transportEvent: Event1<Transport> = new Event1('transport', this);
@@ -91,19 +121,74 @@ export default class DeviceList extends EventEmitter {
         return objectValues(this.unacquiredDevices);
     }
 
-    _initTransport() {
-        if (this.options.transport) {
-            this.transportEvent.emit(this.options.transport);
+    _createTransport(): Transport {
+        if (DeviceList._isNode) {
+            const bridge = new BridgeTransport(undefined, undefined, DeviceList._fetch);
+
+            const NodeHidPlugin = DeviceList._NodeHidPlugin;
+            const LowlevelTransport = DeviceList._LowlevelTransport;
+
+            if (NodeHidPlugin == null || LowlevelTransport == null) {
+              throw new Error('No transport.');
+          }
+
+            return new FallbackTransport([bridge, new LowlevelTransport(new NodeHidPlugin())]);
         } else {
-            initTransport(this.options)
-                .then(transport => {
-                    this.transportEvent.emit(transport);
-                    return;
-                })
-                .catch(error => {
-                    this.errorEvent.emit(error);
-                });
+            const bridge = new BridgeTransport(undefined, undefined, DeviceList._fetch);
+
+            const ExtensionTransport = require('trezor-link/lib/extension');
+          // $FlowIssue ignore default export
+            return new FallbackTransport([new ExtensionTransport(), bridge]);
         }
+    }
+
+    transportType(): string {
+        return 'bridge';
+    }
+
+    transportVersion(): string {
+        if (this.transport == null) {
+            return '';
+        }
+        return this.transport.version;
+    }
+
+    transportOutdated(): boolean {
+        if (this.transport == null) {
+            return false;
+        }
+        if (this.transport.isOutdated) {
+            return true;
+        }
+        return false;
+    }
+
+    _configTransport(transport: Transport): Promise<any> {
+        if (this.options.config != null) {
+            return transport.configure(this.options.config);
+        } else {
+            const configUrl: string = this.options.configUrl == null ? CONFIG_URL : this.options.configUrl;
+            const fetch = DeviceList._fetch;
+            return fetch(configUrl).then(response => {
+                if (!response.ok) {
+                    throw new Error('Wrong config response.');
+                }
+                return response.text();
+            }).then(config => {
+                return transport.configure(config);
+            });
+        }
+    }
+
+    _initTransport() {
+        const transport = this.options.transport ? this.options.transport : this._createTransport();
+        transport.init(this.options.debug).then(() => {
+            this._configTransport(transport).then(() => {
+                this.transportEvent.emit(transport);
+            });
+        }, error => {
+            this.errorEvent.emit(error);
+        });
     }
 
     _createAndSaveDevice(
@@ -170,15 +255,15 @@ export default class DeviceList extends EventEmitter {
         return res;
     }
 
-    getSession(path: (string|number)): ?(string|number) {
-        return this.sessions[path.toString()];
+    getSession(path: string): ?string {
+        return this.sessions[path];
     }
 
-    setHard(path: (string|number), session: ?(string | number)) {
+    setHard(path: string, session: ?string) {
         if (this.stream != null) {
             this.stream.setHard(path, session);
         }
-        this.sessions[path.toString()] = session;
+        this.sessions[path] = session;
     }
 
     _initStream(transport: Transport) {

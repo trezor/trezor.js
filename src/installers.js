@@ -1,8 +1,16 @@
 /* @flow */
 'use strict';
-import request from './http';
 
-const DATA_DOMAIN = 'https://mytrezor.s3.amazonaws.com';
+// slight hack to make Flow happy, but to allow Node to set its own fetch
+// Request, RequestOptions and Response are built-in types of Flow for fetch API
+let _fetch: (input: string | Request, init?: RequestOptions) => Promise<Response> =
+  typeof window === 'undefined'
+  ? () => Promise.reject()
+  : window.fetch;
+
+export function setFetch(fetch: any) {
+    _fetch = fetch;
+}
 
 type ProtoInstallerShort = {
     shortUrl: string;
@@ -39,6 +47,7 @@ function fillInstallerUrl(installer: ProtoInstallerShort, domain: string): Proto
     };
 }
 
+const DATA_DOMAIN = 'https://mytrezor.s3.amazonaws.com';
 const BRIDGE_VERSION_URL: string = DATA_DOMAIN + '/bridge/latest.txt';
 
 const BRIDGE_INSTALLERS: Array<ProtoInstallerShort> = [{
@@ -103,27 +112,21 @@ type VersionOptions = {
     bridgeUrl?: string;
 }
 
-// Note: this blocks because request blocks
-export function latestVersion(options: ?VersionOptions): string {
+export function latestVersion(options: ?VersionOptions): Promise<string> {
     const o: VersionOptions = options || {};
     const bridgeUrl: string = o.bridgeUrl || BRIDGE_VERSION_URL;
-    const version_: mixed = request.sync(bridgeUrl);
-    if (typeof version_ !== 'string') {
-        throw new Error('Wrong version load result.');
-    }
-    const version: string = version_.trim();
-    return version;
-}
-
-export function latestVersionAsync(options: ?VersionOptions): Promise<string> {
-    const o: VersionOptions = options || {};
-    const bridgeUrl: string = o.bridgeUrl || BRIDGE_VERSION_URL;
-    return request(bridgeUrl).then(version_ => {
-        if (typeof version_ !== 'string') {
-            throw new Error('Wrong version load result.');
-        }
-        return version_.trim();
-    });
+    return _fetch(bridgeUrl)
+      .then(response => {
+          return response.ok
+            ? response.text()
+            : response.text().then((text) => Promise.reject(text));
+      })
+      .then(version_ => {
+          if (typeof version_ !== 'string') {
+              throw new Error('Wrong version load result.');
+          }
+          return version_.trim();
+      });
 }
 
 type BridgeOptions = {
@@ -135,27 +138,26 @@ type BridgeOptions = {
 
 // Returns a list of bridge installers, with download URLs and a mark on
 // bridge preferred for the user's platform.
-export function installers(options: ?BridgeOptions): Array<BridgeInstaller> {
+export function installers(options: ?BridgeOptions): Promise<Array<BridgeInstaller>> {
     const o: BridgeOptions = options || {};
-    const version: string = o.version || latestVersion(options);
-    const platform: string = o.platform || preferredPlatform();
-    const domain: string = o.domain || DATA_DOMAIN;
+    const version: Promise<string> = Promise.resolve(o.version || latestVersion(options));
+    return version.then(version => {
+        const platform: string = o.platform || preferredPlatform();
+        const domain: string = o.domain || DATA_DOMAIN;
 
-    return BRIDGE_INSTALLERS
-        .map(i => fillInstallerUrl(i, domain))
-        .map(function (bridge: ProtoInstaller): BridgeInstaller {
-            return {
-                version: version,
-                url: bridge.url.replace(/%version%/g, version),
-                label: bridge.label,
-                platform: bridge.platform,
-                preferred: isPreferred(bridge.platform, platform),
-            };
-        });
+        return BRIDGE_INSTALLERS
+            .map(i => fillInstallerUrl(i, domain))
+            .map(function (bridge: ProtoInstaller): BridgeInstaller {
+                return {
+                    version: version,
+                    url: bridge.url.replace(/%version%/g, version),
+                    label: bridge.label,
+                    platform: bridge.platform,
+                    preferred: isPreferred(bridge.platform, platform),
+                };
+            });
+    });
 }
-
-// legacy API :-(
-installers.latestVersion = latestVersion;
 
 function isPreferred(installer: string | Array<string>, platform: string): boolean {
     if (typeof installer === 'string') { // single platform

@@ -5,11 +5,11 @@
 //require('babel-polyfill');
 
 // in case of just including trezor.js
- var trezor = window.trezor;
+var trezor = window.trezor;
 
 // DeviceList encapsulates transports, sessions, device enumeration and other
 // low-level things, and provides easy-to-use event interface.
-var list = new trezor.DeviceList();
+var list = new trezor.DeviceList({debug: true});
 
 list.on('connect', function (device) {
     console.log('Connected a device:', device);
@@ -26,24 +26,36 @@ list.on('connect', function (device) {
     });
 
     // You generally want to filter out devices connected in bootloader mode:
-    //if (device.isBootloader()) {
-    //    throw new Error('Device is in bootloader mode, re-connected it');
-    //}
+    if (device.isBootloader()) {
+       throw new Error('Device is in bootloader mode, re-connected it');
+    }
 
     var hardeningConstant = 0x80000000;
 
-    // Ask the device to show first address of first account on display and return it
+    // low level API
     device.waitForSessionAndRun(function (session) {
-        return session.getAddress([
-            (44 | hardeningConstant) >>> 0,
-            (0 | hardeningConstant) >>> 0,
-            (0 | hardeningConstant) >>> 0,
-            0,
-            0
-        ], 'bitcoin', true)
-    })
-    .then(function (result) {
-        console.log('Address:', result.message.address);
+        console.log("I will call now.");
+
+        return session.typedCall("GetEntropy", "Entropy", {size: 10}).then(entropy => {
+            console.log("I have called now.");
+            console.log("Random hex-string is " + entropy.message.entropy);
+        });
+    }).then(function() {
+
+        // high level API
+        // Ask the device to show first address of first account on display and return it
+        device.waitForSessionAndRun(function (session) {
+            return session.getAddress([
+                (44 | hardeningConstant) >>> 0,
+                (0 | hardeningConstant) >>> 0,
+                (0 | hardeningConstant) >>> 0,
+                0,
+                0
+            ], 'bitcoin', true)
+        })
+        .then(function (result) {
+            console.log('Address:', result.message.address);
+        })
     })
     .catch(function (error) {
         // Errors can happen easily, i.e. when device is disconnected or request rejected

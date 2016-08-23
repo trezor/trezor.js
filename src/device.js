@@ -10,10 +10,7 @@ import {lock} from './utils/connectionLock';
 
 import type DeviceList from './device-list';
 import type {Features} from './trezortypes';
-import type {
-    Transport,
-    DeviceDescriptor,
-} from './transport';
+import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
 
 // a slight hack
 // this error string is hard-coded
@@ -147,12 +144,13 @@ export default class Device extends EventEmitter {
         deviceList: DeviceList,
         onAcquire?: ?((session: Session) => void)
     ): Promise<Session> {
-        return lock(() => transport.acquire(descriptor, true)).then(result => {
-            if (result.session == null) {
-                throw new Error('Session is null after acquire.');
-            }
-            deviceList.setHard(descriptor.path, result.session);
-            const session = new Session(transport, result.session, descriptor);
+        return lock(() => transport.acquire({
+            path: descriptor.path,
+            previous: descriptor.session,
+            checkPrevious: true,
+        })).then(result => {
+            deviceList.setHard(descriptor.path, result);
+            const session = new Session(transport, result, descriptor, !!deviceList.options.debug);
             if (onAcquire != null) {
                 onAcquire(session);
             }
@@ -199,7 +197,7 @@ export default class Device extends EventEmitter {
             return Promise.reject(new Error('Combination of aggressive and waiting doesn\'t make sense.'));
         }
 
-        let waitingPromise: Promise<?(number|string)> = Promise.resolve(currentSession);
+        let waitingPromise: Promise<?string> = Promise.resolve(currentSession);
         if (waiting && currentSession != null) {
             waitingPromise = this._waitForNullSession();
         }
@@ -213,7 +211,7 @@ export default class Device extends EventEmitter {
             return Promise.resolve();
         };
 
-        return waitingPromise.then((resolvedSession: ?(number|string)) => {
+        return waitingPromise.then((resolvedSession: ?string) => {
             const descriptor = { ...this.originalDescriptor, session: resolvedSession };
 
             // This is a bit overengineered, but I am not sure how to do it otherwise
@@ -542,18 +540,11 @@ export default class Device extends EventEmitter {
     onbeforeunload() {
         const currentSession = this.currentSessionObject;
         if (currentSession != null) {
-            if (currentSession.supportsSync) {
-                if (this.clearSession) {
-                    currentSession.clearSessionSync();
-                }
-                currentSession.releaseSync();
-            } else {
-                // cannot run .then() in browser; so let's just fire and hope for the best
-                if (this.clearSession) {
-                    currentSession.clearSession();
-                }
-                currentSession.release();
+            // cannot run .then() in browser; so let's just fire and hope for the best
+            if (this.clearSession) {
+                currentSession.clearSession();
             }
+            currentSession.release();
         }
     }
 }

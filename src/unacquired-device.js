@@ -5,7 +5,7 @@ import Device from './device';
 import {EventEmitter} from './events';
 import {Event0, Event1} from './flow-events';
 
-import type {Transport, DeviceDescriptor} from './transport';
+import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
 import type DeviceList from './device-list';
 
 export default class UnacquiredDevice extends EventEmitter {

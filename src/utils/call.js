@@ -4,7 +4,7 @@
 import randombytes from 'randombytes';
 
 import type {DefaultMessageResponse} from '../session';
-import type {Transport} from '../transport';
+import type {Transport} from 'trezor-link';
 import type Session from '../session';
 
 function assertType(res: DefaultMessageResponse, resType: string) {
@@ -44,19 +44,16 @@ function filterForLog(type: string, msg: Object): Object {
 
 export class CallHelper {
     transport: Transport;
-    sessionId: number|string;
-    supportsSync: boolean;
+    sessionId: string;
     session: Session;
 
     constructor(
         transport: Transport,
-        sessionId: number | string,
-        supportsSync: boolean,
+        sessionId: string,
         session: Session
     ) {
         this.transport = transport;
         this.sessionId = sessionId;
-        this.supportsSync = supportsSync;
         this.session = session;
     }
 
@@ -64,49 +61,29 @@ export class CallHelper {
     call(type: string, msg: Object = {}): Promise<DefaultMessageResponse> {
         const logMessage: Object = filterForLog(type, msg);
 
-        console.log('[trezor.js] [call] Sending', type, logMessage);
+        if (this.session.debug) {
+            console.log('[trezor.js] [call] Sending', type, logMessage);
+        }
         this.session.sendEvent.emit(type, msg);
 
         return this.transport.call(this.sessionId, type, msg).then(
             (res: DefaultMessageResponse) => {
                 const logMessage = filterForLog(res.type, res.message);
 
-                console.log('[trezor.js] [call] Received', res.type, logMessage);
+                if (this.session.debug) {
+                    console.log('[trezor.js] [call] Received', res.type, logMessage);
+                }
                 this.session.receiveEvent.emit(res.type, res.message);
                 return res;
             },
             err => {
-                console.log('[trezor.js] [call] Received error', err);
+                if (this.session.debug) {
+                    console.log('[trezor.js] [call] Received error', err);
+                }
                 this.session.errorEvent.emit(err);
                 throw err;
             }
         );
-    }
-
-    callSync(type: string, msg: Object = {}): DefaultMessageResponse {
-        if (!this.supportsSync) {
-            throw new Error('Blocking calls are not supported');
-        }
-
-        let logMessage = filterForLog(type, msg);
-        console.log('[trezor.js] [call] Sending sync', type, logMessage);
-
-        this.session.sendEvent.emit(type, msg);
-
-        try {
-            const res = this.transport.callSync(this.sessionId, type, msg);
-
-            logMessage = filterForLog(res.type, res.message);
-            console.log('[trezor.js] [call] Received sync', res.type, logMessage);
-
-            this.session.receiveEvent.emit(res.type, res.message);
-
-            return res;
-        } catch (err) {
-            console.log('[trezor.js] [call] Received error sync', err);
-            this.session.errorEvent.emit(err);
-            throw err;
-        }
     }
 
     typedCall(type: string, resType: string, msg: Object = {}): Promise<DefaultMessageResponse> {
@@ -185,7 +162,9 @@ export class CallHelper {
                     resolve(pin);
                 }
             })) {
-                console.warn('[trezor.js] [call] PIN callback not configured, cancelling request');
+                if (this.session.debug) {
+                    console.warn('[trezor.js] [call] PIN callback not configured, cancelling request');
+                }
                 reject(new Error('PIN callback not configured'));
             }
         });
@@ -200,7 +179,9 @@ export class CallHelper {
                     resolve(passphrase.normalize('NFKD'));
                 }
             })) {
-                console.warn('[trezor.js] [call] Passphrase callback not configured, cancelling request');
+                if (this.session.debug) {
+                    console.warn('[trezor.js] [call] Passphrase callback not configured, cancelling request');
+                }
                 reject(new Error('Passphrase callback not configured'));
             }
         });
@@ -215,7 +196,9 @@ export class CallHelper {
                     resolve(word.toLocaleLowerCase());
                 }
             })) {
-                console.warn('[trezor.js] [call] Word callback not configured, cancelling request');
+                if (this.session.debug) {
+                    console.warn('[trezor.js] [call] Word callback not configured, cancelling request');
+                }
                 reject(new Error('Word callback not configured'));
             }
         });
