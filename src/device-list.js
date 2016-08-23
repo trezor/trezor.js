@@ -129,8 +129,8 @@ export default class DeviceList extends EventEmitter {
             const LowlevelTransport = DeviceList._LowlevelTransport;
 
             if (NodeHidPlugin == null || LowlevelTransport == null) {
-              throw new Error('No transport.');
-          }
+                throw new Error('No transport.');
+            }
 
             return new FallbackTransport([bridge, new LowlevelTransport(new NodeHidPlugin())]);
         } else {
