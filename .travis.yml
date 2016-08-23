@@ -8,6 +8,5 @@ before_script:
   - npm install -g eslint@2.2.0 eslint-plugin-flow-vars babel-eslint eslint-plugin-standard eslint-plugin-promise flow-bin
 
 script:
-  - npm build
-  - eslint lib/
-  - cd lib && flow check
+  - make check
+  - make build
