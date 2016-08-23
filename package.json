@@ -49,8 +49,9 @@
     ]
   },
   "scripts": {
-    "build": "browserify lib/index.js --s trezor -o dist/trezor.js",
-    "deploy": "bin/deploy.sh"
+    "preversion": "make npm_preversion",
+    "version": "make npm_version",
+    "postversion": "make npm_postversion"
   },
   "devDependencies": {
     "babel-cli": "^6.11.4",
