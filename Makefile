@@ -26,7 +26,7 @@ npm_preversion: check
 
 npm_version: build
 	git add -A lib
-	git commit -m 'Build'
+	git diff-index --quiet HEAD || git commit -m 'Build'
 
 npm_postversion:
 	git push
