@@ -2,7 +2,8 @@
 
 // avoids a bug in flowtype: https://github.com/facebook/flow/issues/545
 
-import {EventEmitter as EventEmitterOut} from 'events';
+const events = require('events');
+const EventEmitterOut = events.EventEmitter;
 
 export class EventEmitter extends EventEmitterOut {
 }

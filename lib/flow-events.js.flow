@@ -4,7 +4,8 @@
 // see: https://github.com/runn1ng/flow-events
 'use strict';
 
-import {EventEmitter} from 'events';
+const events = require('events');
+const EventEmitter = events.EventEmitter;
 
 export class Event0 {
     type: string;
