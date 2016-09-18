@@ -35,18 +35,37 @@ function input2trezor(input: InputInfo): trezor.TransactionInput {
     };
 }
 
+function _flow_makeArray(a: mixed): Array<number> {
+    if (!(Array.isArray(a))) {
+        throw new Error('Both address and path of an output cannot be null.');
+    }
+    const res: Array<number> = [];
+    a.forEach(k => {
+        if (typeof k === 'number') {
+            res.push(k);
+        }
+    });
+    return res;
+}
+
 function output2trezor(output: OutputInfo, network: bitcoin.Network): trezor.TransactionOutput {
     if (output.address == null) {
-        if (output.path == null) {
+        if (!output.path) {
             throw new Error('Both address and path of an output cannot be null.');
         }
+
+        const pathArr: Array<number> = _flow_makeArray(output.path);
+
         return {
-            address_n: output.path,
+            address_n: pathArr,
             amount: output.value,
             script_type: 'PAYTOADDRESS',
         };
     }
     const address = output.address;
+    if (typeof address !== 'string') {
+        throw new Error('Wrong type.');
+    }
     const scriptType = getAddressScriptType(address, network);
 
     return {
@@ -81,6 +100,17 @@ function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
             };
         }),
     };
+}
+
+function _flow_getPathOrAddress(output: OutputInfo): string | Array<number> {
+    if (output.path) {
+        const path = output.path;
+        return _flow_makeArray(path);
+    }
+    if (typeof output.address === 'string') {
+        return output.address;
+    }
+    throw new Error('Wrong output type.');
 }
 
 function deriveOutputScript(
@@ -131,7 +161,7 @@ function verifyBjsTx(
             throw new Error('Both path and address cannot be null.');
         }
 
-        const addressOrPath = output.path || output.address;
+        const addressOrPath = _flow_getPathOrAddress(output);
         const scriptA = deriveOutputScript(addressOrPath, nodes, network);
         const scriptB = resTx.outs[i].script;
         if (scriptA.compare(scriptB) !== 0) {
