@@ -129,6 +129,8 @@ The config should be available either on [github](https://github.com/trezor/webw
 
 See [multitasking](#multitasking) for info on acquiring.
 
+If you don't want to deal with acquired/unacquired/... devices, and you "just" want to use the first TREZOR, you can use the function `deviceList.acquireFirstDevice`, which will take first device currently connected, acquire it and *never* release it, and returns the Device and the Session objects. Other applications will then have to steal it to use it.
+
 ### UnacquiredDevice
 This class represents a device that cannot be acquired; see [multitasking](#multitasking).
 
