@@ -7,6 +7,8 @@ import DescriptorStream from './descriptor-stream';
 import Device from './device';
 import UnacquiredDevice from './unacquired-device';
 
+import type Session from './session';
+
 import type {DeviceDescriptorDiff} from './descriptor-stream';
 
 import type {
@@ -119,6 +121,10 @@ export default class DeviceList extends EventEmitter {
 
     unacquiredAsArray(): Array<UnacquiredDevice> {
         return objectValues(this.unacquiredDevices);
+    }
+
+    hasDeviceOrUnacquiredDevice() {
+        return ((this.asArray().length + this.unacquiredAsArray().length) > 0);
     }
 
     _createTransport(): Transport {
@@ -396,6 +402,37 @@ export default class DeviceList extends EventEmitter {
         } else {
             this.disconnectEvent.on(listener);
         }
+    }
+
+    // If there is at least one physical device connected, returns it, steals it if necessary
+    stealFirstDevice(): Promise<Device> {
+        const devices = this.asArray();
+        if (devices.length > 0) {
+            return Promise.resolve(devices[0]);
+        }
+        const unacquiredDevices = this.unacquiredAsArray();
+        if (unacquiredDevices.length > 0) {
+            return unacquiredDevices[0].steal();
+        }
+        return Promise.reject(new Error('No device connected'));
+    }
+
+    // steals the first devices, acquires it and *never* releases it until the window is closed
+    acquireFirstDevice(): Promise<{device: Device, session: Session}> {
+        return new Promise((resolve, reject) => {
+            this.stealFirstDevice().then(
+                (device) => {
+                    device.run(session => {
+                        resolve({device, session});
+                        // this "inside" promise never resolves or rejects
+                        return new Promise((resolve, reject) => {});
+                    });
+                },
+                (err) => {
+                    reject(err);
+                }
+            );
+        });
     }
 
     onbeforeunload(clearSession?: ?boolean) {
