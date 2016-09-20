@@ -547,6 +547,9 @@ export default class Device extends EventEmitter {
 
 function forwardError(source: Event1<Error>, target: Event1<Error>) {
     source.on((arg: Error) => {
+        if (target.listenerCount() === 0) {
+            return;
+        }
         target.emit(arg);
     });
 }
