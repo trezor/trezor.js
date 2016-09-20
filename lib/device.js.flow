@@ -336,13 +336,7 @@ export default class Device extends EventEmitter {
                 arg(null, p);
                 return;
             }
-            if (this.passphraseEvent.listenerCount() === 0) {
-                if (typeof arg === 'function') {
-                    console.warn('[trezor.js] [device] Passphrase callback not configured, cancelling request');
-                    arg(new Error('No passphrase callback'));
-                    return;
-                }
-            }
+
             const argAndRemember = (e: ?Error, passphrase: ?string) => {
                 if (this.rememberPlaintextPassphrase) {
                     this.rememberedPlaintextPasshprase = passphrase;
@@ -553,9 +547,6 @@ export default class Device extends EventEmitter {
 
 function forwardError(source: Event1<Error>, target: Event1<Error>) {
     source.on((arg: Error) => {
-        if (target.listenerCount() === 0) {
-            return;
-        }
         target.emit(arg);
     });
 }
@@ -565,11 +556,6 @@ function forwardCallback1(
     target: Event1<(error: ?Error, result?: ?string) => void>
 ) {
     source.on((arg: (error: ?Error, result?: ?string) => void) => {
-        if (target.listenerCount() === 0) {
-            console.warn('[trezor.js] [device] ' + target.type + 'callback not configured, cancelling request');
-            arg(new Error('No ' + target.type + ' callback'));
-            return;
-        }
         target.emit(arg);
     });
 }
@@ -579,11 +565,6 @@ function forwardCallback2<T1>(
     target: Event2<T1, (error: ?Error, result?: ?string) => void>
 ) {
     source.on((arg: T1, arg2: (error: ?Error, result?: ?string) => void) => {
-        if (target.listenerCount() === 0) {
-            console.warn('[trezor.js] [device] ' + target.type + 'callback not configured, cancelling request');
-            arg2(new Error('No ' + target.type + ' callback'));
-            return;
-        }
         target.emit(arg, arg2);
     });
 }
