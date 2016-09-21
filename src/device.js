@@ -191,7 +191,7 @@ export default class Device extends EventEmitter {
 
         const currentSession = this.deviceList.getSession(this.originalDescriptor.path);
         if ((!aggressive) && (!waiting) && (currentSession != null)) {
-            return Promise.reject(new Error('Not stealing when not aggressive'));
+            return Promise.reject(new Error('Unable to grab device when not aggressive'));
         }
         if (aggressive && waiting) {
             return Promise.reject(new Error('Combination of aggressive and waiting doesn\'t make sense.'));

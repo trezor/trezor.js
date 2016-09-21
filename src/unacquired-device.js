@@ -63,7 +63,7 @@ export default class UnacquiredDevice extends EventEmitter {
         const result = new Promise((resolve, reject) => {
             this._watchConnectDisconnect(
                 device => resolve(device),
-                () => reject(new Error('Device disconnected before stealing'))
+                () => reject(new Error('Device disconnected before grabbing'))
             );
         });
         const currentSession = this.deviceList.getSession(this.originalDescriptor.path);
