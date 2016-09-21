@@ -29,6 +29,13 @@ function filterForLog(type: string, msg: Object): Object {
         CipheredKeyValue: {
             value: '(redacted...)',
         },
+        GetPublicKey: {
+            address_n: '(redacted...)',
+        },
+        PublicKey: {
+            node: '(redacted...)',
+            xpub: '(redacted...)',
+        },
         DecryptedMessage: {
             message: '(redacted...)',
             address: '(redacted...)',

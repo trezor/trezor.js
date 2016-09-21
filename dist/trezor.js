@@ -822,7 +822,7 @@ var Device = function (_events$EventEmitter) {
 
             var currentSession = this.deviceList.getSession(this.originalDescriptor.path);
             if (!aggressive && !waiting && currentSession != null) {
-                return Promise.reject(new Error('Not stealing when not aggressive'));
+                return Promise.reject(new Error('Unable to grab device when not aggressive'));
             }
             if (aggressive && waiting) {
                 return Promise.reject(new Error('Combination of aggressive and waiting doesn\'t make sense.'));
@@ -2240,7 +2240,7 @@ var UnacquiredDevice = function (_events$EventEmitter) {
                 _this3._watchConnectDisconnect(function (device) {
                     return resolve(device);
                 }, function () {
-                    return reject(new Error('Device disconnected before stealing'));
+                    return reject(new Error('Device disconnected before grabbing'));
                 });
             });
             var currentSession = this.deviceList.getSession(this.originalDescriptor.path);
@@ -2332,6 +2332,13 @@ function filterForLog(type, msg) {
         },
         CipheredKeyValue: {
             value: '(redacted...)'
+        },
+        GetPublicKey: {
+            address_n: '(redacted...)'
+        },
+        PublicKey: {
+            node: '(redacted...)',
+            xpub: '(redacted...)'
         },
         DecryptedMessage: {
             message: '(redacted...)',
