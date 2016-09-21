@@ -2,6 +2,10 @@ check: node_modules
 	flow check src/
 	cd src/; eslint .
 
+git-equality:
+	git fetch origin
+	[ $$( git rev-parse master ) = $$( git rev-parse origin/master ) ]
+
 node_modules:
 	npm install
 
@@ -22,7 +26,7 @@ build_browserify: clean node_modules
 	`npm bin`/browserify lib/index.js --s trezor > dist/trezor.js
 	cat dist/trezor.js | `npm bin`/uglifyjs -c -m > dist/trezor.min.js
 
-npm_preversion: check
+npm_preversion: git-equality check
 
 npm_version: build
 	git add -A lib
