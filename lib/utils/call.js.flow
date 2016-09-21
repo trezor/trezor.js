@@ -108,7 +108,10 @@ export class CallHelper {
 
     _filterCommonTypes(res: DefaultMessageResponse): Promise<DefaultMessageResponse> {
         if (res.type === 'Failure') {
-            return Promise.reject(new Error(res.message.message));
+            const e = new Error(res.message.message);
+            // $FlowIssue extending errors in ES6 "correctly" is a PITA
+            e.code = res.message.code;
+            return Promise.reject(e);
         }
 
         if (res.type === 'ButtonRequest') {
