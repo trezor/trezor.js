@@ -195,12 +195,14 @@ export default class Session extends EventEmitter {
     verifyMessage(
         address: string,
         signature: string,
-        message: string
+        message: string,
+        coin: trezor.CoinType | string
     ): Promise<MessageResponse<trezor.Success>> {
         return this.typedCall('VerifyMessage', 'Success', {
             address: address,
             signature: signature,
             message: message,
+            coin_name: coinName(coin),
         });
     }
 
