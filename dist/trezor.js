@@ -341,10 +341,25 @@ var DeviceList = function (_events$EventEmitter) {
                 return new _fallback2.default([new ExtensionTransport(), _bridge3]);
             }
         }
+
+        // for mytrezor - returns "bridge" or "extension", or something else :)
+
     }, {
         key: 'transportType',
         value: function transportType() {
-            return 'bridge';
+            if (this.transport == null) {
+                return '';
+            }
+            if (this.transport instanceof _fallback2.default) {
+                if (this.transport.activeName === 'BridgeTransport') {
+                    return 'bridge';
+                }
+                if (this.transport.activeName === 'ExtensionTransport') {
+                    return 'extension';
+                }
+                return this.transport.activeName;
+            }
+            return this.transport.name;
         }
     }, {
         key: 'transportVersion',
