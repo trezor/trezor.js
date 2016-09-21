@@ -148,8 +148,21 @@ export default class DeviceList extends EventEmitter {
         }
     }
 
+    // for mytrezor - returns "bridge" or "extension", or something else :)
     transportType(): string {
-        return 'bridge';
+        if (this.transport == null) {
+            return '';
+        }
+        if (this.transport instanceof FallbackTransport) {
+            if (this.transport.activeName === 'BridgeTransport') {
+                return 'bridge';
+            }
+            if (this.transport.activeName === 'ExtensionTransport') {
+                return 'extension';
+            }
+            return this.transport.activeName;
+        }
+        return this.transport.name;
     }
 
     transportVersion(): string {
