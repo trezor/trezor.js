@@ -30,6 +30,7 @@ npm_preversion: git-equality check
 
 npm_version: build
 	git add -A lib
+	git add dist/trezor.js dist/trezor.min.js
 	git diff-index --quiet --cached HEAD || git commit -m 'Build'
 
 npm_postversion:
