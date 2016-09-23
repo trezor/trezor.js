@@ -234,9 +234,9 @@ export default class Session extends EventEmitter {
         address_n: Array<number>,
         key: string,
         value: string | Buffer,
-        encrypt: ?boolean,
-        ask_on_encrypt: ?boolean,
-        ask_on_decrypt: ?boolean,
+        encrypt: boolean,
+        ask_on_encrypt: boolean,
+        ask_on_decrypt: boolean,
         iv: ?(string | Buffer) // in hexadecimal
     ): Promise<MessageResponse<{value: string}>> {
         const valueString = value.toString('hex');
