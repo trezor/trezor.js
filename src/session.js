@@ -257,9 +257,9 @@ export default class Session extends EventEmitter {
         address_n: Array<number>,
         key: string,
         value: string | Buffer,
-        encrypt: ?boolean,
-        ask_on_encrypt: ?boolean,
-        ask_on_decrypt: ?boolean,
+        encrypt: boolean,
+        ask_on_encrypt: boolean,
+        ask_on_decrypt: boolean,
         iv: ?(string | Buffer) // in hexadecimal
     ): Promise<Buffer> {
         return this.cipherKeyValue(address_n, key, value, encrypt, ask_on_encrypt, ask_on_decrypt, iv).then(r => {
