@@ -2622,6 +2622,20 @@ function pubNode2bjsNode(node, network) {
     return res;
 }
 
+// stupid hack, because trezor serializes all xpubs with bitcoin magic
+function convertXpub(original, network) {
+    if (network.bip32.public === 0x0488b21e) {
+        // it's bitcoin-like => return xpub
+        return original;
+    } else {
+        var node = bitcoin.HDNode.fromBase58(original); // use bitcoin magic
+
+        // "hard-fix" the new network into the HDNode keypair
+        node.keyPair.network = network;
+        return node.toBase58();
+    }
+}
+
 // converts from internal PublicKey format to bitcoin.js HDNode
 // network info is necessary. throws error on wrong xpub
 function pubKey2bjsNode(key, network) {
@@ -2629,7 +2643,7 @@ function pubKey2bjsNode(key, network) {
     var bjsNode = pubNode2bjsNode(keyNode, network);
 
     var bjsXpub = bjsNode.toBase58();
-    var keyXpub = key.message.xpub;
+    var keyXpub = convertXpub(key.message.xpub, network);
 
     if (bjsXpub !== keyXpub) {
         throw new Error('Invalid public key transmission detected - ' + 'invalid xpub check. ' + 'Key: ' + bjsXpub + ', ' + 'Received: ' + keyXpub);
