@@ -2861,8 +2861,8 @@ function getAddressScriptType(address, network) {
     throw new Error('Unknown address type.');
 }
 
-function signBjsTx(session, info, refTxs, nodes, coinName) {
-    var network = bitcoin.networks[coinName.toLowerCase()];
+function signBjsTx(session, info, refTxs, nodes, coinName, network_) {
+    var network = network_ == null ? bitcoin.networks[coinName.toLowerCase()] : network_;
     if (network == null) {
         return Promise.reject(new Error('No network ' + coinName));
     }
