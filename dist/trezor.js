@@ -2613,7 +2613,7 @@ function pubNode2bjsNode(node, network) {
         throw new Error('secp256k1 is null');
     }
     var Q = ecurve.Point.decodeFrom(curve, publicKey);
-    var res = new bitcoin.HDNode(new bitcoin.ECPair(null, Q, network), chainCode);
+    var res = new bitcoin.HDNode(new bitcoin.ECPair(null, Q, { network: network }), chainCode);
 
     res.depth = +node.depth;
     res.index = +node.child_num;

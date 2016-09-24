@@ -33,7 +33,7 @@ export function pubNode2bjsNode(
         throw new Error('secp256k1 is null');
     }
     const Q = ecurve.Point.decodeFrom(curve, publicKey);
-    const res = new bitcoin.HDNode(new bitcoin.ECPair(null, Q, network), chainCode);
+    const res = new bitcoin.HDNode(new bitcoin.ECPair(null, Q, {network: network}), chainCode);
 
     res.depth = +node.depth;
     res.index = +node.child_num;
