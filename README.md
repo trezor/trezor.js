@@ -245,7 +245,7 @@ Note that the lenght of the action is not tied to the actual device actions. You
 | changeLabel | label:&nbsp;string | Promise | Changes label. |
 | togglePassphrase | enable:&nbsp;boolean | Promise | Turns the passphrase on/off. |
 | changeHomescreen | picture: string (hex) | Promise | changes the homescreen. |
-| signBjsTx | info:&nbsp;TxInfo<br>refTx:&nbsp;Array&lt;Transaction&gt;<br>nodes:&nbsp;Array&lt;HDNode&gt;<br>coinName:&nbsp;string | Promise&lt;Transaction&gt; | Signs transaction after asking user on the device.<br>The name is `signBjsTx` for backwards compatibility, meaning "sign Bitcoin.js transaction", since it accepts and returns blockchain.js data structures.<br><br>The parameters are explained under this table. |
+| signBjsTx | info:&nbsp;TxInfo<br>refTx:&nbsp;Array&lt;Transaction&gt;<br>nodes:&nbsp;Array&lt;HDNode&gt;<br>coinName:&nbsp;string<br>network:&nbsp;bitcoin.Network | Promise&lt;Transaction&gt; | Signs transaction after asking user on the device.<br>The name is `signBjsTx` for backwards compatibility, meaning "sign Bitcoin.js transaction", since it accepts and returns blockchain.js data structures.<br><br>The parameters are explained under this table. |
 
 `Response<X>` is an object with type `{type: string, message: X}`.
 
@@ -273,6 +273,8 @@ refTxs are bitcoin.js transations, that are referenced in the inputs. You need t
 nodes is an array of Bitcoin.js HDNodes for addresses, with indexes being the index of the nodes. So, most often, `[externalChainHDNode, changeChainHDNode]`. 
 
 coinName is "bitcoin", "litecoin", "dash", ...
+
+network is network for Bitcoin.js. If it's not present, trezor.js tries to find it by coinName in bitcoin.js table.
 
 ### Multitasking
 

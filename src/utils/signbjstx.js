@@ -186,9 +186,10 @@ export function signBjsTx(
     info: TxInfo,
     refTxs: Array<bitcoin.Transaction>,
     nodes: Array<bitcoin.HDNode>,
-    coinName: string
+    coinName: string,
+    network_: ?bitcoin.Network
 ): Promise<bitcoin.Transaction> {
-    const network: bitcoin.Network = bitcoin.networks[coinName.toLowerCase()];
+    const network: bitcoin.Network = network_ == null ? bitcoin.networks[coinName.toLowerCase()] : network_;
     if (network == null) {
         return Promise.reject(new Error('No network ' + coinName));
     }
