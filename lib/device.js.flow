@@ -123,13 +123,20 @@ export default class Device extends EventEmitter {
         deviceList: DeviceList,
         onRelease?: ?((error: ?Error) => Promise<any>)
     ): Promise<void> {
-        const released = lock(() => session.release());
+        const released = lock(() =>
+            promiseFinally(
+                session.release(),
+                (res, error) => {
+                    if (error == null) {
+                        deviceList.setHard(originalDescriptor.path, null);
+                    }
+                    return Promise.resolve();
+                }
+            )
+        );
         return promiseFinally(
             released,
             (res, error) => {
-                if (error == null) {
-                    deviceList.setHard(originalDescriptor.path, null);
-                }
                 if (onRelease != null) {
                     return onRelease(error);
                 }
@@ -144,12 +151,16 @@ export default class Device extends EventEmitter {
         deviceList: DeviceList,
         onAcquire?: ?((session: Session) => void)
     ): Promise<Session> {
-        return lock(() => transport.acquire({
-            path: descriptor.path,
-            previous: descriptor.session,
-            checkPrevious: true,
-        })).then(result => {
-            deviceList.setHard(descriptor.path, result);
+        return lock(() =>
+            transport.acquire({
+                path: descriptor.path,
+                previous: descriptor.session,
+                checkPrevious: true,
+            }).then(res => {
+                deviceList.setHard(descriptor.path, res);
+                return res;
+            })
+        ).then(result => {
             const session = new Session(transport, result, descriptor, !!deviceList.options.debug);
             if (onAcquire != null) {
                 onAcquire(session);

@@ -1196,12 +1196,14 @@ var Device = function (_events$EventEmitter) {
         key: '_release',
         value: function _release(originalDescriptor, session, deviceList, onRelease) {
             var released = (0, _connectionLock.lock)(function () {
-                return session.release();
+                return promiseFinally(session.release(), function (res, error) {
+                    if (error == null) {
+                        deviceList.setHard(originalDescriptor.path, null);
+                    }
+                    return Promise.resolve();
+                });
             });
             return promiseFinally(released, function (res, error) {
-                if (error == null) {
-                    deviceList.setHard(originalDescriptor.path, null);
-                }
                 if (onRelease != null) {
                     return onRelease(error);
                 }
@@ -1216,9 +1218,11 @@ var Device = function (_events$EventEmitter) {
                     path: descriptor.path,
                     previous: descriptor.session,
                     checkPrevious: true
+                }).then(function (res) {
+                    deviceList.setHard(descriptor.path, res);
+                    return res;
                 });
             }).then(function (result) {
-                deviceList.setHard(descriptor.path, result);
                 var session = new _session2.default(transport, result, descriptor, !!deviceList.options.debug);
                 if (onAcquire != null) {
                     onAcquire(session);
