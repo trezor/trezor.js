@@ -1,27 +1,13 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.trezor = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];for (var key in source) {
-            if (Object.prototype.hasOwnProperty.call(source, key)) {
-                target[key] = source[key];
-            }
-        }
-    }return target;
-};
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _events = require('./events');
 
@@ -29,8 +15,14 @@ var _flowEvents = require('./flow-events');
 
 var _connectionLock = require('./utils/connectionLock');
 
-var DescriptorStream = function (_events$EventEmitter) {
-    _inherits(DescriptorStream, _events$EventEmitter);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var DescriptorStream = function (_EventEmitter) {
+    _inherits(DescriptorStream, _EventEmitter);
 
     function DescriptorStream(transport) {
         _classCallCheck(this, DescriptorStream);
@@ -47,6 +39,7 @@ var DescriptorStream = function (_events$EventEmitter) {
         _this.releasedEvent = new _flowEvents.Event1('released', _this);
         _this.changedSessionsEvent = new _flowEvents.Event1('changedSessions', _this);
         _this.updateEvent = new _flowEvents.Event1('update', _this);
+
         _this.transport = transport;
         return _this;
     }
@@ -181,21 +174,14 @@ var DescriptorStream = function (_events$EventEmitter) {
 
 exports.default = DescriptorStream;
 module.exports = exports['default'];
-
 },{"./events":4,"./flow-events":5,"./utils/connectionLock":12}],2:[function(require,module,exports){
 'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _events = require('./events');
 
@@ -213,17 +199,21 @@ var _unacquiredDevice = require('./unacquired-device');
 
 var _unacquiredDevice2 = _interopRequireDefault(_unacquiredDevice);
 
-var _bridge = require('trezor-link/lib/bridge');
+var _bridge2 = require('trezor-link/lib/bridge');
 
-var _bridge2 = _interopRequireDefault(_bridge);
+var _bridge3 = _interopRequireDefault(_bridge2);
 
 var _fallback = require('trezor-link/lib/fallback');
 
 var _fallback2 = _interopRequireDefault(_fallback);
 
-function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : { default: obj };
-}
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var CONFIG_URL = 'https://wallet.mytrezor.com/data/config_signed.bin';
 
@@ -241,8 +231,8 @@ var WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 //  stream: DescriptorStream
 //
 
-var DeviceList = function (_events$EventEmitter) {
-    _inherits(DeviceList, _events$EventEmitter);
+var DeviceList = function (_EventEmitter) {
+    _inherits(DeviceList, _EventEmitter);
 
     _createClass(DeviceList, null, [{
         key: '_setNode',
@@ -283,6 +273,8 @@ var DeviceList = function (_events$EventEmitter) {
         _this.disconnectEvent = new _flowEvents.Event1('disconnect', _this);
         _this.disconnectUnacquiredEvent = new _flowEvents.Event1('disconnectUnacquired', _this);
         _this.updateEvent = new _flowEvents.Event1('update', _this);
+
+
         _this.options = options || {};
 
         _this.transportEvent.on(function (transport) {
@@ -323,22 +315,22 @@ var DeviceList = function (_events$EventEmitter) {
         key: '_createTransport',
         value: function _createTransport() {
             if (DeviceList._isNode) {
-                var bridge = new _bridge2.default(undefined, undefined, DeviceList._fetch);
+                var bridge = new _bridge3.default(undefined, undefined, DeviceList._fetch);
 
-                var NodeHidPlugin = DeviceList._NodeHidPlugin;
-                var LowlevelTransport = DeviceList._LowlevelTransport;
+                var _NodeHidPlugin = DeviceList._NodeHidPlugin;
+                var _LowlevelTransport = DeviceList._LowlevelTransport;
 
-                if (NodeHidPlugin == null || LowlevelTransport == null) {
+                if (_NodeHidPlugin == null || _LowlevelTransport == null) {
                     throw new Error('No transport.');
                 }
 
-                return new _fallback2.default([bridge, new LowlevelTransport(new NodeHidPlugin())]);
+                return new _fallback2.default([bridge, new _LowlevelTransport(new _NodeHidPlugin())]);
             } else {
-                var _bridge3 = new _bridge2.default(undefined, undefined, DeviceList._fetch);
+                var _bridge = new _bridge3.default(undefined, undefined, DeviceList._fetch);
 
                 var ExtensionTransport = require('trezor-link/lib/extension');
                 // $FlowIssue ignore default export
-                return new _fallback2.default([new ExtensionTransport(), _bridge3]);
+                return new _fallback2.default([new ExtensionTransport(), _bridge]);
             }
         }
 
@@ -386,9 +378,9 @@ var DeviceList = function (_events$EventEmitter) {
             if (this.options.config != null) {
                 return transport.configure(this.options.config);
             } else {
-                var configUrl = this.options.configUrl == null ? CONFIG_URL : this.options.configUrl;
+                var _configUrl = this.options.configUrl == null ? CONFIG_URL : this.options.configUrl;
                 var fetch = DeviceList._fetch;
-                return fetch(configUrl).then(function (response) {
+                return fetch(_configUrl).then(function (response) {
                     if (!response.ok) {
                         throw new Error('Wrong config response.');
                     }
@@ -660,44 +652,31 @@ var DeviceList = function (_events$EventEmitter) {
     return DeviceList;
 }(_events.EventEmitter);
 
-exports.default = DeviceList;
 DeviceList._LowlevelTransport = null;
 DeviceList._NodeHidPlugin = null;
 DeviceList._fetch = typeof window === 'undefined' ? function () {
     return Promise.reject();
 } : window.fetch;
 DeviceList._isNode = false;
+exports.default = DeviceList;
+
+
 function objectValues(object) {
     return Object.keys(object).map(function (key) {
         return object[key];
     });
 }
 module.exports = exports['default'];
-
 },{"./descriptor-stream":1,"./device":3,"./events":4,"./flow-events":5,"./unacquired-device":10,"trezor-link/lib/bridge":91,"trezor-link/lib/extension":93,"trezor-link/lib/fallback":95}],3:[function(require,module,exports){
 'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];for (var key in source) {
-            if (Object.prototype.hasOwnProperty.call(source, key)) {
-                target[key] = source[key];
-            }
-        }
-    }return target;
-};
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _semverCompare = require('semver-compare');
 
@@ -713,17 +692,21 @@ var _session2 = _interopRequireDefault(_session);
 
 var _connectionLock = require('./utils/connectionLock');
 
-function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : { default: obj };
-}
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 // a slight hack
 // this error string is hard-coded
 // in both bridge and extension
 var WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 
-var Device = function (_events$EventEmitter) {
-    _inherits(Device, _events$EventEmitter);
+var Device = function (_EventEmitter) {
+    _inherits(Device, _EventEmitter);
 
     // in miliseconds
     function Device(transport, descriptor, features, deviceList) {
@@ -1019,26 +1002,26 @@ var Device = function (_events$EventEmitter) {
             var _this7 = this;
 
             return new Promise(function (resolve, reject) {
-                var _onDisconnect2 = function _onDisconnect() {};
+                var _onDisconnect = function onDisconnect() {};
                 var onUpdate = function onUpdate() {
                     var updatedSession = _this7.deviceList.getSession(_this7.originalDescriptor.path);
                     var device = _this7.deviceList.devices[_this7.originalDescriptor.path.toString()];
                     if (updatedSession == null && device != null) {
-                        _this7.deviceList.disconnectEvent.removeListener(_onDisconnect2);
+                        _this7.deviceList.disconnectEvent.removeListener(_onDisconnect);
                         _this7.deviceList.updateEvent.removeListener(onUpdate);
                         resolve(updatedSession);
                     }
                 };
-                _onDisconnect2 = function _onDisconnect(device) {
+                _onDisconnect = function onDisconnect(device) {
                     if (device === _this7) {
-                        _this7.deviceList.disconnectEvent.removeListener(_onDisconnect2);
+                        _this7.deviceList.disconnectEvent.removeListener(_onDisconnect);
                         _this7.deviceList.updateEvent.removeListener(onUpdate);
                         reject(new Error('Device disconnected'));
                     }
                 };
                 onUpdate();
                 _this7.deviceList.updateEvent.on(onUpdate);
-                _this7.deviceList.onDisconnect(_this7, _onDisconnect2);
+                _this7.deviceList.onDisconnect(_this7, _onDisconnect);
             });
         }
     }, {
@@ -1244,8 +1227,9 @@ var Device = function (_events$EventEmitter) {
     return Device;
 }(_events.EventEmitter);
 
-exports.default = Device; // Forwards events from source to target
+// Forwards events from source to target
 
+exports.default = Device;
 function forwardError(source, target) {
     source.on(function (arg) {
         if (target.listenerCount() === 0) {
@@ -1293,9 +1277,12 @@ function promiseFinally(p, fun) {
     });
 }
 module.exports = exports['default'];
-
 },{"./events":4,"./flow-events":5,"./session":8,"./utils/connectionLock":12,"semver-compare":79}],4:[function(require,module,exports){
 'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1303,16 +1290,12 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 // avoids a bug in flowtype: https://github.com/facebook/flow/issues/545
 
 var events = require('events');
 var EventEmitterOut = events.EventEmitter;
 
-var EventEmitter = function (_EventEmitterOut) {
+var EventEmitter = exports.EventEmitter = function (_EventEmitterOut) {
   _inherits(EventEmitter, _EventEmitterOut);
 
   function EventEmitter() {
@@ -1323,9 +1306,6 @@ var EventEmitter = function (_EventEmitterOut) {
 
   return EventEmitter;
 }(EventEmitterOut);
-
-exports.EventEmitter = EventEmitter;
-
 },{"events":59}],5:[function(require,module,exports){
 
 
@@ -1333,17 +1313,18 @@ exports.EventEmitter = EventEmitter;
 // see: https://github.com/runn1ng/flow-events
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
 var events = require('events');
 var EventEmitter = events.EventEmitter;
 
-var Event0 = function () {
+var Event0 = exports.Event0 = function () {
     function Event0(type, parent) {
         _classCallCheck(this, Event0);
 
@@ -1386,9 +1367,7 @@ var Event0 = function () {
     return Event0;
 }();
 
-exports.Event0 = Event0;
-
-var Event1 = function () {
+var Event1 = exports.Event1 = function () {
     function Event1(type, parent) {
         _classCallCheck(this, Event1);
 
@@ -1431,9 +1410,7 @@ var Event1 = function () {
     return Event1;
 }();
 
-exports.Event1 = Event1;
-
-var Event2 = function () {
+var Event2 = exports.Event2 = function () {
     function Event2(type, parent) {
         _classCallCheck(this, Event2);
 
@@ -1475,9 +1452,6 @@ var Event2 = function () {
 
     return Event2;
 }();
-
-exports.Event2 = Event2;
-
 },{"events":59}],6:[function(require,module,exports){
 'use strict';
 
@@ -1556,10 +1530,7 @@ require('whatwg-fetch');
 
 require('unorm');
 
-function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : { default: obj };
-}
-
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 },{"./descriptor-stream":1,"./device":3,"./device-list":2,"./installers":7,"./session":8,"./unacquired-device":10,"unorm":98,"whatwg-fetch":103}],7:[function(require,module,exports){
 'use strict';
 
@@ -1715,32 +1686,17 @@ function preferredPlatform() {
     // most likely windows, let's say 32 bit
     return 'win32';
 }
-
 },{}],8:[function(require,module,exports){
 (function (Buffer){
 'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];for (var key in source) {
-            if (Object.prototype.hasOwnProperty.call(source, key)) {
-                target[key] = source[key];
-            }
-        }
-    }return target;
-};
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 exports.coinName = coinName;
 exports.coinNetwork = coinNetwork;
@@ -1771,17 +1727,13 @@ var _trezortypes = require('./trezortypes');
 
 var trezor = _interopRequireWildcard(_trezortypes);
 
-function _interopRequireWildcard(obj) {
-    if (obj && obj.__esModule) {
-        return obj;
-    } else {
-        var newObj = {};if (obj != null) {
-            for (var key in obj) {
-                if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-            }
-        }newObj.default = obj;return newObj;
-    }
-}
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 //
 // Trezor device session handle. Acts as a event emitter.
@@ -1797,9 +1749,8 @@ function _interopRequireWildcard(obj) {
 //  word: callback(error, word)
 //  passphrase: callback(error, passphrase)
 //
-
-var Session = function (_events$EventEmitter) {
-    _inherits(Session, _events$EventEmitter);
+var Session = function (_EventEmitter) {
+    _inherits(Session, _EventEmitter);
 
     function Session(transport, sessionId, descriptor, debug) {
         _classCallCheck(this, Session);
@@ -1813,6 +1764,7 @@ var Session = function (_events$EventEmitter) {
         _this.pinEvent = new _flowEvents.Event2('pin', _this);
         _this.passphraseEvent = new _flowEvents.Event1('passphrase', _this);
         _this.wordEvent = new _flowEvents.Event1('word', _this);
+
         _this._transport = transport;
         _this._sessionId = sessionId;
         _this._descriptor = descriptor;
@@ -2095,8 +2047,8 @@ var Session = function (_events$EventEmitter) {
     return Session;
 }(_events.EventEmitter);
 
-exports.default = Session;
 Session.LABEL_MAX_LENGTH = 16;
+exports.default = Session;
 function coinName(coin) {
     if (typeof coin === 'string') {
         return coin.charAt(0).toUpperCase() + coin.slice(1);
@@ -2137,37 +2089,21 @@ function wrapLoadDevice(settings, network_) {
     }
     return settings;
 }
-
 }).call(this,require("buffer").Buffer)
 },{"./events":4,"./flow-events":5,"./trezortypes":9,"./utils/call":11,"./utils/hdnode":13,"./utils/signbjstx":14,"./utils/signtx":15,"bitcoinjs-lib":31,"buffer":47}],9:[function(require,module,exports){
 'use strict';
 
 // This file has all various types that go into TREZOR or out of it.
-
 },{}],10:[function(require,module,exports){
 'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];for (var key in source) {
-            if (Object.prototype.hasOwnProperty.call(source, key)) {
-                target[key] = source[key];
-            }
-        }
-    }return target;
-};
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _device = require('./device');
 
@@ -2177,12 +2113,16 @@ var _events = require('./events');
 
 var _flowEvents = require('./flow-events');
 
-function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : { default: obj };
-}
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var UnacquiredDevice = function (_events$EventEmitter) {
-    _inherits(UnacquiredDevice, _events$EventEmitter);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var UnacquiredDevice = function (_EventEmitter) {
+    _inherits(UnacquiredDevice, _EventEmitter);
 
     // note - if the device is changed to Device, this is also false
 
@@ -2194,6 +2134,7 @@ var UnacquiredDevice = function (_events$EventEmitter) {
         _this.connected = true;
         _this.connectEvent = new _flowEvents.Event1('connect', _this);
         _this.disconnectEvent = new _flowEvents.Event0('disconnect', _this);
+
         _this.transport = transport;
         _this.originalDescriptor = descriptor;
         _this.deviceList = deviceList;
@@ -2206,23 +2147,23 @@ var UnacquiredDevice = function (_events$EventEmitter) {
         value: function _watchConnectDisconnect(onConnect, onDisconnect) {
             var _this2 = this;
 
-            var _disconnectListener2 = function _disconnectListener(dev) {};
+            var _disconnectListener = function disconnectListener(dev) {};
             var connectListener = function connectListener(device, unacquiredDevice) {
                 if (_this2 === unacquiredDevice) {
                     _this2.deviceList.connectEvent.removeListener(connectListener);
-                    _this2.deviceList.disconnectUnacquiredEvent.removeListener(_disconnectListener2);
+                    _this2.deviceList.disconnectUnacquiredEvent.removeListener(_disconnectListener);
                     onConnect(device);
                 }
             };
-            _disconnectListener2 = function _disconnectListener(unacquiredDevice) {
+            _disconnectListener = function disconnectListener(unacquiredDevice) {
                 if (_this2 === unacquiredDevice) {
                     _this2.deviceList.connectEvent.removeListener(connectListener);
-                    _this2.deviceList.disconnectUnacquiredEvent.removeListener(_disconnectListener2);
+                    _this2.deviceList.disconnectUnacquiredEvent.removeListener(_disconnectListener);
                     onDisconnect();
                 }
             };
             this.deviceList.onUnacquiredConnect(this, connectListener);
-            this.deviceList.onUnacquiredDisconnect(this, _disconnectListener2);
+            this.deviceList.onUnacquiredDisconnect(this, _disconnectListener);
         }
 
         // returns Promise just to be similar to Device.fromPath
@@ -2283,37 +2224,26 @@ var UnacquiredDevice = function (_events$EventEmitter) {
 
 exports.default = UnacquiredDevice;
 module.exports = exports['default'];
-
 },{"./device":3,"./events":4,"./flow-events":5}],11:[function(require,module,exports){
 (function (global){
 'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 exports.CallHelper = undefined;
 
-var _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-        var source = arguments[i];for (var key in source) {
-            if (Object.prototype.hasOwnProperty.call(source, key)) {
-                target[key] = source[key];
-            }
-        }
-    }return target;
-};
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _randombytes = require('randombytes');
 
 var _randombytes2 = _interopRequireDefault(_randombytes);
 
-function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : { default: obj };
-}
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function assertType(res, resType) {
     if (res.type !== resType) {
@@ -2357,7 +2287,7 @@ function filterForLog(type, msg) {
     }
 }
 
-var CallHelper = function () {
+var CallHelper = exports.CallHelper = function () {
     function CallHelper(transport, sessionId, session) {
         _classCallCheck(this, CallHelper);
 
@@ -2533,9 +2463,6 @@ var CallHelper = function () {
 
     return CallHelper;
 }();
-
-exports.CallHelper = CallHelper;
-
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"randombytes":66}],12:[function(require,module,exports){
 "use strict";
@@ -2555,7 +2482,6 @@ function lock(fn) {
     });
     return res;
 }
-
 },{}],13:[function(require,module,exports){
 (function (Buffer){
 'use strict';
@@ -2582,17 +2508,7 @@ var _trezortypes = require('../trezortypes');
 
 var trezor = _interopRequireWildcard(_trezortypes);
 
-function _interopRequireWildcard(obj) {
-    if (obj && obj.__esModule) {
-        return obj;
-    } else {
-        var newObj = {};if (obj != null) {
-            for (var key in obj) {
-                if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-            }
-        }newObj.default = obj;return newObj;
-    }
-}
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 var curve = ecurve.getCurveByName('secp256k1');
 
@@ -2690,7 +2606,6 @@ function getHDNode(session, path) {
         });
     });
 }
-
 }).call(this,require("buffer").Buffer)
 },{"../trezortypes":9,"bitcoinjs-lib":31,"buffer":47,"ecurve":56}],14:[function(require,module,exports){
 (function (Buffer){
@@ -2713,17 +2628,7 @@ var _hdnode = require('./hdnode');
 
 var hdnodeUtils = _interopRequireWildcard(_hdnode);
 
-function _interopRequireWildcard(obj) {
-    if (obj && obj.__esModule) {
-        return obj;
-    } else {
-        var newObj = {};if (obj != null) {
-            for (var key in obj) {
-                if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-            }
-        }newObj.default = obj;return newObj;
-    }
-}
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function input2trezor(input) {
     var hash = input.hash;
@@ -2806,8 +2711,8 @@ function bjsTx2refTx(tx) {
 
 function _flow_getPathOrAddress(output) {
     if (output.path) {
-        var path = output.path;
-        return _flow_makeArray(path);
+        var _path = output.path;
+        return _flow_makeArray(_path);
     }
     if (typeof output.address === 'string') {
         return output.address;
@@ -2895,7 +2800,6 @@ function reverseBuffer(buf) {
     [].reverse.call(copy);
     return copy;
 }
-
 }).call(this,require("buffer").Buffer)
 },{"../trezortypes":9,"./hdnode":13,"bitcoinjs-lib":31,"buffer":47}],15:[function(require,module,exports){
 'use strict';
@@ -2909,17 +2813,7 @@ var _trezortypes = require('../trezortypes');
 
 var trezor = _interopRequireWildcard(_trezortypes);
 
-function _interopRequireWildcard(obj) {
-    if (obj && obj.__esModule) {
-        return obj;
-    } else {
-        var newObj = {};if (obj != null) {
-            for (var key in obj) {
-                if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-            }
-        }newObj.default = obj;return newObj;
-    }
-}
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function indexTxsForSign(txs) {
     var index = {};
@@ -3034,7 +2928,6 @@ function signTx(session, inputs, outputs, txs, coin) {
         return processTxRequest(session, res.message, serializedTx, signatures, index, inputs, outputs);
     });
 }
-
 },{"../trezortypes":9}],16:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
@@ -15514,30 +15407,19 @@ function request(options) {
     }.$asyncbind(this, $error), $error);
   }.$asyncbind(this));
 }
-
 }).call(this,require('_process'))
 },{"_process":65}],91:[function(require,module,exports){
 (function (process){
 'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = undefined;
 
-var _extends = Object.assign || function (target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i];for (var key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        target[key] = source[key];
-      }
-    }
-  }return target;
-};
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _desc, _value, _class;
 
@@ -15553,21 +15435,11 @@ var check = _interopRequireWildcard(_highlevelChecks);
 
 var _debugDecorator = require('../debug-decorator');
 
-function _interopRequireWildcard(obj) {
-  if (obj && obj.__esModule) {
-    return obj;
-  } else {
-    var newObj = {};if (obj != null) {
-      for (var key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-      }
-    }newObj.default = obj;return newObj;
-  }
-}
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function _interopRequireDefault(obj) {
-  return obj && obj.__esModule ? obj : { default: obj };
-}
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
   var desc = {};
@@ -15845,8 +15717,8 @@ var BridgeTransport = (_class = function () {
         var checkPrevious = input.checkPrevious && (0, _semverCompare2.default)(this.version, '1.1.3') >= 0;
         if (checkPrevious) {
           var previousStr = input.previous == null ? 'null' : input.previous;
-          var url = '/acquire/' + input.path + '/' + previousStr;
-          return $return(this._post({ url: url }));
+          var _url = '/acquire/' + input.path + '/' + previousStr;
+          return $return(this._post({ url: _url }));
         } else {
           return $return(this._post({ url: '/acquire/' + input.path }));
         }
@@ -15898,18 +15770,17 @@ var BridgeTransport = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype)), _class);
 exports.default = BridgeTransport;
 module.exports = exports['default'];
-
 }).call(this,require('_process'))
 },{"../debug-decorator":92,"../highlevel-checks":96,"./http":90,"_process":65,"semver-compare":79}],92:[function(require,module,exports){
 (function (process){
 "use strict";
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.debugInOut = debugInOut;
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   var resolver = this;
@@ -16072,30 +15943,19 @@ function debugInOut(target, name, descriptor) {
 
   return descriptor;
 }
-
 }).call(this,require('_process'))
 },{"_process":65}],93:[function(require,module,exports){
 (function (process){
 'use strict';
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = undefined;
 
-var _extends = Object.assign || function (target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = arguments[i];for (var key in source) {
-      if (Object.prototype.hasOwnProperty.call(source, key)) {
-        target[key] = source[key];
-      }
-    }
-  }return target;
-};
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _desc, _value, _class;
 
@@ -16109,17 +15969,9 @@ var check = _interopRequireWildcard(_highlevelChecks);
 
 var _debugDecorator = require('../debug-decorator');
 
-function _interopRequireWildcard(obj) {
-  if (obj && obj.__esModule) {
-    return obj;
-  } else {
-    var newObj = {};if (obj != null) {
-      for (var key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key];
-      }
-    }newObj.default = obj;return newObj;
-  }
-}
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
   var desc = {};
@@ -16271,6 +16123,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
 };
 
 var EXTENSION_ID;
+
 
 function maybeParseInt(input) {
   if (input == null) {
@@ -16502,7 +16355,6 @@ var ChromeExtensionTransport = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype)), _class);
 exports.default = ChromeExtensionTransport;
 module.exports = exports['default'];
-
 }).call(this,require('_process'))
 },{"../debug-decorator":92,"../highlevel-checks":96,"./messages":94,"_process":65}],94:[function(require,module,exports){
 (function (process){
@@ -16685,26 +16537,25 @@ function send(extensionId, message) {
     }
   });
 }
-
 }).call(this,require('_process'))
 },{"_process":65}],95:[function(require,module,exports){
 (function (process){
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = undefined;
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _desc, _value, _class;
 
 var _debugDecorator = require('./debug-decorator');
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
   var desc = {};
@@ -16899,18 +16750,18 @@ var FallbackTransport = (_class = function () {
 
               $Try_1_Catch = function (e) {
                 lastError = e;
-                $Try_1_Post.call(this);
+                $Try_1_Post.call(this)
               }.$asyncbind(_this, $error);
 
               try {
                 return {
                   v: transport.init(_this.debug).then(function ($await_7) {
                     res.push(transport);
-                    $Try_1_Post.call(this);
+                    $Try_1_Post.call(this)
                   }.$asyncbind(_this, $Try_1_Catch), $Try_1_Catch)
                 };
               } catch (e) {
-                $Try_1_Catch(e);
+                $Try_1_Catch(e)
               }
             }();
 
@@ -16953,7 +16804,7 @@ var FallbackTransport = (_class = function () {
 
               $Try_2_Catch = function (e) {
                 lastError = e;
-                $Try_2_Post.call(this);
+                $Try_2_Post.call(this)
               }.$asyncbind(_this2, $error);
 
               try {
@@ -16963,7 +16814,7 @@ var FallbackTransport = (_class = function () {
                   }.$asyncbind(_this2, $Try_2_Catch), $Try_2_Catch)
                 };
               } catch (e) {
-                $Try_2_Catch(e);
+                $Try_2_Catch(e)
               }
             }();
 
@@ -17050,10 +16901,9 @@ var FallbackTransport = (_class = function () {
   }]);
 
   return FallbackTransport;
-}(), _applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype), _class);
+}(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype)), _class);
 exports.default = FallbackTransport;
 module.exports = exports['default'];
-
 }).call(this,require('_process'))
 },{"./debug-decorator":92,"_process":65}],96:[function(require,module,exports){
 (function (process){
@@ -17268,7 +17118,6 @@ function call(res) {
   }
   return { type: type, message: message };
 }
-
 }).call(this,require('_process'))
 },{"_process":65}],97:[function(require,module,exports){
 (function (Buffer){
