@@ -10,16 +10,13 @@
 ../node_modules/unorm/
 ../node_modules/node-fetch/
 ../node_modules/whatwg-fetch/
-
-# you need to `npm install trezor-link` for this to work
 ../node_modules/trezor-link/
+../node_modules/trezor-link-node/
 ../node_modules/protobufjs/
 ../node_modules/json-stable-stringify/
 ../node_modules/bigi/
 ../node_modules/object.values/
 ../node_modules/node-hid/
-#../trezor-link/node_modules/json-stable-stringify/
-#../trezor-link/node_modules/protobufjs/
 
 [libs]
 ../node_modules/trezor-link/flowtype/

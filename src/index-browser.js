@@ -4,11 +4,19 @@
 import 'whatwg-fetch';
 import 'unorm';
 
+import link from 'trezor-link';
+import DeviceList from './device-list';
+
+const {Bridge, Extension, Fallback} = link;
+
 export {default as Session} from './session';
 export {default as UnacquiredDevice} from './unacquired-device';
 export {default as Device} from './device';
 export {default as DescriptorStream} from './descriptor-stream';
 export {default as DeviceList} from './device-list';
+
+DeviceList._setTransport(() => new Fallback([new Extension(), new Bridge()]));
+DeviceList._setFetch(window.fetch);
 
 export {
     installers,

@@ -16,12 +16,6 @@ import type {
   TrezorDeviceInfoWithSession as DeviceDescriptor,
 } from 'trezor-link';
 
-import type LowlevelTransport from 'trezor-link/lib/lowlevel';
-import type NodeHidPlugin from 'trezor-link/lib/lowlevel/node-hid';
-
-import BridgeTransport from 'trezor-link/lib/bridge';
-import FallbackTransport from 'trezor-link/lib/fallback';
-
 const CONFIG_URL = 'https://wallet.mytrezor.com/data/config_signed.bin';
 
 export type DeviceListOptions = {
@@ -51,24 +45,16 @@ const WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 //
 export default class DeviceList extends EventEmitter {
 
-    // will be set if started by node.js
-    static _LowlevelTransport: ?Class<LowlevelTransport> = null;
-    static _NodeHidPlugin: ?Class<NodeHidPlugin> = null;
-
-    // slight hack to make Flow happy, but to allow Node to set its own fetch
-    // Request, RequestOptions and Response are built-in types of Flow for fetch API
     static _fetch: (input: string | Request, init?: RequestOptions) => Promise<Response> =
-        typeof window === 'undefined'
-        ? () => Promise.reject()
-        : window.fetch;
+        () => Promise.reject(new Error('No fetch defined'));
 
-    static _isNode: boolean = false;
-
-    static _setNode(LowlevelTransport: Class<LowlevelTransport>, NodeHidPlugin: Class<NodeHidPlugin>, fetch: any) {
-        DeviceList._isNode = true;
-        DeviceList._LowlevelTransport = LowlevelTransport;
-        DeviceList._NodeHidPlugin = NodeHidPlugin;
+    static _setFetch(fetch: any) {
         DeviceList._fetch = fetch;
+    }
+
+    static defaultTransport: () => Transport;
+    static _setTransport(t: () => Transport) {
+        DeviceList.defaultTransport = t;
     }
 
     options: DeviceListOptions;
@@ -127,40 +113,21 @@ export default class DeviceList extends EventEmitter {
         return ((this.asArray().length + this.unacquiredAsArray().length) > 0);
     }
 
-    _createTransport(): Transport {
-        if (DeviceList._isNode) {
-            const bridge = new BridgeTransport(undefined, undefined, DeviceList._fetch);
-
-            const NodeHidPlugin = DeviceList._NodeHidPlugin;
-            const LowlevelTransport = DeviceList._LowlevelTransport;
-
-            if (NodeHidPlugin == null || LowlevelTransport == null) {
-                throw new Error('No transport.');
-            }
-
-            return new FallbackTransport([bridge, new LowlevelTransport(new NodeHidPlugin())]);
-        } else {
-            const bridge = new BridgeTransport(undefined, undefined, DeviceList._fetch);
-
-            const ExtensionTransport = require('trezor-link/lib/extension');
-          // $FlowIssue ignore default export
-            return new FallbackTransport([new ExtensionTransport(), bridge]);
-        }
-    }
-
     // for mytrezor - returns "bridge" or "extension", or something else :)
     transportType(): string {
         if (this.transport == null) {
             return '';
         }
-        if (this.transport instanceof FallbackTransport) {
-            if (this.transport.activeName === 'BridgeTransport') {
+        if (this.transport.activeName) {
+            // $FlowIssue
+            const activeName: string = this.transport.activeName;
+            if (activeName === 'BridgeTransport') {
                 return 'bridge';
             }
-            if (this.transport.activeName === 'ExtensionTransport') {
+            if (activeName === 'ExtensionTransport') {
                 return 'extension';
             }
-            return this.transport.activeName;
+            return activeName;
         }
         return this.transport.name;
     }
@@ -200,7 +167,7 @@ export default class DeviceList extends EventEmitter {
     }
 
     _initTransport() {
-        const transport = this.options.transport ? this.options.transport : this._createTransport();
+        const transport = this.options.transport ? this.options.transport : DeviceList.defaultTransport();
         transport.init(this.options.debug).then(() => {
             this._configTransport(transport).then(() => {
                 this.transportEvent.emit(transport);

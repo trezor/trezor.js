@@ -9,31 +9,55 @@ git-ancestor:
 node_modules:
 	npm install
 
-build: clean build_node build_browserify
-
 clean:
 	rm -rf lib
 	rm -rf dist
 
-build_node: clean node_modules
+build-node: clean node_modules
 	cp -r src/ lib
 	find lib/ -type f ! -name '*.js' | xargs -I {} rm {}
 	find lib/ -name '*.js' | xargs -I {} mv {} {}.flow
-	BABEL_ENV=srctolib `npm bin`/babel src --out-dir lib
+	`npm bin`/babel src --out-dir lib
 
-build_browserify: clean node_modules
+build-browser: clean node_modules
+	cp -r src/ lib
+	find lib/ -type f ! -name '*.js' | xargs -I {} rm {}
+	find lib/ -name '*.js' | xargs -I {} mv {} {}.flow
+	`npm bin`/babel src --out-dir lib
 	mkdir dist
-	`npm bin`/browserify lib/index.js --s trezor > dist/trezor.js
+	`npm bin`/browserify lib/index-browser.js --s trezor > dist/trezor.js
 	cat dist/trezor.js | `npm bin`/uglifyjs -c -m > dist/trezor.min.js
 
-npm_preversion: git-ancestor check
+.move-in-%:
+	mv README.md README.old.md
+	mv README-$*.md README.md
+	mv package-$*.json package.json
 
-npm_version: build
-	git add -A lib
-	git add dist/trezor.js dist/trezor.min.js
-	git diff-index --quiet --cached HEAD || git commit -m 'Build'
+.cleanup-%:
+	mv README.md README-$*.md 
+	mv README.old.md README.md
+	mv package.json package-$*.json 
+	rm -rf lib
 
-npm_postversion:
+.version-%: .move-in-%
+	npm install
+	make build-$* || ( make .cleanup-$* && false )
+	`npm bin`/bump patch || ( make .cleanup-$* && false )
+	make build-$* || ( make .cleanup-$* && false )
+	npm publish || ( make .cleanup-$* && false )
+	make .cleanup-$*
+
+versions: git-clean git-ancestor check .version-node .version-browser
+	rm -rf lib
+	git add package*.json
+	mv package-node.json package.json
+	git commit -m `npm view . version`
+	git tag v`npm view . version`
+	mv package.json package-node.json
 	git push
 	git push --tags
-	npm publish
+
+git-clean:
+	test ! -n "$$(git status --porcelain)"
+
+
