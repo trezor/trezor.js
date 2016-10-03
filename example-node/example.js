@@ -1,11 +1,7 @@
 'use strict';
 
 // installed from npm
-// /lib/node is necessary so it loads correct transports
-//var trezor = require('trezor.js/lib/node');
-
-// locally from this repo
-var trezor = require('../lib/node');
+var trezor = require('trezor.js-node');
 
 // set to true to see messages
 var debug = true;

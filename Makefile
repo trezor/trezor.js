@@ -51,6 +51,7 @@ versions: git-clean git-ancestor check .version-node .version-browser
 	rm -rf lib
 	git add package*.json
 	mv package-node.json package.json
+	git add dist/trezor.js dist/trezor.min.js
 	git commit -m `npm view . version`
 	git tag v`npm view . version`
 	mv package.json package-node.json
