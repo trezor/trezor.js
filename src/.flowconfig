@@ -13,6 +13,8 @@
 ../node_modules/trezor-link/
 ../node_modules/trezor-link-node/
 ../node_modules/protobufjs/
+../node_modules/trezor-link/node_modules/protobufjs/
+../node_modules/trezor-link-node/node_modules/protobufjs/
 ../node_modules/json-stable-stringify/
 ../node_modules/bigi/
 ../node_modules/object.values/
