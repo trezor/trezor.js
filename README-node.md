@@ -12,7 +12,7 @@ If you are including the library in web app, try `trezor.js` package.
 Install with npm
 -----
 
-`npm install --save trezor.js`
+`npm install --save trezor.js-node`
 
 We are dependent (through trezor-link) on `node-hid`, which is compiled C++ package. If there is some problems, just write us an issue.
 
@@ -30,4 +30,4 @@ In a node app, trezor.js will first try to contact trezord (see above). If the t
 
 trezor.js API
 ---
-API is explained in [API.md](https://github.com/trezor/trezor.js/)
+API is explained in [API.md](https://github.com/trezor/trezor.js/blob/master/API.md)
