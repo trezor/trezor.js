@@ -16502,8 +16502,8 @@ function send(extensionId, message) {
         console.error('[trezor.js] [chrome-messages] Error received', response);
         reject(new Error(response.message));
       } else {
-        console.error('[trezor.js] [chrome-messages] Unknown response type ', response.type);
-        reject(new Error('Unknown response type ' + response.type));
+        console.error('[trezor.js] [chrome-messages] Unknown response type ', JSON.stringify(response.type));
+        reject(new Error('Unknown response type ' + JSON.stringify(response.type)));
       }
     };
 
