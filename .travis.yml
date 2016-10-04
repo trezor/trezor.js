@@ -9,7 +9,6 @@ before_script:
 
 script:
   - cp package-node.json package.json && npm install && cp package-browser.json package.json && npm install && rm package.json
-  - find . -name 'protobufjs'
   - make check 
   - make .move-in-node .build-node .cleanup-node
   - make .move-in-browser .build- .cleanup-browser
