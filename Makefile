@@ -18,6 +18,8 @@ build-node: clean node_modules
 	find lib/ -type f ! -name '*.js' | xargs -I {} rm {}
 	find lib/ -name '*.js' | xargs -I {} mv {} {}.flow
 	`npm bin`/babel src --out-dir lib
+	rm lib/index-browser.js
+	rm lib/index-browser.js.flow
 
 build-browser: clean node_modules
 	cp -r src/ lib
@@ -27,6 +29,8 @@ build-browser: clean node_modules
 	mkdir dist
 	`npm bin`/browserify lib/index-browser.js --s trezor > dist/trezor.js
 	cat dist/trezor.js | `npm bin`/uglifyjs -c -m > dist/trezor.min.js
+	rm lib/index-node.js
+	rm lib/index-node.js.flow
 
 .move-in-%:
 	mv README.md README.old.md
