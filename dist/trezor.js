@@ -1962,8 +1962,8 @@ var Session = function (_EventEmitter) {
         }
     }, {
         key: 'signBjsTx',
-        value: function signBjsTx(info, refTxs, nodes, coinName) {
-            return signBjsTxHelper.signBjsTx(this, info, refTxs, nodes, coinName);
+        value: function signBjsTx(info, refTxs, nodes, coinName, network) {
+            return signBjsTxHelper.signBjsTx(this, info, refTxs, nodes, coinName, network);
         }
     }, {
         key: 'typedCall',
