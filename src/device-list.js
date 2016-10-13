@@ -16,7 +16,7 @@ import type {
   TrezorDeviceInfoWithSession as DeviceDescriptor,
 } from 'trezor-link';
 
-const CONFIG_URL = 'https://wallet.mytrezor.com/data/config_signed.bin';
+const CONFIG_URL = 'https://wallet.trezor.io/data/config_signed.bin';
 
 export type DeviceListOptions = {
     debug?: boolean;
@@ -153,7 +153,9 @@ export default class DeviceList extends EventEmitter {
         if (this.options.config != null) {
             return transport.configure(this.options.config);
         } else {
-            const configUrl: string = this.options.configUrl == null ? CONFIG_URL : this.options.configUrl;
+            const configUrl: string = (this.options.configUrl == null)
+                ? (CONFIG_URL + '?' + Date.now())
+                : this.options.configUrl;
             const fetch = DeviceList._fetch;
             return fetch(configUrl).then(response => {
                 if (!response.ok) {
