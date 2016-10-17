@@ -363,11 +363,23 @@ var DeviceList = function (_EventEmitter) {
             var _this2 = this;
 
             var transport = this.options.transport ? this.options.transport : DeviceList.defaultTransport();
+            if (this.options.debugInfo) {
+                console.log('[trezor.js] [device list] Initializing transports');
+            }
             transport.init(this.options.debug).then(function () {
+                if (_this2.options.debugInfo) {
+                    console.log('[trezor.js] [device list] Configuring transports');
+                }
                 _this2._configTransport(transport).then(function () {
+                    if (_this2.options.debugInfo) {
+                        console.log('[trezor.js] [device list] Configuring transports done');
+                    }
                     _this2.transportEvent.emit(transport);
                 });
             }, function (error) {
+                if (_this2.options.debugInfo) {
+                    console.error('[trezor.js] [device list] Error in transport', error);
+                }
                 _this2.errorEvent.emit(error);
             });
         }
@@ -375,6 +387,10 @@ var DeviceList = function (_EventEmitter) {
         key: '_createAndSaveDevice',
         value: function _createAndSaveDevice(transport, descriptor, stream, previous) {
             var _this3 = this;
+
+            if (this.options.debugInfo) {
+                console.error('[trezor.js] [device list] Creating Device', descriptor, previous);
+            }
 
             var path = descriptor.path.toString();
             this.creatingDevices[path] = true;
@@ -417,6 +433,10 @@ var DeviceList = function (_EventEmitter) {
         key: '_createUnacquiredDevice',
         value: function _createUnacquiredDevice(transport, descriptor, stream) {
             var _this5 = this;
+
+            if (this.options.debugInfo) {
+                console.error('[trezor.js] [device list] Creating Unacquired Device', descriptor);
+            }
 
             // if (this.getSession(descriptor.path) == null) {
             //     return Promise.reject("Device no longer connected.");
@@ -1171,7 +1191,7 @@ var Device = function (_EventEmitter) {
                     return res;
                 });
             }).then(function (result) {
-                var session = new _session2.default(transport, result, descriptor, !!deviceList.options.debug);
+                var session = new _session2.default(transport, result, descriptor, !!deviceList.options.debugInfo);
                 if (onAcquire != null) {
                     onAcquire(session);
                 }
