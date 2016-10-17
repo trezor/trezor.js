@@ -20,6 +20,7 @@ const CONFIG_URL = 'https://wallet.trezor.io/data/config_signed.bin';
 
 export type DeviceListOptions = {
     debug?: boolean;
+    debugInfo?: boolean;
     transport?: Transport;
     nodeTransport?: Transport;
     configUrl?: string;
@@ -170,11 +171,23 @@ export default class DeviceList extends EventEmitter {
 
     _initTransport() {
         const transport = this.options.transport ? this.options.transport : DeviceList.defaultTransport();
+        if (this.options.debugInfo) {
+            console.log('[trezor.js] [device list] Initializing transports');
+        }
         transport.init(this.options.debug).then(() => {
+            if (this.options.debugInfo) {
+                console.log('[trezor.js] [device list] Configuring transports');
+            }
             this._configTransport(transport).then(() => {
+                if (this.options.debugInfo) {
+                    console.log('[trezor.js] [device list] Configuring transports done');
+                }
                 this.transportEvent.emit(transport);
             });
         }, error => {
+            if (this.options.debugInfo) {
+                console.error('[trezor.js] [device list] Error in transport', error);
+            }
             this.errorEvent.emit(error);
         });
     }
@@ -185,6 +198,10 @@ export default class DeviceList extends EventEmitter {
         stream: DescriptorStream,
         previous: ?UnacquiredDevice
     ): void {
+        if (this.options.debugInfo) {
+            console.error('[trezor.js] [device list] Creating Device', descriptor, previous);
+        }
+
         const path = descriptor.path.toString();
         this.creatingDevices[path] = true;
         this._createDevice(transport, descriptor, stream, previous).then(device => {
@@ -231,6 +248,10 @@ export default class DeviceList extends EventEmitter {
         descriptor: DeviceDescriptor,
         stream: DescriptorStream
     ): Promise<UnacquiredDevice> {
+        if (this.options.debugInfo) {
+            console.error('[trezor.js] [device list] Creating Unacquired Device', descriptor);
+        }
+
         // if (this.getSession(descriptor.path) == null) {
         //     return Promise.reject("Device no longer connected.");
         // }

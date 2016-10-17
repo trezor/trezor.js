@@ -161,7 +161,7 @@ export default class Device extends EventEmitter {
                 return res;
             })
         ).then(result => {
-            const session = new Session(transport, result, descriptor, !!deviceList.options.debug);
+            const session = new Session(transport, result, descriptor, !!deviceList.options.debugInfo);
             if (onAcquire != null) {
                 onAcquire(session);
             }
