@@ -75,12 +75,14 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network): trezor.Tra
     };
 }
 
-function signedTx2refTx(signedTx: MessageResponse<trezor.SignedTx>): bitcoin.Transaction {
+function signedTx2bjsTx(signedTx: MessageResponse<trezor.SignedTx>): bitcoin.Transaction {
     const res = bitcoin.Transaction.fromHex(signedTx.message.serialized.serialized_tx);
     return res;
 }
 
 function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
+    const data = getJoinSplitData(tx);
+    const dataStr = data == null ? null : data.toString('hex');
     return {
         lock_time: tx.locktime,
         version: tx.version,
@@ -99,6 +101,7 @@ function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
                 script_pubkey: output.script.toString('hex'),
             };
         }),
+        extra_data: dataStr,
     };
 }
 
@@ -181,6 +184,16 @@ function getAddressScriptType(address: string, network: bitcoin.Network): string
     throw new Error('Unknown address type.');
 }
 
+function getJoinSplitData(transaction: bitcoin.Transaction): ?Buffer {
+    if (transaction.version < 2) {
+        return null;
+    }
+    const buffer = transaction.toBuffer();
+    const joinsplitByteLength = transaction.joinsplitByteLength();
+    const res = buffer.slice(buffer.length - joinsplitByteLength);
+    return res;
+}
+
 export function signBjsTx(
     session: Session,
     info: TxInfo,
@@ -204,7 +217,7 @@ export function signBjsTx(
         trezorOutputs,
         trezorRefTxs,
         coinName
-    ).then(tx => signedTx2refTx(tx))
+    ).then(tx => signedTx2bjsTx(tx))
     .then(res => {
         verifyBjsTx(info.inputs, info.outputs, nodes, res, network);
         return res;

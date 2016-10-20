@@ -33,7 +33,9 @@ function requestTxInfo(
         return requestPrevTxInfo(
             reqTx,
             m.request_type,
-            md.request_index
+            md.request_index,
+            md.extra_data_len,
+            md.extra_data_offset
         );
     } else {
         return requestSignedTxInfo(inputs, outputs, m.request_type, md.request_index);
@@ -43,7 +45,9 @@ function requestTxInfo(
 function requestPrevTxInfo(
     reqTx: trezor.RefTransaction,
     requestType: string,
-    requestIndex: string | number
+    requestIndex: string | number,
+    dataLen: ?(string | number),
+    dataOffset: ?(string | number),
 ): trezor.SignTxInfoToTrezor {
     const i = +requestIndex;
     if (requestType === 'TXINPUT') {
@@ -52,14 +56,45 @@ function requestPrevTxInfo(
     if (requestType === 'TXOUTPUT') {
         return {bin_outputs: [reqTx.bin_outputs[i]]};
     }
+    if (requestType === 'TXEXTRADATA') {
+        if (dataLen == null) {
+            throw new Error('Missing extra_data_len');
+        }
+        const dataLenN: number = +dataLen;
+
+        if (dataOffset == null) {
+            throw new Error('Missing extra_data_offset');
+        }
+        const dataOffsetN: number = +dataOffset;
+
+        if (reqTx.extra_data == null) {
+            throw new Error('No extra data for transaction ' + reqTx.hash);
+        }
+
+        const data: string = reqTx.extra_data;
+        const substring = data.substring(dataOffsetN * 2, (dataOffsetN + dataLenN) * 2);
+        return {extra_data: substring};
+    }
     if (requestType === 'TXMETA') {
         const outputCount = reqTx.bin_outputs.length;
-        return {
-            version: reqTx.version,
-            lock_time: reqTx.lock_time,
-            inputs_cnt: reqTx.inputs.length,
-            outputs_cnt: outputCount,
-        };
+        const data: ?string = reqTx.extra_data;
+        if (data != null && data.length !== 0) {
+            const data_: string = data;
+            return {
+                version: reqTx.version,
+                lock_time: reqTx.lock_time,
+                inputs_cnt: reqTx.inputs.length,
+                outputs_cnt: outputCount,
+                extra_data_len: data_.length / 2,
+            };
+        } else {
+            return {
+                version: reqTx.version,
+                lock_time: reqTx.lock_time,
+                inputs_cnt: reqTx.inputs.length,
+                outputs_cnt: outputCount,
+            };
+        }
     }
     throw new Error(`Unknown request type: ${requestType}`);
 }
@@ -79,6 +114,9 @@ function requestSignedTxInfo(
     }
     if (requestType === 'TXMETA') {
         throw new Error('Cannot read TXMETA from signed transaction');
+    }
+    if (requestType === 'TXEXTRADATA') {
+        throw new Error('Cannot read TXEXTRADATA from signed transaction');
     }
     throw new Error(`Unknown request type: ${requestType}`);
 }

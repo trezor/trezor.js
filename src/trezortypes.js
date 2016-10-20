@@ -122,11 +122,14 @@ export type RefTransaction = {
     inputs: Array<TransactionInput>;
     bin_outputs: Array<TransactionBinOutput>;
     lock_time: number;
+    extra_data: ?string;
 };
 
 export type TxRequestDetails = {
     request_index: number;
     tx_hash?: string;
+    extra_data_len?: number;
+    extra_data_offset?: number;
 };
 
 export type TxRequestSerialized = {
@@ -136,7 +139,7 @@ export type TxRequestSerialized = {
 };
 
 export type TxRequest = {
-    request_type: 'TXINPUT' | 'TXOUTPUT' | 'TXMETA' | 'TXFINISHED';
+    request_type: 'TXINPUT' | 'TXOUTPUT' | 'TXMETA' | 'TXFINISHED' | 'TXEXTRADATA';
     details: TxRequestDetails;
     serialized: TxRequestSerialized;
 };
@@ -176,8 +179,11 @@ export type SignTxInfoToTrezor = {
 } | {
     outputs: Array<TransactionOutput>
 } | {
+    extra_data: string;
+} | {
     version: number;
     lock_time: number;
     inputs_cnt: number;
     outputs_cnt: number;
+    extra_data_len?: number;
 };
