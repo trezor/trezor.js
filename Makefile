@@ -46,12 +46,12 @@ build-browser: clean node_modules
 .version-%: .move-in-%
 	npm install
 	make build-$* || ( make .cleanup-$* && false )
-	`npm bin`/bump patch || ( make .cleanup-$* && false )
+	`npm bin`/bump ${TYPE} || ( make .cleanup-$* && false )
 	make build-$* || ( make .cleanup-$* && false )
 	npm publish || ( make .cleanup-$* && false )
 	make .cleanup-$*
 
-versions: git-clean git-ancestor check .version-node .version-browser
+.versions: git-clean git-ancestor check .version-node .version-browser
 	rm -rf lib
 	git add package*.json
 	mv package-node.json package.json
@@ -61,6 +61,15 @@ versions: git-clean git-ancestor check .version-node .version-browser
 	mv package.json package-node.json
 	git push
 	git push --tags
+
+versions-patch: TYPE = patch
+versions-patch: .versions
+
+versions-minor: TYPE = minor
+versions-minor: .versions
+
+versions-major: TYPE = major
+versions-major: .versions
 
 git-clean:
 	test ! -n "$$(git status --porcelain)"
