@@ -1,5 +1,5 @@
 [ignore]
-.*/node_modules/bitcoinjs-lib/.*
+.*/node_modules/bitcoinjs-lib-zcash/.*
 .*/node_modules/events/.*
 .*/node_modules/protobufjs/src/bower.json
 
