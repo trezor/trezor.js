@@ -3,7 +3,7 @@
 
 import {EventEmitter} from './events';
 import {Event0, Event1, Event2} from './flow-events';
-import * as bitcoin from 'bitcoinjs-lib';
+import * as bitcoin from 'bitcoinjs-lib-zcash';
 
 import * as hdnodeUtils from './utils/hdnode';
 import * as signTxHelper from './utils/signtx';

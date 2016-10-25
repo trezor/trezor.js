@@ -41,7 +41,7 @@
     "bump-version": "^0.5.0"
   },
   "dependencies": {
-    "bitcoinjs-lib": "git://github.com/runn1ng/bitcoinjs-lib.git#zcash",
+    "bitcoinjs-lib-zcash": "^2.3.0",
     "ecurve": "^1.0.2",
     "randombytes": "^2.0.1",
     "semver-compare": "1.0.0",
