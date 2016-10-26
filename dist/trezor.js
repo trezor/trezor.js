@@ -389,7 +389,7 @@ var DeviceList = function (_EventEmitter) {
             var _this3 = this;
 
             if (this.options.debugInfo) {
-                console.error('[trezor.js] [device list] Creating Device', descriptor, previous);
+                console.log('[trezor.js] [device list] Creating Device', descriptor, previous);
             }
 
             var path = descriptor.path.toString();
@@ -435,7 +435,7 @@ var DeviceList = function (_EventEmitter) {
             var _this5 = this;
 
             if (this.options.debugInfo) {
-                console.error('[trezor.js] [device list] Creating Unacquired Device', descriptor);
+                console.log('[trezor.js] [device list] Creating Unacquired Device', descriptor);
             }
 
             // if (this.getSession(descriptor.path) == null) {
