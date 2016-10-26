@@ -199,7 +199,7 @@ export default class DeviceList extends EventEmitter {
         previous: ?UnacquiredDevice
     ): void {
         if (this.options.debugInfo) {
-            console.error('[trezor.js] [device list] Creating Device', descriptor, previous);
+            console.log('[trezor.js] [device list] Creating Device', descriptor, previous);
         }
 
         const path = descriptor.path.toString();
@@ -249,7 +249,7 @@ export default class DeviceList extends EventEmitter {
         stream: DescriptorStream
     ): Promise<UnacquiredDevice> {
         if (this.options.debugInfo) {
-            console.error('[trezor.js] [device list] Creating Unacquired Device', descriptor);
+            console.log('[trezor.js] [device list] Creating Unacquired Device', descriptor);
         }
 
         // if (this.getSession(descriptor.path) == null) {
