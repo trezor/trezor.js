@@ -703,7 +703,7 @@ var Device = function (_EventEmitter) {
         _this.activityInProgress = false;
         _this.connected = true;
         _this.clearSession = false;
-        _this.clearSessionTime = 15 * 60 * 1000;
+        _this.clearSessionTime = 10 * 60 * 1000;
         _this.clearSessionTimeout = null;
         _this.clearSessionFuture = 0;
         _this.rememberPlaintextPassphrase = false;
@@ -2042,6 +2042,13 @@ var Session = function (_EventEmitter) {
         key: 'getHDNode',
         value: function getHDNode(path, network) {
             return hdnodeUtils.getHDNode(this, path, coinNetwork(network));
+        }
+    }, {
+        key: 'setU2FCounter',
+        value: function setU2FCounter(counter) {
+            return this.typedCall('SetU2FCounter', 'Success', {
+                u2f_counter: counter
+            });
         }
     }]);
 
