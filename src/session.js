@@ -349,6 +349,14 @@ export default class Session extends EventEmitter {
     ): Promise<bitcoin.HDNode> {
         return hdnodeUtils.getHDNode(this, path, coinNetwork(network));
     }
+
+    setU2FCounter(
+        counter: number
+    ): Promise<DefaultMessageResponse> {
+        return this.typedCall('SetU2FCounter', 'Success', {
+            u2f_counter: counter,
+        });
+    }
 }
 
 export function coinName(coin: trezor.CoinType | string): string {
