@@ -41,7 +41,7 @@ export default class Device extends EventEmitter {
     connected: boolean = true;
 
     clearSession: boolean = false;
-    clearSessionTime: number = 15 * 60 * 1000; // in miliseconds
+    clearSessionTime: number = 10 * 60 * 1000; // in miliseconds
     clearSessionTimeout: ?number = null;
     clearSessionFuture: number = 0;
 
