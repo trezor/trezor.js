@@ -18102,24 +18102,24 @@ var ParallelTransport = (_class = function () {
 
         try {
           _iterator = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_12_exit, $Loop_12_step, $Try_1_Catch)($Loop_12);
-          function $Loop_12() {
+          return Function.$asyncbind.trampoline(this, $Loop_13_exit, $Loop_13_step, $Try_1_Catch)($Loop_13);
+          function $Loop_13() {
             if (!(_iteratorNormalCompletion = (_step = _iterator.next()).done)) {
               name = _step.value;
-              return this.transports[name].enumerate().then(function ($await_18) {
-                devices = $await_18;
+              return this.transports[name].enumerate().then(function ($await_20) {
+                devices = $await_20;
                 res.push.apply(res, _toConsumableArray(this._prepend(name, devices)));
-                return $Loop_12_step;
+                return $Loop_13_step;
               }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
             } else return [1];
           }
 
-          function $Loop_12_step() {
+          function $Loop_13_step() {
             _iteratorNormalCompletion = true;
-            return $Loop_12;
+            return $Loop_13;
           }
 
-          function $Loop_12_exit() {
+          function $Loop_13_exit() {
             return $Try_1_Finally($Try_1_Post).call(this);
           }
         } catch (err) {
@@ -18131,32 +18131,39 @@ var ParallelTransport = (_class = function () {
     key: 'listen',
     value: function listen(old) {
       return new Promise(function ($return, $error) {
-        var _this3, promises, _ref, name, devices, antiFiltered, prepended;
+        var _this3, actualOld, promises, _ref, name, devices, antiFiltered, prepended;
 
         _this3 = this;
+        return new Promise(function ($return, $error) {
+          if (old == null) {
+            return this.enumerate().then($return, $error);
+          }return $return(old);
+        }.$asyncbind(this)).then(function ($await_22) {
+          actualOld = $await_22;
 
-        promises = Object.keys(this.transports).map(function (name) {
-          return new Promise(function ($return, $error) {
-            var oldFiltered, devices;
+          promises = Object.keys(this.transports).map(function (name) {
+            return new Promise(function ($return, $error) {
+              var oldFiltered, devices;
 
-            oldFiltered = old == null ? null : _this3._filter(name, old);
-            return _this3.transports[name].listen(oldFiltered).then(function ($await_19) {
-              devices = $await_19;
-              return $return({ name: name, devices: devices });
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this));
-        });
+              oldFiltered = _this3._filter(name, actualOld);
+              return _this3.transports[name].listen(oldFiltered).then(function ($await_23) {
+                devices = $await_23;
+                return $return({ name: name, devices: devices });
+              }.$asyncbind(this, $error), $error);
+            }.$asyncbind(this));
+          });
 
-        return Promise.race(promises).then(function ($await_20) {
-          _ref = $await_20;
-          name = _ref.name;
-          devices = _ref.devices;
+          return Promise.race(promises).then(function ($await_24) {
+            _ref = $await_24;
+            name = _ref.name;
+            devices = _ref.devices;
 
 
-          antiFiltered = old == null ? [] : this._antiFilter(name, old);
-          prepended = this._prepend(name, devices);
+            antiFiltered = this._antiFilter(name, actualOld);
+            prepended = this._prepend(name, devices);
 
-          return $return(antiFiltered.concat(prepended).sort(compare));
+            return $return(antiFiltered.concat(prepended).sort(compare));
+          }.$asyncbind(this, $error), $error);
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
     }
@@ -18206,8 +18213,8 @@ var ParallelTransport = (_class = function () {
           previous: previous == null ? null : previous.rest,
           checkPrevious: input.checkPrevious
         };
-        return path.transport.acquire(newInput).then(function ($await_21) {
-          res = $await_21;
+        return path.transport.acquire(newInput).then(function ($await_25) {
+          res = $await_25;
           return $return(path.name + '-' + res);
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
@@ -18293,24 +18300,24 @@ var ParallelTransport = (_class = function () {
         }.$asyncbind(this, $Try_6_Finally($error));
         try {
           _iterator3 = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_14_exit, $Loop_14_step, $Try_6_Catch)($Loop_14);
-          function $Loop_14() {
+          return Function.$asyncbind.trampoline(this, $Loop_16_exit, $Loop_16_step, $Try_6_Catch)($Loop_16);
+          function $Loop_16() {
             if (!(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done)) {
               name = _step3.value;
 
               transport = this.transports[name];
-              return transport.configure(signedData).then(function ($await_22) {
-                return $Loop_14_step;
+              return transport.configure(signedData).then(function ($await_26) {
+                return $Loop_16_step;
               }.$asyncbind(this, $Try_6_Catch), $Try_6_Catch);
             } else return [1];
           }
 
-          function $Loop_14_step() {
+          function $Loop_16_step() {
             _iteratorNormalCompletion3 = true;
-            return $Loop_14;
+            return $Loop_16;
           }
 
-          function $Loop_14_exit() {
+          function $Loop_16_exit() {
             return $Try_6_Finally($Try_6_Post).call(this);
           }
         } catch (err) {
@@ -18371,25 +18378,25 @@ var ParallelTransport = (_class = function () {
         }.$asyncbind(this, $Try_9_Finally($error));
         try {
           _iterator4 = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_16_exit, $Loop_16_step, $Try_9_Catch)($Loop_16);
-          function $Loop_16() {
+          return Function.$asyncbind.trampoline(this, $Loop_18_exit, $Loop_18_step, $Try_9_Catch)($Loop_18);
+          function $Loop_18() {
             if (!(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done)) {
               name = _step4.value;
 
               transport = this.transports[name];
-              return transport.init(debug).then(function ($await_23) {
+              return transport.init(debug).then(function ($await_27) {
                 version = version + (name + ':' + transport.version + ';');
-                return $Loop_16_step;
+                return $Loop_18_step;
               }.$asyncbind(this, $Try_9_Catch), $Try_9_Catch);
             } else return [1];
           }
 
-          function $Loop_16_step() {
+          function $Loop_18_step() {
             _iteratorNormalCompletion4 = true;
-            return $Loop_16;
+            return $Loop_18;
           }
 
-          function $Loop_16_exit() {
+          function $Loop_18_exit() {
             return $Try_9_Finally($Try_9_Post).call(this);
           }
         } catch (err) {

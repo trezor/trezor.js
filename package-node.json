@@ -1,6 +1,6 @@
 {
   "name": "trezor.js-node",
-  "version": "5.3.1",
+  "version": "5.4.0",
   "author": "BitcoinTrezor.com <info@bitcointrezor.com>",
   "homepage": "https://github.com/trezor/trezor.js",
   "description": "High-level Javascript API for Bitcoin Trezor for node",
