@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "trezor.js-node": "^5.0.13"
+    "trezor.js-node": "^5.3.2"
   }
 }
