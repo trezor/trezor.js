@@ -44,7 +44,7 @@
     "node-fetch": "^1.6.0",
     "randombytes": "^2.0.1",
     "semver-compare": "1.0.0",
-    "trezor-link-node": "^0.2.49",
+    "trezor-link-node": "^0.2.54",
     "unorm": "^1.3.3"
   }
 }
