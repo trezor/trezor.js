@@ -18,7 +18,7 @@ We are dependent (through trezor-link) on `node-hid`, which is compiled C++ pack
 
 #### Examples
 
-Example of usage is on `example-browser/` on github.
+Example of usage is on `example-browser/`, `example-node/` and `example-electron-webpack/` on github.
 
 #### Flow
 trezor.js is annotated with [Flow](https://github.com/facebook/flow) types; if you want to use Flow and use the previous setup, it will use the right types. Note that you might have to set up `.flowconfig` to include all the modules and interface files in [our flowconfig](https://github.com/trezor/trezor.js/blob/master/lib/.flowconfig)
@@ -36,13 +36,11 @@ Then in your package.json `scripts` add:
   "postinstall": "electron-rebuild --pre-gyp-fix --force"
 ```
 
-If you already installed your project, you can run the rebuild yourself
+This will be run on `npm install` and will rebuild electron to support `node-hid` (the library we use). You can also run the postinstall script yourself (`npm run postinstall`).
 
-```
-   $(npm bin)/electron-rebuild --pre-gyp-fix --force
-```
+If you are using `yarn` (as we do), make sure you have 0.16.1 or newer. If you have an older version, you will have to run the postinstall script yourself.
 
-(note: we recommend using `yarn` instead of `npm install` for installation, since it's quicker and with less headache.)
+If you use webpack inside electron (in the renderer window), you will have to add `'trezor.js-node': 'require("trezor.js-node")'` to externals; see the example.
 
 Using `trezor.js` in NW.js projects
 ----

@@ -18,7 +18,7 @@ We use some ES6 methods (Array.find etc), that aren't in all browsers as of now,
 
 #### Examples
 
-Example of usage is on `example-browser/` on github.
+Example of usage is on `example-browser/`, `example-node/` and `example-electron-webpack/` on github.
 
 #### Flow
 trezor.js is annotated with [Flow](https://github.com/facebook/flow) types; if you want to use Flow and use the previous setup, it will use the right types. Note that you might have to set up `.flowconfig` to include all the modules and interface files in [our flowconfig](https://github.com/trezor/trezor.js/blob/master/lib/.flowconfig)
