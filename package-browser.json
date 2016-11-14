@@ -30,22 +30,22 @@
     ]
   },
   "devDependencies": {
-    "babel-cli": "^6.11.4",
-    "babel-plugin-add-module-exports": "^0.1.2",
-    "babel-plugin-transform-class-properties": "^6.4.0",
-    "babel-plugin-transform-flow-strip-types": "^6.4.0",
+    "babel-cli": "^6.18.0",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-class-properties": "^6.18.0",
+    "babel-plugin-transform-flow-strip-types": "^6.18.0",
     "babel-plugin-transform-object-rest-spread": "^6.6.5",
-    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-es2015": "^6.18.0",
+    "bump-version": "^0.5.0",
     "browserify": "^13.0.0",
-    "uglify-js": "^2.7.3",
-    "bump-version": "^0.5.0"
+    "uglify-js": "^2.7.3"
   },
   "dependencies": {
     "bitcoinjs-lib-zcash": "^2.3.0",
     "ecurve": "^1.0.2",
     "randombytes": "^2.0.1",
     "semver-compare": "1.0.0",
-    "trezor-link": "^0.2.54",
+    "trezor-link": "^0.2.70",
     "unorm": "^1.3.3",
     "whatwg-fetch": "0.11.0"
   }
