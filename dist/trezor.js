@@ -5075,9 +5075,64 @@ require('./convert')
 module.exports = BigInteger
 },{"./bigi":18,"./convert":19}],21:[function(require,module,exports){
 module.exports={
-  "name": "bigi",
-  "version": "1.4.2",
+  "_args": [
+    [
+      "bigi@^1.4.0",
+      "/home/peepee/dev/trezor.js-v2/node_modules/bitcoinjs-lib-zcash"
+    ]
+  ],
+  "_from": "bigi@>=1.4.0 <2.0.0",
+  "_id": "bigi@1.4.2",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/bigi",
+  "_nodeVersion": "6.1.0",
+  "_npmOperationalInternal": {
+    "host": "packages-12-west.internal.npmjs.com",
+    "tmp": "tmp/bigi-1.4.2.tgz_1469584192413_0.6801238611806184"
+  },
+  "_npmUser": {
+    "email": "jprichardson@gmail.com",
+    "name": "jprichardson"
+  },
+  "_npmVersion": "3.8.6",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "bigi",
+    "raw": "bigi@^1.4.0",
+    "rawSpec": "^1.4.0",
+    "scope": null,
+    "spec": ">=1.4.0 <2.0.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/bitcoinjs-lib-zcash",
+    "/ecurve"
+  ],
+  "_resolved": "https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz",
+  "_shasum": "9c665a95f88b8b08fc05cfd731f561859d725825",
+  "_shrinkwrap": null,
+  "_spec": "bigi@^1.4.0",
+  "_where": "/home/peepee/dev/trezor.js-v2/node_modules/bitcoinjs-lib-zcash",
+  "bugs": {
+    "url": "https://github.com/cryptocoinjs/bigi/issues"
+  },
+  "dependencies": {},
   "description": "Big integers.",
+  "devDependencies": {
+    "coveralls": "^2.11.2",
+    "istanbul": "^0.3.5",
+    "jshint": "^2.5.1",
+    "mocha": "^2.1.0",
+    "mochify": "^2.1.0"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "9c665a95f88b8b08fc05cfd731f561859d725825",
+    "tarball": "https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz"
+  },
+  "gitHead": "c25308081c896ff84702303722bf5ecd8b3f78e3",
+  "homepage": "https://github.com/cryptocoinjs/bigi#readme",
   "keywords": [
     "cryptography",
     "math",
@@ -5095,30 +5150,41 @@ module.exports={
     "decimal",
     "float"
   ],
-  "devDependencies": {
-    "coveralls": "^2.11.2",
-    "istanbul": "^0.3.5",
-    "jshint": "^2.5.1",
-    "mocha": "^2.1.0",
-    "mochify": "^2.1.0"
-  },
-  "repository": {
-    "url": "https://github.com/cryptocoinjs/bigi",
-    "type": "git"
-  },
   "main": "./lib/index.js",
-  "scripts": {
-    "browser-test": "./node_modules/.bin/mochify --wd -R spec",
-    "test": "./node_modules/.bin/_mocha -- test/*.js",
-    "jshint": "./node_modules/.bin/jshint --config jshint.json lib/*.js ; true",
-    "unit": "./node_modules/.bin/mocha",
-    "coverage": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --reporter list test/*.js",
-    "coveralls": "npm run-script coverage && node ./node_modules/.bin/coveralls < coverage/lcov.info"
+  "maintainers": [
+    {
+      "email": "boydb@midnightdesign.ws",
+      "name": "midnightlightning"
+    },
+    {
+      "email": "sidazhang89@gmail.com",
+      "name": "sidazhang"
+    },
+    {
+      "email": "npm@shesek.info",
+      "name": "nadav"
+    },
+    {
+      "email": "jprichardson@gmail.com",
+      "name": "jprichardson"
+    }
+  ],
+  "name": "bigi",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cryptocoinjs/bigi.git"
   },
-  "dependencies": {},
+  "scripts": {
+    "browser-test": "mochify --wd -R spec",
+    "coverage": "istanbul cover ./node_modules/.bin/_mocha -- --reporter list test/*.js",
+    "coveralls": "npm run-script coverage && node ./node_modules/.bin/coveralls < coverage/lcov.info",
+    "jshint": "jshint --config jshint.json lib/*.js ; true",
+    "test": "_mocha -- test/*.js",
+    "unit": "mocha"
+  },
   "testling": {
-    "files": "test/*.js",
-    "harness": "mocha",
     "browsers": [
       "ie/9..latest",
       "firefox/latest",
@@ -5126,8 +5192,11 @@ module.exports={
       "safari/6.0..latest",
       "iphone/6.0..latest",
       "android-browser/4.2..latest"
-    ]
-  }
+    ],
+    "files": "test/*.js",
+    "harness": "mocha"
+  },
+  "version": "1.4.2"
 }
 
 },{}],22:[function(require,module,exports){
@@ -7243,7 +7312,7 @@ Transaction.fromBuffer = function (buffer, __noStrict) {
         gH: readCompressedG1()
       }
       var ciphertexts = []
-      for (i = 0; i < Transaction.ZCASH_NUM_JS_OUTPUTS; i++) {
+      for (j = 0; j < Transaction.ZCASH_NUM_JS_OUTPUTS; j++) {
         ciphertexts.push(readSlice(Transaction.ZCASH_NOTECIPHERTEXT_SIZE))
       }
 
@@ -8228,8 +8297,8 @@ function encode (payload) {
   ], payload.length + 4))
 }
 
-// Decode a base58-check encoded string to a buffer
-function decode (string) {
+// Decode a base58-check encoded string to a buffer, no result if checksum is wrong
+function decodeRaw (string) {
   var buffer = new Buffer(base58.decode(string))
 
   var payload = buffer.slice(0, -4)
@@ -8239,14 +8308,21 @@ function decode (string) {
   if (checksum[0] ^ newChecksum[0] |
       checksum[1] ^ newChecksum[1] |
       checksum[2] ^ newChecksum[2] |
-      checksum[3] ^ newChecksum[3]) throw new Error('Invalid checksum')
+      checksum[3] ^ newChecksum[3]) return
 
+  return payload
+}
+
+function decode (string) {
+  var payload = decodeRaw(string)
+  if (!payload) throw new Error('Invalid checksum')
   return payload
 }
 
 module.exports = {
   encode: encode,
-  decode: decode
+  decode: decode,
+  decodeRaw: decodeRaw
 }
 
 }).call(this,require("buffer").Buffer)
@@ -11987,6 +12063,10 @@ var processNextTick = require('process-nextick-args');
 var isArray = require('isarray');
 /*</replacement>*/
 
+/*<replacement>*/
+var Duplex;
+/*</replacement>*/
+
 Readable.ReadableState = ReadableState;
 
 /*<replacement>*/
@@ -12034,6 +12114,8 @@ var StringDecoder;
 util.inherits(Readable, Stream);
 
 function prependListener(emitter, event, fn) {
+  // Sadly this is not cacheable as some libraries bundle their own
+  // event emitter implementation with them.
   if (typeof emitter.prependListener === 'function') {
     return emitter.prependListener(event, fn);
   } else {
@@ -12045,7 +12127,6 @@ function prependListener(emitter, event, fn) {
   }
 }
 
-var Duplex;
 function ReadableState(options, stream) {
   Duplex = Duplex || require('./_stream_duplex');
 
@@ -12115,7 +12196,6 @@ function ReadableState(options, stream) {
   }
 }
 
-var Duplex;
 function Readable(options) {
   Duplex = Duplex || require('./_stream_duplex');
 
@@ -12438,7 +12518,7 @@ function maybeReadMore_(stream, state) {
 // for virtual (non-string, non-buffer) streams, "length" is somewhat
 // arbitrary, and perhaps not very meaningful.
 Readable.prototype._read = function (n) {
-  this.emit('error', new Error('not implemented'));
+  this.emit('error', new Error('_read() is not implemented'));
 };
 
 Readable.prototype.pipe = function (dest, pipeOpts) {
@@ -12616,16 +12696,16 @@ Readable.prototype.unpipe = function (dest) {
     state.pipesCount = 0;
     state.flowing = false;
 
-    for (var _i = 0; _i < len; _i++) {
-      dests[_i].emit('unpipe', this);
+    for (var i = 0; i < len; i++) {
+      dests[i].emit('unpipe', this);
     }return this;
   }
 
   // try to find the right one.
-  var i = indexOf(state.pipes, dest);
-  if (i === -1) return this;
+  var index = indexOf(state.pipes, dest);
+  if (index === -1) return this;
 
-  state.pipes.splice(i, 1);
+  state.pipes.splice(index, 1);
   state.pipesCount -= 1;
   if (state.pipesCount === 1) state.pipes = state.pipes[0];
 
@@ -13010,7 +13090,6 @@ function Transform(options) {
 
   this._transformState = new TransformState(this);
 
-  // when the writable side finishes, then flush out anything remaining.
   var stream = this;
 
   // start out asking for a readable event once data is transformed.
@@ -13027,9 +13106,10 @@ function Transform(options) {
     if (typeof options.flush === 'function') this._flush = options.flush;
   }
 
+  // When the writable side finishes, then flush out anything remaining.
   this.once('prefinish', function () {
-    if (typeof this._flush === 'function') this._flush(function (er) {
-      done(stream, er);
+    if (typeof this._flush === 'function') this._flush(function (er, data) {
+      done(stream, er, data);
     });else done(stream);
   });
 }
@@ -13050,7 +13130,7 @@ Transform.prototype.push = function (chunk, encoding) {
 // an error, then that'll put the hurt on the whole operation.  If you
 // never call cb(), then you'll never get another chunk.
 Transform.prototype._transform = function (chunk, encoding, cb) {
-  throw new Error('Not implemented');
+  throw new Error('_transform() is not implemented');
 };
 
 Transform.prototype._write = function (chunk, encoding, cb) {
@@ -13080,8 +13160,10 @@ Transform.prototype._read = function (n) {
   }
 };
 
-function done(stream, er) {
+function done(stream, er, data) {
   if (er) return stream.emit('error', er);
+
+  if (data !== null && data !== undefined) stream.push(data);
 
   // if there's nothing in the write buffer, then that means
   // that nothing more will ever be provided
@@ -13110,6 +13192,10 @@ var processNextTick = require('process-nextick-args');
 
 /*<replacement>*/
 var asyncWrite = !process.browser && ['v0.10', 'v0.9.'].indexOf(process.version.slice(0, 5)) > -1 ? setImmediate : processNextTick;
+/*</replacement>*/
+
+/*<replacement>*/
+var Duplex;
 /*</replacement>*/
 
 Writable.WritableState = WritableState;
@@ -13152,7 +13238,6 @@ function WriteReq(chunk, encoding, cb) {
   this.next = null;
 }
 
-var Duplex;
 function WritableState(options, stream) {
   Duplex = Duplex || require('./_stream_duplex');
 
@@ -13174,6 +13259,7 @@ function WritableState(options, stream) {
   // cast to ints.
   this.highWaterMark = ~ ~this.highWaterMark;
 
+  // drain event flag.
   this.needDrain = false;
   // at the start of calling end()
   this.ending = false;
@@ -13248,7 +13334,7 @@ function WritableState(options, stream) {
   this.corkedRequestsFree = new CorkedRequest(this);
 }
 
-WritableState.prototype.getBuffer = function writableStateGetBuffer() {
+WritableState.prototype.getBuffer = function getBuffer() {
   var current = this.bufferedRequest;
   var out = [];
   while (current) {
@@ -13268,13 +13354,37 @@ WritableState.prototype.getBuffer = function writableStateGetBuffer() {
   } catch (_) {}
 })();
 
-var Duplex;
+// Test _writableState for inheritance to account for Duplex streams,
+// whose prototype chain only points to Readable.
+var realHasInstance;
+if (typeof Symbol === 'function' && Symbol.hasInstance && typeof Function.prototype[Symbol.hasInstance] === 'function') {
+  realHasInstance = Function.prototype[Symbol.hasInstance];
+  Object.defineProperty(Writable, Symbol.hasInstance, {
+    value: function (object) {
+      if (realHasInstance.call(this, object)) return true;
+
+      return object && object._writableState instanceof WritableState;
+    }
+  });
+} else {
+  realHasInstance = function (object) {
+    return object instanceof this;
+  };
+}
+
 function Writable(options) {
   Duplex = Duplex || require('./_stream_duplex');
 
-  // Writable ctor is applied to Duplexes, though they're not
-  // instanceof Writable, they're instanceof Readable.
-  if (!(this instanceof Writable) && !(this instanceof Duplex)) return new Writable(options);
+  // Writable ctor is applied to Duplexes, too.
+  // `realHasInstance` is necessary because using plain `instanceof`
+  // would return false, as no `_writableState` property is attached.
+
+  // Trying to use the custom `instanceof` for Writable here will also break the
+  // Node.js LazyTransform implementation, which has a non-trivial getter for
+  // `_writableState` that would lead to infinite recursion.
+  if (!realHasInstance.call(Writable, this) && !(this instanceof Duplex)) {
+    return new Writable(options);
+  }
 
   this._writableState = new WritableState(options, this);
 
@@ -13534,7 +13644,7 @@ function clearBuffer(stream, state) {
 }
 
 Writable.prototype._write = function (chunk, encoding, cb) {
-  cb(new Error('not implemented'));
+  cb(new Error('_write() is not implemented'));
 };
 
 Writable.prototype._writev = null;
@@ -15117,10 +15227,10 @@ exports.setFetch = setFetch;
 exports.request = request;
 
 Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  'use strict';
+  "use strict";
 
   if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, '$asyncbind', {
+    Object.defineProperty(Function.prototype, "$asyncbind", {
       value: $asyncbind,
       enumerable: false,
       configurable: true,
@@ -15129,10 +15239,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   }
 
   if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e) {
+    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
       return function b(q) {
         while (q) {
-          if (q.then) return q.then(b, e);
+          if (q.then) {
+            q = q.then(b, e);
+            return u ? undefined : q;
+          }
 
           try {
             if (q.pop) {
@@ -15150,13 +15263,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   if (!$asyncbind.LazyThenable) {
     $asyncbind.LazyThenable = function () {
       function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === 'function';
+        return obj && obj instanceof Object && typeof obj.then === "function";
       }
 
       function resolution(p, r, how) {
         try {
           var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError('Promise resolution loop'));
+          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
 
           if (isThenable(x)) {
             x.then(function (y) {
@@ -15224,7 +15337,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
     }();
 
     $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === 'object' && process.nextTick || typeof setImmediate === 'function' && setImmediate || function (f) {
+      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
         setTimeout(f, 0);
       };
 
@@ -15265,15 +15378,15 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       Zousan.prototype = {
         resolve: function resolve(value) {
           if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError('Attempt to resolve promise with self'));
+          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
           var me = this;
 
-          if (value && (typeof value === 'function' || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object')) {
+          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
             try {
               var first = 0;
               var then = value.then;
 
-              if (typeof then === 'function') {
+              if (typeof then === "function") {
                 then.call(value, function (ra) {
                   if (!first++) {
                     me.resolve(ra);
@@ -15333,7 +15446,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       };
 
       function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === 'function') {
+        if (typeof c.y === "function") {
           try {
             var yret = c.y.call(undefined, arg);
             c.p.resolve(yret);
@@ -15344,7 +15457,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       }
 
       function STATE_REJECTED(c, reason) {
-        if (typeof c.n === 'function') {
+        if (typeof c.n === "function") {
           try {
             var yret = c.n.call(undefined, reason);
             c.p.resolve(yret);
@@ -15368,7 +15481,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
         return z;
       };
 
-      Zousan.version = '2.3.2-nodent';
+      Zousan.version = "2.3.2-nodent";
       return Zousan;
     })();
   }
@@ -15455,7 +15568,7 @@ function request(options) {
           return $return(parseResult(resText));
         } else {
           resJson = parseResult(resText);
-          if (resJson.error) {
+          if (typeof resJson === 'object' && resJson != null && resJson.error != null) {
             return $error(new Error(resJson.error));
           } else {
             return $error(new Error(resText));
@@ -15501,10 +15614,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  'use strict';
+  "use strict";
 
   if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, '$asyncbind', {
+    Object.defineProperty(Function.prototype, "$asyncbind", {
       value: $asyncbind,
       enumerable: false,
       configurable: true,
@@ -15513,10 +15626,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   }
 
   if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e) {
+    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
       return function b(q) {
         while (q) {
-          if (q.then) return q.then(b, e);
+          if (q.then) {
+            q = q.then(b, e);
+            return u ? undefined : q;
+          }
 
           try {
             if (q.pop) {
@@ -15534,13 +15650,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   if (!$asyncbind.LazyThenable) {
     $asyncbind.LazyThenable = function () {
       function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === 'function';
+        return obj && obj instanceof Object && typeof obj.then === "function";
       }
 
       function resolution(p, r, how) {
         try {
           var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError('Promise resolution loop'));
+          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
 
           if (isThenable(x)) {
             x.then(function (y) {
@@ -15608,7 +15724,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
     }();
 
     $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === 'object' && process.nextTick || typeof setImmediate === 'function' && setImmediate || function (f) {
+      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
         setTimeout(f, 0);
       };
 
@@ -15649,15 +15765,15 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       Zousan.prototype = {
         resolve: function resolve(value) {
           if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError('Attempt to resolve promise with self'));
+          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
           var me = this;
 
-          if (value && (typeof value === 'function' || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object')) {
+          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
             try {
               var first = 0;
               var then = value.then;
 
-              if (typeof then === 'function') {
+              if (typeof then === "function") {
                 then.call(value, function (ra) {
                   if (!first++) {
                     me.resolve(ra);
@@ -15717,7 +15833,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       };
 
       function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === 'function') {
+        if (typeof c.y === "function") {
           try {
             var yret = c.y.call(undefined, arg);
             c.p.resolve(yret);
@@ -15728,7 +15844,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       }
 
       function STATE_REJECTED(c, reason) {
-        if (typeof c.n === 'function') {
+        if (typeof c.n === "function") {
           try {
             var yret = c.n.call(undefined, reason);
             c.p.resolve(yret);
@@ -15752,7 +15868,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
         return z;
       };
 
-      Zousan.version = '2.3.2-nodent';
+      Zousan.version = "2.3.2-nodent";
       return Zousan;
     })();
   }
@@ -16072,10 +16188,10 @@ var _debugDecorator = require('../debug-decorator');
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  'use strict';
+  "use strict";
 
   if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, '$asyncbind', {
+    Object.defineProperty(Function.prototype, "$asyncbind", {
       value: $asyncbind,
       enumerable: false,
       configurable: true,
@@ -16084,10 +16200,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   }
 
   if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e) {
+    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
       return function b(q) {
         while (q) {
-          if (q.then) return q.then(b, e);
+          if (q.then) {
+            q = q.then(b, e);
+            return u ? undefined : q;
+          }
 
           try {
             if (q.pop) {
@@ -16105,13 +16224,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   if (!$asyncbind.LazyThenable) {
     $asyncbind.LazyThenable = function () {
       function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === 'function';
+        return obj && obj instanceof Object && typeof obj.then === "function";
       }
 
       function resolution(p, r, how) {
         try {
           var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError('Promise resolution loop'));
+          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
 
           if (isThenable(x)) {
             x.then(function (y) {
@@ -16179,7 +16298,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
     }();
 
     $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === 'object' && process.nextTick || typeof setImmediate === 'function' && setImmediate || function (f) {
+      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
         setTimeout(f, 0);
       };
 
@@ -16220,15 +16339,15 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       Zousan.prototype = {
         resolve: function resolve(value) {
           if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError('Attempt to resolve promise with self'));
+          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
           var me = this;
 
-          if (value && (typeof value === 'function' || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object')) {
+          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
             try {
               var first = 0;
               var then = value.then;
 
-              if (typeof then === 'function') {
+              if (typeof then === "function") {
                 then.call(value, function (ra) {
                   if (!first++) {
                     me.resolve(ra);
@@ -16288,7 +16407,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       };
 
       function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === 'function') {
+        if (typeof c.y === "function") {
           try {
             var yret = c.y.call(undefined, arg);
             c.p.resolve(yret);
@@ -16299,7 +16418,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       }
 
       function STATE_REJECTED(c, reason) {
-        if (typeof c.n === 'function') {
+        if (typeof c.n === "function") {
           try {
             var yret = c.n.call(undefined, reason);
             c.p.resolve(yret);
@@ -16323,7 +16442,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
         return z;
       };
 
-      Zousan.version = '2.3.2-nodent';
+      Zousan.version = "2.3.2-nodent";
       return Zousan;
     })();
   }
@@ -16626,10 +16745,10 @@ exports.exists = exists;
 exports.send = send;
 
 Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  'use strict';
+  "use strict";
 
   if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, '$asyncbind', {
+    Object.defineProperty(Function.prototype, "$asyncbind", {
       value: $asyncbind,
       enumerable: false,
       configurable: true,
@@ -16638,10 +16757,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   }
 
   if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e) {
+    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
       return function b(q) {
         while (q) {
-          if (q.then) return q.then(b, e);
+          if (q.then) {
+            q = q.then(b, e);
+            return u ? undefined : q;
+          }
 
           try {
             if (q.pop) {
@@ -16659,13 +16781,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   if (!$asyncbind.LazyThenable) {
     $asyncbind.LazyThenable = function () {
       function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === 'function';
+        return obj && obj instanceof Object && typeof obj.then === "function";
       }
 
       function resolution(p, r, how) {
         try {
           var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError('Promise resolution loop'));
+          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
 
           if (isThenable(x)) {
             x.then(function (y) {
@@ -16733,7 +16855,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
     }();
 
     $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === 'object' && process.nextTick || typeof setImmediate === 'function' && setImmediate || function (f) {
+      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
         setTimeout(f, 0);
       };
 
@@ -16774,15 +16896,15 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       Zousan.prototype = {
         resolve: function resolve(value) {
           if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError('Attempt to resolve promise with self'));
+          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
           var me = this;
 
-          if (value && (typeof value === 'function' || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object')) {
+          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
             try {
               var first = 0;
               var then = value.then;
 
-              if (typeof then === 'function') {
+              if (typeof then === "function") {
                 then.call(value, function (ra) {
                   if (!first++) {
                     me.resolve(ra);
@@ -16842,7 +16964,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       };
 
       function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === 'function') {
+        if (typeof c.y === "function") {
           try {
             var yret = c.y.call(undefined, arg);
             c.p.resolve(yret);
@@ -16853,7 +16975,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       }
 
       function STATE_REJECTED(c, reason) {
-        if (typeof c.n === 'function') {
+        if (typeof c.n === "function") {
           try {
             var yret = c.n.call(undefined, reason);
             c.p.resolve(yret);
@@ -16877,7 +16999,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
         return z;
       };
 
-      Zousan.version = '2.3.2-nodent';
+      Zousan.version = "2.3.2-nodent";
       return Zousan;
     })();
   }
@@ -16978,10 +17100,10 @@ var _desc, _value, _class;
 var _debugDecorator = require('./debug-decorator');
 
 Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  'use strict';
+  "use strict";
 
   if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, '$asyncbind', {
+    Object.defineProperty(Function.prototype, "$asyncbind", {
       value: $asyncbind,
       enumerable: false,
       configurable: true,
@@ -16990,10 +17112,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   }
 
   if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e) {
+    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
       return function b(q) {
         while (q) {
-          if (q.then) return q.then(b, e);
+          if (q.then) {
+            q = q.then(b, e);
+            return u ? undefined : q;
+          }
 
           try {
             if (q.pop) {
@@ -17011,13 +17136,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   if (!$asyncbind.LazyThenable) {
     $asyncbind.LazyThenable = function () {
       function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === 'function';
+        return obj && obj instanceof Object && typeof obj.then === "function";
       }
 
       function resolution(p, r, how) {
         try {
           var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError('Promise resolution loop'));
+          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
 
           if (isThenable(x)) {
             x.then(function (y) {
@@ -17085,7 +17210,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
     }();
 
     $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === 'object' && process.nextTick || typeof setImmediate === 'function' && setImmediate || function (f) {
+      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
         setTimeout(f, 0);
       };
 
@@ -17126,15 +17251,15 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       Zousan.prototype = {
         resolve: function resolve(value) {
           if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError('Attempt to resolve promise with self'));
+          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
           var me = this;
 
-          if (value && (typeof value === 'function' || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object')) {
+          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
             try {
               var first = 0;
               var then = value.then;
 
-              if (typeof then === 'function') {
+              if (typeof then === "function") {
                 then.call(value, function (ra) {
                   if (!first++) {
                     me.resolve(ra);
@@ -17194,7 +17319,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       };
 
       function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === 'function') {
+        if (typeof c.y === "function") {
           try {
             var yret = c.y.call(undefined, arg);
             c.p.resolve(yret);
@@ -17205,7 +17330,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       }
 
       function STATE_REJECTED(c, reason) {
-        if (typeof c.n === 'function') {
+        if (typeof c.n === "function") {
           try {
             var yret = c.n.call(undefined, reason);
             c.p.resolve(yret);
@@ -17229,7 +17354,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
         return z;
       };
 
-      Zousan.version = '2.3.2-nodent';
+      Zousan.version = "2.3.2-nodent";
       return Zousan;
     })();
   }
@@ -17354,7 +17479,8 @@ var FallbackTransport = (_class = function () {
 
         try {
           _iterator = this.transports[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_9_exit, $Loop_9_step, $Try_1_Catch)($Loop_9);
+          return Function.$asyncbind.trampoline(this, $Loop_9_exit, $Loop_9_step, $Try_1_Catch, true)($Loop_9);
+
           function $Loop_9() {
             if (!(_iteratorNormalCompletion = (_step = _iterator.next()).done)) {
               transport = _step.value;
@@ -17433,7 +17559,8 @@ var FallbackTransport = (_class = function () {
         }.$asyncbind(this, $Try_5_Finally($error));
         try {
           _iterator2 = this._availableTransports[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_11_exit, $Loop_11_step, $Try_5_Catch)($Loop_11);
+          return Function.$asyncbind.trampoline(this, $Loop_11_exit, $Loop_11_step, $Try_5_Catch, true)($Loop_11);
+
           function $Loop_11() {
             if (!(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done)) {
               transport = _step2.value;
@@ -17692,10 +17819,10 @@ var _desc, _value, _class;
 var _debugDecorator = require('./debug-decorator');
 
 Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  'use strict';
+  "use strict";
 
   if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, '$asyncbind', {
+    Object.defineProperty(Function.prototype, "$asyncbind", {
       value: $asyncbind,
       enumerable: false,
       configurable: true,
@@ -17704,10 +17831,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   }
 
   if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e) {
+    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
       return function b(q) {
         while (q) {
-          if (q.then) return q.then(b, e);
+          if (q.then) {
+            q = q.then(b, e);
+            return u ? undefined : q;
+          }
 
           try {
             if (q.pop) {
@@ -17725,13 +17855,13 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
   if (!$asyncbind.LazyThenable) {
     $asyncbind.LazyThenable = function () {
       function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === 'function';
+        return obj && obj instanceof Object && typeof obj.then === "function";
       }
 
       function resolution(p, r, how) {
         try {
           var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError('Promise resolution loop'));
+          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
 
           if (isThenable(x)) {
             x.then(function (y) {
@@ -17799,7 +17929,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
     }();
 
     $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === 'object' && process.nextTick || typeof setImmediate === 'function' && setImmediate || function (f) {
+      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
         setTimeout(f, 0);
       };
 
@@ -17840,15 +17970,15 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       Zousan.prototype = {
         resolve: function resolve(value) {
           if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError('Attempt to resolve promise with self'));
+          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
           var me = this;
 
-          if (value && (typeof value === 'function' || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object')) {
+          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
             try {
               var first = 0;
               var then = value.then;
 
-              if (typeof then === 'function') {
+              if (typeof then === "function") {
                 then.call(value, function (ra) {
                   if (!first++) {
                     me.resolve(ra);
@@ -17908,7 +18038,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       };
 
       function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === 'function') {
+        if (typeof c.y === "function") {
           try {
             var yret = c.y.call(undefined, arg);
             c.p.resolve(yret);
@@ -17919,7 +18049,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
       }
 
       function STATE_REJECTED(c, reason) {
-        if (typeof c.n === 'function') {
+        if (typeof c.n === "function") {
           try {
             var yret = c.n.call(undefined, reason);
             c.p.resolve(yret);
@@ -17943,7 +18073,7 @@ Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
         return z;
       };
 
-      Zousan.version = '2.3.2-nodent';
+      Zousan.version = "2.3.2-nodent";
       return Zousan;
     })();
   }
@@ -18102,7 +18232,8 @@ var ParallelTransport = (_class = function () {
 
         try {
           _iterator = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_13_exit, $Loop_13_step, $Try_1_Catch)($Loop_13);
+          return Function.$asyncbind.trampoline(this, $Loop_13_exit, $Loop_13_step, $Try_1_Catch, true)($Loop_13);
+
           function $Loop_13() {
             if (!(_iteratorNormalCompletion = (_step = _iterator.next()).done)) {
               name = _step.value;
@@ -18154,9 +18285,7 @@ var ParallelTransport = (_class = function () {
           });
 
           return Promise.race(promises).then(function ($await_24) {
-            _ref = $await_24;
-            name = _ref.name;
-            devices = _ref.devices;
+            _ref = $await_24, name = _ref.name, devices = _ref.devices;
 
 
             antiFiltered = this._antiFilter(name, actualOld);
@@ -18174,13 +18303,10 @@ var ParallelTransport = (_class = function () {
         throw new Error('Wrong input');
       }
 
-      var _input$split = input.split('-');
-
-      var _input$split2 = _toArray(_input$split);
-
-      var name = _input$split2[0];
-
-      var restArray = _input$split2.slice(1);
+      var _input$split = input.split('-'),
+          _input$split2 = _toArray(_input$split),
+          name = _input$split2[0],
+          restArray = _input$split2.slice(1);
 
       if (restArray.length === 0) {
         throw new Error('Input has to contain transport name.');
@@ -18300,7 +18426,8 @@ var ParallelTransport = (_class = function () {
         }.$asyncbind(this, $Try_6_Finally($error));
         try {
           _iterator3 = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_16_exit, $Loop_16_step, $Try_6_Catch)($Loop_16);
+          return Function.$asyncbind.trampoline(this, $Loop_16_exit, $Loop_16_step, $Try_6_Catch, true)($Loop_16);
+
           function $Loop_16() {
             if (!(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done)) {
               name = _step3.value;
@@ -18378,7 +18505,8 @@ var ParallelTransport = (_class = function () {
         }.$asyncbind(this, $Try_9_Finally($error));
         try {
           _iterator4 = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_18_exit, $Loop_18_step, $Try_9_Catch)($Loop_18);
+          return Function.$asyncbind.trampoline(this, $Loop_18_exit, $Loop_18_step, $Try_9_Catch, true)($Loop_18);
+
           function $Loop_18() {
             if (!(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done)) {
               name = _step4.value;
@@ -18568,6 +18696,12 @@ function Hex (value) {
   return typeof value === 'string' && /^([0-9a-f]{2})+$/i.test(value)
 }
 
+function HexN (length) {
+  return function HexN (value) {
+    return Hex(value) && value.length === length
+  }
+}
+
 var UINT53_MAX = Math.pow(2, 53) - 1
 
 function Int8 (value) { return ((value << 24) >> 24) === value }
@@ -18587,6 +18721,7 @@ module.exports = {
   Buffer: _Buffer,
   BufferN: BufferN,
   Hex: Hex,
+  HexN: HexN,
   Int8: Int8,
   Int16: Int16,
   Int32: Int32,
@@ -18753,7 +18888,7 @@ var types = {
         } catch (e) {
           throw tfSubError(e, i)
         }
-      })
+      }) && (!strict || values.length === arguments.length)
     }
     _tuple.toJSON = function () { return '(' + types.map(tfJSON).join(', ') + ')' }
 
