@@ -16,7 +16,10 @@ export {default as DescriptorStream} from './descriptor-stream';
 export {default as DeviceList} from './device-list';
 
 DeviceList._setTransport(() => new Fallback([new Extension(), new Bridge()]));
+
+import {setFetch as installersSetFetch} from './installers';
 DeviceList._setFetch(window.fetch);
+installersSetFetch(window.fetch);
 
 export {
     installers,
