@@ -1531,7 +1531,9 @@ var Bridge = _trezorLink2.default.Bridge,
 _deviceList2.default._setTransport(function () {
     return new Fallback([new Extension(), new Bridge()]);
 });
+
 _deviceList2.default._setFetch(window.fetch);
+(0, _installers.setFetch)(window.fetch);
 },{"./descriptor-stream":1,"./device":3,"./device-list":2,"./installers":7,"./session":8,"./unacquired-device":10,"trezor-link":95,"unorm":101,"whatwg-fetch":107}],7:[function(require,module,exports){
 'use strict';
 
