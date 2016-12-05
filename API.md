@@ -41,6 +41,13 @@ The config should be available either on [github](https://github.com/trezor/webw
     * if it's null, it means no transport layer was yet set up -- or the setup failed (nothing installed).
     * you can look at the `deviceList.transport.version` property, you can read the version as a string
 
+
+`DeviceList` has following methods:
+
+| method | parameters | return type | description |
+|--------|-----------|--------------|-------------|
+| `acquireFirstDevice` | rejectOnEmpty&nbsp;?boolean | Promise<Device> | Easiest way of acquiring and getting the first device.<br>First parameter is optional - if true, rejects on empty list. |
+
 See [multitasking](#multitasking) for info on acquiring.
 
 If you don't want to deal with acquired/unacquired/... devices, and you "just" want to use the first TREZOR, you can use the function `deviceList.acquireFirstDevice`, which will take first device currently connected, acquire it and *never* release it, and returns the Device and the Session objects. Other applications will then have to steal it to use it.
