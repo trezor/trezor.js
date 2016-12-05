@@ -596,7 +596,9 @@ var DeviceList = function (_EventEmitter) {
 
     }, {
         key: 'stealFirstDevice',
-        value: function stealFirstDevice() {
+        value: function stealFirstDevice(rejectOnEmpty) {
+            var _this7 = this;
+
             var devices = this.asArray();
             if (devices.length > 0) {
                 return Promise.resolve(devices[0]);
@@ -605,18 +607,30 @@ var DeviceList = function (_EventEmitter) {
             if (unacquiredDevices.length > 0) {
                 return unacquiredDevices[0].steal();
             }
-            return Promise.reject(new Error('No device connected'));
+            if (rejectOnEmpty) {
+                return Promise.reject(new Error('No device connected'));
+            } else {
+                return new Promise(function (resolve, reject) {
+                    _this7.connectEvent.once(function () {
+                        _this7.stealFirstDevice().then(function (d) {
+                            return resolve(d);
+                        }, function (e) {
+                            return reject(e);
+                        });
+                    });
+                });
+            }
         }
 
         // steals the first devices, acquires it and *never* releases it until the window is closed
 
     }, {
         key: 'acquireFirstDevice',
-        value: function acquireFirstDevice() {
-            var _this7 = this;
+        value: function acquireFirstDevice(rejectOnEmpty) {
+            var _this8 = this;
 
             return new Promise(function (resolve, reject) {
-                _this7.stealFirstDevice().then(function (device) {
+                _this8.stealFirstDevice(rejectOnEmpty).then(function (device) {
                     device.run(function (session) {
                         resolve({ device: device, session: session });
                         // this "inside" promise never resolves or rejects
