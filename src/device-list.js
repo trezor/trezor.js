@@ -408,7 +408,7 @@ export default class DeviceList extends EventEmitter {
     }
 
     // If there is at least one physical device connected, returns it, steals it if necessary
-    stealFirstDevice(): Promise<Device> {
+    stealFirstDevice(rejectOnEmpty?: ?boolean): Promise<Device> {
         const devices = this.asArray();
         if (devices.length > 0) {
             return Promise.resolve(devices[0]);
@@ -417,13 +417,21 @@ export default class DeviceList extends EventEmitter {
         if (unacquiredDevices.length > 0) {
             return unacquiredDevices[0].steal();
         }
-        return Promise.reject(new Error('No device connected'));
+        if (rejectOnEmpty) {
+            return Promise.reject(new Error('No device connected'));
+        } else {
+            return new Promise((resolve, reject) => {
+                this.connectEvent.once(() => {
+                    this.stealFirstDevice().then(d => resolve(d), e => reject(e));
+                });
+            });
+        }
     }
 
     // steals the first devices, acquires it and *never* releases it until the window is closed
-    acquireFirstDevice(): Promise<{device: Device, session: Session}> {
+    acquireFirstDevice(rejectOnEmpty?: ?boolean): Promise<{device: Device, session: Session}> {
         return new Promise((resolve, reject) => {
-            this.stealFirstDevice().then(
+            this.stealFirstDevice(rejectOnEmpty).then(
                 (device) => {
                     device.run(session => {
                         resolve({device, session});
