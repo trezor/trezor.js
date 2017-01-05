@@ -40,6 +40,8 @@ export type ResetDeviceSettings = {
     pin_protection?: boolean;
     language?: string;
     label?: string;
+
+    u2f_counter?: number;
 };
 
 export type HDPrivNode = {
@@ -70,6 +72,8 @@ export type LoadDeviceSettings = {
     mnemonic?: string;
     node?: HDNode;
     payload?: string; // will be converted
+
+    u2f_counter?: number;
 };
 
 export type RecoverDeviceSettings = {
@@ -79,6 +83,8 @@ export type RecoverDeviceSettings = {
     language?: string;
     label?: string;
     enforce_wordlist?: boolean;
+
+    u2f_counter?: number;
 };
 
 export type ApplySettings = {
