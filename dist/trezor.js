@@ -1539,11 +1539,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var Bridge = _trezorLink2.default.Bridge,
     Extension = _trezorLink2.default.Extension,
+    Lowlevel = _trezorLink2.default.Lowlevel,
+    WebUsb = _trezorLink2.default.WebUsb,
     Fallback = _trezorLink2.default.Fallback;
 
 
 _deviceList2.default._setTransport(function () {
-    return new Fallback([new Extension(), new Bridge()]);
+    return new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb())]);
 });
 
 _deviceList2.default._setFetch(window.fetch);
