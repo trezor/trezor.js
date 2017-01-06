@@ -263,10 +263,12 @@ var DeviceList = function (_EventEmitter) {
 
 
         _this.options = options || {};
+        _this.requestNeeded = false;
 
         _this.transportEvent.on(function (transport) {
             _this.transport = transport;
             _this.transportLoading = false;
+            _this.requestNeeded = transport.requestNeeded;
 
             _this._initStream(transport);
         });
@@ -284,6 +286,14 @@ var DeviceList = function (_EventEmitter) {
     }
 
     _createClass(DeviceList, [{
+        key: 'requestDevice',
+        value: function requestDevice() {
+            if (this.transport == null) {
+                return Promise.reject();
+            }
+            return this.transport.requestDevice();
+        }
+    }, {
         key: 'asArray',
         value: function asArray() {
             return objectValues(this.devices);
@@ -26512,6 +26522,7 @@ var BridgeTransport = (_class = function () {
     this.version = '';
     this.configured = false;
     this.debug = false;
+    this.requestNeeded = false;
 
     this.url = url == null ? DEFAULT_URL : url;
     this.newestVersionUrl = newestVersionUrl == null ? DEFAULT_VERSION_URL : newestVersionUrl;
@@ -26663,6 +26674,11 @@ var BridgeTransport = (_class = function () {
           return $return(check.call(res));
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
+    }
+  }, {
+    key: 'requestDevice',
+    value: function requestDevice() {
+      return Promise.reject();
     }
   }], [{
     key: 'setFetch',
@@ -27146,6 +27162,7 @@ var ChromeExtensionTransport = (_class = function () {
     this.configured = false;
     this.showUdevError = false;
     this.debug = false;
+    this.requestNeeded = false;
 
     this.id = id == null ? EXTENSION_ID : id;
   }
@@ -27336,6 +27353,11 @@ var ChromeExtensionTransport = (_class = function () {
           return $return(check.call(res));
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
+    }
+  }, {
+    key: 'requestDevice',
+    value: function requestDevice() {
+      return Promise.reject();
     }
   }]);
 
@@ -28042,6 +28064,7 @@ var FallbackTransport = (_class = function () {
     this.name = 'FallbackTransport';
     this.activeName = '';
     this.debug = false;
+    this.requestNeeded = false;
 
     this.transports = transports;
   }
@@ -28237,6 +28260,7 @@ var FallbackTransport = (_class = function () {
           this.configured = this.activeTransport.configured;
           this.version = this.activeTransport.version;
           this.activeName = this.activeTransport.name;
+          this.requestNeeded = this.activeTransport.requestNeeded;
           return $return();
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
@@ -28277,6 +28301,13 @@ var FallbackTransport = (_class = function () {
     value: function call(session, name, data) {
       return new Promise(function ($return, $error) {
         return $return(this.activeTransport.call(session, name, data));
+      }.$asyncbind(this));
+    }
+  }, {
+    key: 'requestDevice',
+    value: function requestDevice() {
+      return new Promise(function ($return, $error) {
+        return $return(this.activeTransport.requestDevice());
       }.$asyncbind(this));
     }
   }]);
@@ -28820,6 +28851,7 @@ var LowlevelTransport = (_class = function () {
     this.reverse = {};
     this.configured = false;
     this._lastStringified = '';
+    this.requestNeeded = false;
 
     this.plugin = plugin;
     this.version = plugin.version;
@@ -28853,8 +28885,7 @@ var LowlevelTransport = (_class = function () {
           return _this.plugin.enumerate().then(function ($await_2) {
             devices = $await_2;
             devicesWithSessions = devices.map(function (device) {
-              var canGrab = device.canGrab;
-              var session = canGrab ? _this.connections[device.path] : 'virtual-' + device.path;
+              var session = _this.connections[device.path];
               return {
                 path: device.path,
                 session: session
@@ -29072,7 +29103,15 @@ var LowlevelTransport = (_class = function () {
     value: function init(debug) {
       return new Promise(function ($return, $error) {
         this.debug = !!debug;
+        this.requestNeeded = this.plugin.requestNeeded;
         return $return(this.plugin.init(debug));
+      }.$asyncbind(this));
+    }
+  }, {
+    key: 'requestDevice',
+    value: function requestDevice() {
+      return new Promise(function ($return, $error) {
+        return $return(this.plugin.requestDevice());
       }.$asyncbind(this));
     }
   }]);
@@ -31387,11 +31426,12 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.79";
+    this.version = "0.2.80";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.devices = {};
     this.lastPath = 0;
+    this.requestNeeded = true;
   }
 
   _createClass(WebUsbPlugin, [{
@@ -31425,26 +31465,23 @@ var WebUsbPlugin = (_class = function () {
           if (isTrezor) {
             var isPresent = false;
             var _path = '';
-            var _canGrab = false;
             Object.keys(_this.devices).forEach(function (kpath) {
-              if (_this.devices[kpath].device === dev) {
+              if (_this.devices[kpath] === dev) {
                 isPresent = true;
                 _path = kpath;
-                _canGrab = _this.devices[kpath].requested;
               }
             });
             if (!isPresent) {
               _this.lastPath++;
-              _this.devices[_this.lastPath.toString()] = { device: dev, requested: false };
+              _this.devices[_this.lastPath.toString()] = dev;
               _path = _this.lastPath.toString();
-              _canGrab = false;
             }
-            res.push({ path: _path, canGrab: _canGrab });
+            res.push({ path: _path });
           }
         });
         Object.keys(_this.devices).forEach(function (kpath) {
           var isPresent = devices.some(function (device) {
-            return _this.devices[kpath].device === device;
+            return _this.devices[kpath] === device;
           });
           if (!isPresent) {
             delete _this.devices[kpath];
@@ -31461,7 +31498,7 @@ var WebUsbPlugin = (_class = function () {
         return Promise.reject(new Error('Device not found'));
       }
 
-      var uDevice = device.device;
+      var uDevice = device;
 
       var newArray = new Uint8Array(64);
       newArray[0] = 63;
@@ -31477,53 +31514,26 @@ var WebUsbPlugin = (_class = function () {
         return Promise.reject(new Error('Device not found'));
       }
 
-      var uDevice = device.device;
+      var uDevice = device;
 
       return uDevice.transferIn(2, 64).then(function (result) {
         return result.data.buffer;
       });
     }
   }, {
-    key: 'request',
-    value: function request(path) {
-      var _this2 = this;
-
-      return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function (device) {
-        // idiotic thing - the requested path should match the path in this.devices
-        // but I cannot really say what the user selected!
-        // So I fake it by changing the order in this.devices
-        Object.keys(_this2.devices).forEach(function (kpath) {
-          if (_this2.devices[kpath].device === device) {
-            if (kpath !== path) {
-              var sw = _this2.devices[path];
-              _this2.devices[path] = { device: device, requested: true };
-              _this2.devices[kpath] = sw;
-            } else {
-              _this2.devices[path].requested = true;
-            }
-          }
-        });
-        return device;
-      });
-    }
-  }, {
     key: 'connect',
     value: function connect(path) {
-      var preReqDevice = this.devices[path];
-      if (preReqDevice == null) {
+      var device = this.devices[path];
+      if (device == null) {
         return Promise.reject(new Error('Device not present.'));
       }
 
-      var deviceP = preReqDevice.requested ? Promise.resolve(preReqDevice.device) : this.request(path);
-
-      return deviceP.then(function (device) {
-        return device.open().then(function () {
-          return device.reset();
-        }).then(function () {
-          return device.selectConfiguration(1);
-        }).then(function () {
-          return device.claimInterface(2);
-        });
+      return device.open().then(function () {
+        return device.reset();
+      }).then(function () {
+        return device.selectConfiguration(1);
+      }).then(function () {
+        return device.claimInterface(2);
       }).then(function () {
         return path;
       }); // path == session, why not?
@@ -31536,9 +31546,15 @@ var WebUsbPlugin = (_class = function () {
         return Promise.reject(new Error('Device not present.'));
       }
 
-      return device.device.releaseInterface(2).then(function () {
-        return device.device.close();
+      return device.releaseInterface(2).then(function () {
+        return device.close();
       });
+    }
+  }, {
+    key: 'requestDevice',
+    value: function requestDevice() {
+      // I am throwing away the resulting device, since it appears in enumeration anyway
+      return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function () {});
     }
   }]);
 
@@ -31902,6 +31918,7 @@ var ParallelTransport = (_class = function () {
 
     this.name = 'ParallelTransport';
     this.debug = false;
+    this.requestNeeded = false;
 
     this.transports = transports;
   }
@@ -31980,25 +31997,25 @@ var ParallelTransport = (_class = function () {
 
         try {
           _iterator = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_13_exit, $Loop_13_step, $Try_1_Catch, true)($Loop_13);
+          return Function.$asyncbind.trampoline(this, $Loop_16_exit, $Loop_16_step, $Try_1_Catch, true)($Loop_16);
 
-          function $Loop_13() {
+          function $Loop_16() {
             if (!(_iteratorNormalCompletion = (_step = _iterator.next()).done)) {
               name = _step.value;
-              return this.transports[name].enumerate().then(function ($await_20) {
-                devices = $await_20;
+              return this.transports[name].enumerate().then(function ($await_23) {
+                devices = $await_23;
                 res.push.apply(res, _toConsumableArray(this._prepend(name, devices)));
-                return $Loop_13_step;
+                return $Loop_16_step;
               }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
             } else return [1];
           }
 
-          function $Loop_13_step() {
+          function $Loop_16_step() {
             _iteratorNormalCompletion = true;
-            return $Loop_13;
+            return $Loop_16;
           }
 
-          function $Loop_13_exit() {
+          function $Loop_16_exit() {
             return $Try_1_Finally($Try_1_Post).call(this);
           }
         } catch (err) {
@@ -32017,23 +32034,23 @@ var ParallelTransport = (_class = function () {
           if (old == null) {
             return this.enumerate().then($return, $error);
           }return $return(old);
-        }.$asyncbind(this)).then(function ($await_22) {
-          actualOld = $await_22;
+        }.$asyncbind(this)).then(function ($await_25) {
+          actualOld = $await_25;
 
           promises = Object.keys(this.transports).map(function (name) {
             return new Promise(function ($return, $error) {
               var oldFiltered, devices;
 
               oldFiltered = _this3._filter(name, actualOld);
-              return _this3.transports[name].listen(oldFiltered).then(function ($await_23) {
-                devices = $await_23;
+              return _this3.transports[name].listen(oldFiltered).then(function ($await_26) {
+                devices = $await_26;
                 return $return({ name: name, devices: devices });
               }.$asyncbind(this, $error), $error);
             }.$asyncbind(this));
           });
 
-          return Promise.race(promises).then(function ($await_24) {
-            _ref = $await_24, name = _ref.name, devices = _ref.devices;
+          return Promise.race(promises).then(function ($await_27) {
+            _ref = $await_27, name = _ref.name, devices = _ref.devices;
 
 
             antiFiltered = this._antiFilter(name, actualOld);
@@ -32087,8 +32104,8 @@ var ParallelTransport = (_class = function () {
           previous: previous == null ? null : previous.rest,
           checkPrevious: input.checkPrevious
         };
-        return path.transport.acquire(newInput).then(function ($await_25) {
-          res = $await_25;
+        return path.transport.acquire(newInput).then(function ($await_28) {
+          res = $await_28;
           return $return(path.name + '-' + res);
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
@@ -32175,25 +32192,25 @@ var ParallelTransport = (_class = function () {
         }.$asyncbind(this, $Try_6_Finally($error));
         try {
           _iterator3 = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_16_exit, $Loop_16_step, $Try_6_Catch, true)($Loop_16);
+          return Function.$asyncbind.trampoline(this, $Loop_19_exit, $Loop_19_step, $Try_6_Catch, true)($Loop_19);
 
-          function $Loop_16() {
+          function $Loop_19() {
             if (!(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done)) {
               name = _step3.value;
 
               transport = this.transports[name];
-              return transport.configure(signedData).then(function ($await_26) {
-                return $Loop_16_step;
+              return transport.configure(signedData).then(function ($await_29) {
+                return $Loop_19_step;
               }.$asyncbind(this, $Try_6_Catch), $Try_6_Catch);
             } else return [1];
           }
 
-          function $Loop_16_step() {
+          function $Loop_19_step() {
             _iteratorNormalCompletion3 = true;
-            return $Loop_16;
+            return $Loop_19;
           }
 
-          function $Loop_16_exit() {
+          function $Loop_19_exit() {
             return $Try_6_Finally($Try_6_Post).call(this);
           }
         } catch (err) {
@@ -32255,30 +32272,83 @@ var ParallelTransport = (_class = function () {
         }.$asyncbind(this, $Try_9_Finally($error));
         try {
           _iterator4 = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_18_exit, $Loop_18_step, $Try_9_Catch, true)($Loop_18);
+          return Function.$asyncbind.trampoline(this, $Loop_21_exit, $Loop_21_step, $Try_9_Catch, true)($Loop_21);
 
-          function $Loop_18() {
+          function $Loop_21() {
             if (!(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done)) {
               name = _step4.value;
 
               transport = this.transports[name];
-              return transport.init(debug).then(function ($await_27) {
+              return transport.init(debug).then(function ($await_30) {
                 version = version + (name + ':' + transport.version + ';');
-                return $Loop_18_step;
+                if (transport.requestNeeded) {
+                  this.requestNeeded = transport.requestNeeded;
+                }
+                return $Loop_21_step;
               }.$asyncbind(this, $Try_9_Catch), $Try_9_Catch);
             } else return [1];
           }
 
-          function $Loop_18_step() {
+          function $Loop_21_step() {
             _iteratorNormalCompletion4 = true;
-            return $Loop_18;
+            return $Loop_21;
           }
 
-          function $Loop_18_exit() {
+          function $Loop_21_exit() {
             return $Try_9_Finally($Try_9_Post).call(this);
           }
         } catch (err) {
           $Try_9_Catch(err)
+        }
+      }.$asyncbind(this));
+    }
+  }, {
+    key: 'requestDevice',
+    value: function requestDevice() {
+      return new Promise(function ($return, $error) {
+        var $Try_12_Finally = function ($Try_12_Exit) {
+          return function ($Try_12_Value) {
+            try {
+              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                _iterator5.return();
+              }
+            } catch ($exception_14) {
+              return $Try_13_Finally($error)($exception_14);
+            } finally {
+              if (_didIteratorError5) {
+                return $error(_iteratorError5);
+              }
+            }
+
+            return $Try_12_Exit && $Try_12_Exit.call(this, $Try_12_Value);
+          }.$asyncbind(this, $error);
+        }.$asyncbind(this);
+
+        var _iteratorNormalCompletion5 = true;
+        var _didIteratorError5 = false;
+        var _iteratorError5 = undefined;
+
+        function $Try_12_Post() {
+
+          return $return(Promise.reject());
+        }
+
+        var $Try_12_Catch = function (err) {
+          _didIteratorError5 = true;
+          _iteratorError5 = err;
+          return $Try_12_Finally($Try_12_Post).call(this);
+        }.$asyncbind(this, $Try_12_Finally($error));
+        try {
+          for (var _iterator5 = Object.keys(this.transports)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+            var name = _step5.value;
+
+            var transport = this.transports[name];
+            if (transport.requestNeeded) {
+              return $Try_12_Finally($return)(transport.requestDevice());
+            }
+          }return $Try_12_Finally($Try_12_Post).call(this);
+        } catch (err) {
+          $Try_12_Catch(err)
         }
       }.$asyncbind(this));
     }
