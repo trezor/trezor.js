@@ -31426,7 +31426,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.80";
+    this.version = "0.2.81";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.devices = {};
@@ -31504,7 +31504,7 @@ var WebUsbPlugin = (_class = function () {
       newArray[0] = 63;
       newArray.set(new Uint8Array(data), 1);
 
-      return uDevice.transferOut(2, data).then(function () {});
+      return uDevice.transferOut(2, newArray).then(function () {});
     }
   }, {
     key: 'receive',
@@ -31517,7 +31517,7 @@ var WebUsbPlugin = (_class = function () {
       var uDevice = device;
 
       return uDevice.transferIn(2, 64).then(function (result) {
-        return result.data.buffer;
+        return result.data.buffer.slice(1);
       });
     }
   }, {
