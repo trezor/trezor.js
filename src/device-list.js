@@ -81,14 +81,18 @@ export default class DeviceList extends EventEmitter {
     disconnectUnacquiredEvent: Event1<UnacquiredDevice> = new Event1('disconnectUnacquired', this);
     updateEvent: Event1<DeviceDescriptorDiff> = new Event1('update', this);
 
+    requestNeeded: boolean;
+
     constructor(options: ?DeviceListOptions) {
         super();
 
         this.options = options || {};
+        this.requestNeeded = false;
 
         this.transportEvent.on((transport: Transport) => {
             this.transport = transport;
             this.transportLoading = false;
+            this.requestNeeded = transport.requestNeeded;
 
             this._initStream(transport);
         });
@@ -100,6 +104,13 @@ export default class DeviceList extends EventEmitter {
         // using setTimeout to emit 'transport' in next tick,
         // so people from outside can add listener after constructor finishes
         setTimeout(() => this._initTransport(), 0);
+    }
+
+    requestDevice(): Promise<void> {
+        if (this.transport == null) {
+            return Promise.reject();
+        }
+        return this.transport.requestDevice();
     }
 
     asArray(): Array<Device> {
