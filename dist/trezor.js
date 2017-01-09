@@ -31426,7 +31426,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.83";
+    this.version = "0.2.84";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.devices = {};
@@ -31509,7 +31509,7 @@ var WebUsbPlugin = (_class = function () {
         });
         Object.keys(_this3.devices).forEach(function (kpath) {
           var isPresent = devices.some(function (device) {
-            return _this3.devices[kpath] === device;
+            return _this3.devices[kpath].device === device;
           });
           if (!isPresent) {
             delete _this3.devices[kpath];
