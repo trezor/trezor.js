@@ -31426,17 +31426,39 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.82";
+    this.version = "0.2.83";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.devices = {};
     this.lastPath = 0;
+    this.lastSession = 0;
     this.requestNeeded = true;
+    this._lock = Promise.resolve();
   }
 
   _createClass(WebUsbPlugin, [{
+    key: 'onChannelMessage',
+    value: function onChannelMessage(obj) {
+      var _this = this;
+
+      this.lock(function () {
+        if (obj.session != null) {
+          _this.lastSession = parseInt(obj.session);
+        }
+        Object.keys(_this.devices).forEach(function (k) {
+          var d = _this.devices[k];
+          if (obj.serialNumber == null && d.device.serialNumber == null || d.device.serialNumber === obj.serialNumber) {
+            d.session = obj.session;
+          }
+        });
+        return Promise.resolve();
+      });
+    }
+  }, {
     key: 'init',
     value: function init(debug) {
+      var _this2 = this;
+
       this.debug = !!debug;
       try {
         // $FlowIssue
@@ -31445,6 +31467,12 @@ var WebUsbPlugin = (_class = function () {
           return Promise.reject(new Error('WebUSB is not available on this browser.'));
         } else {
           this.usb = usb;
+
+          this.channel = new BroadcastChannel('trezor_webusb_sessions');
+          this.channel.onmessage = function (event) {
+            _this2.onChannelMessage(event.data);
+          };
+
           return Promise.resolve();
         }
       } catch (e) {
@@ -31454,7 +31482,7 @@ var WebUsbPlugin = (_class = function () {
   }, {
     key: 'enumerate',
     value: function enumerate() {
-      var _this = this;
+      var _this3 = this;
 
       return this.usb.getDevices().then(function (devices) {
         var res = [];
@@ -31465,26 +31493,26 @@ var WebUsbPlugin = (_class = function () {
           if (isTrezor) {
             var isPresent = false;
             var _path = '';
-            Object.keys(_this.devices).forEach(function (kpath) {
-              if (_this.devices[kpath] === dev) {
+            Object.keys(_this3.devices).forEach(function (kpath) {
+              if (_this3.devices[kpath].device === dev) {
                 isPresent = true;
                 _path = kpath;
               }
             });
             if (!isPresent) {
-              _this.lastPath++;
-              _this.devices[_this.lastPath.toString()] = dev;
-              _path = _this.lastPath.toString();
+              _this3.lastPath++;
+              _this3.devices[_this3.lastPath.toString()] = { device: dev, session: null };
+              _path = _this3.lastPath.toString();
             }
             res.push({ path: _path });
           }
         });
-        Object.keys(_this.devices).forEach(function (kpath) {
+        Object.keys(_this3.devices).forEach(function (kpath) {
           var isPresent = devices.some(function (device) {
-            return _this.devices[kpath] === device;
+            return _this3.devices[kpath] === device;
           });
           if (!isPresent) {
-            delete _this.devices[kpath];
+            delete _this3.devices[kpath];
           }
         });
         return res;
@@ -31498,7 +31526,7 @@ var WebUsbPlugin = (_class = function () {
         return Promise.reject(new Error('Device not found'));
       }
 
-      var uDevice = device;
+      var uDevice = device.device;
 
       var newArray = new Uint8Array(64);
       newArray[0] = 63;
@@ -31514,7 +31542,7 @@ var WebUsbPlugin = (_class = function () {
         return Promise.reject(new Error('Device not found'));
       }
 
-      var uDevice = device;
+      var uDevice = device.device;
 
       return uDevice.transferIn(2, 64).then(function (result) {
         return result.data.buffer.slice(1);
@@ -31523,42 +31551,58 @@ var WebUsbPlugin = (_class = function () {
   }, {
     key: 'connect',
     value: function connect(path, previous) {
-      var device = this.devices[path];
-      if (device == null) {
-        return Promise.reject(new Error('Device not present.'));
-      }
+      var _this4 = this;
 
-      return device.open().then(function () {
-        return device.selectConfiguration(1);
-      }).then(function () {
-        if (previous != null) {
-          return device.reset();
+      return this.lock(function () {
+        var device = _this4.devices[path];
+        if (device == null) {
+          return Promise.reject(new Error('Device not present.'));
         }
-      }).then(function () {
-        return device.claimInterface(2).catch(function (e) {
-          if (typeof e === 'object') {
-            if (e.code) {
-              if (e.code === 19 && previous == null) {
-                throw new Error('wrong previous session');
+
+        return device.device.open().then(function () {
+          return device.device.selectConfiguration(1);
+        }).then(function () {
+          if (previous != null) {
+            return device.device.reset();
+          }
+        }).then(function () {
+          return device.device.claimInterface(2).catch(function (e) {
+            if (typeof e === 'object') {
+              if (e.code) {
+                if (e.code === 19 && previous == null) {
+                  throw new Error('wrong previous session');
+                }
               }
             }
-          }
-          throw e;
-        });
-      }).then(function () {
-        return path;
-      }); // path == session, why not?
+            throw e;
+          });
+        }).then(function () {
+          _this4.lastSession++;
+          var newSession = _this4.lastSession.toString();
+          device.session = newSession;
+          _this4.channel.postMessage({ serialNumber: device.device.serialNumber, session: device.session });
+          return newSession;
+        }); // path == session, why not?
+      });
     }
   }, {
     key: 'disconnect',
     value: function disconnect(path, session) {
-      var device = this.devices[path];
-      if (device == null) {
-        return Promise.reject(new Error('Device not present.'));
-      }
+      var _this5 = this;
 
-      return device.releaseInterface(2).then(function () {
-        return device.close();
+      return this.lock(function () {
+        var device = _this5.devices[path];
+        if (device == null) {
+          return Promise.reject(new Error('Device not present.'));
+        }
+
+        return device.device.releaseInterface(2).then(function () {
+          return device.device.close();
+        }).then(function () {
+          device.session = null;
+          _this5.channel.postMessage({ serialNumber: device.device.serialNumber, session: null });
+          return;
+        });
       });
     }
   }, {
@@ -31566,6 +31610,15 @@ var WebUsbPlugin = (_class = function () {
     value: function requestDevice() {
       // I am throwing away the resulting device, since it appears in enumeration anyway
       return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function () {});
+    }
+  }, {
+    key: 'lock',
+    value: function lock(fn) {
+      var res = this._lock.then(function () {
+        return fn();
+      });
+      this._lock = res.catch(function () {});
+      return res;
     }
   }]);
 
