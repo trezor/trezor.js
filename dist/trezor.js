@@ -28982,7 +28982,7 @@ var LowlevelTransport = (_class = function () {
           return new Promise(function ($return, $error) {
             var session;
             return _this3._checkAndReleaseBeforeAcquire(input).then(function ($await_6) {
-              return _this3.plugin.connect(input.path).then(function ($await_7) {
+              return _this3.plugin.connect(input.path, input.previous).then(function ($await_7) {
                 session = $await_7;
                 _this3.connections[input.path] = session;
                 _this3.reverse[session] = input.path;
@@ -31426,7 +31426,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.81";
+    this.version = "0.2.82";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.devices = {};
@@ -31522,18 +31522,29 @@ var WebUsbPlugin = (_class = function () {
     }
   }, {
     key: 'connect',
-    value: function connect(path) {
+    value: function connect(path, previous) {
       var device = this.devices[path];
       if (device == null) {
         return Promise.reject(new Error('Device not present.'));
       }
 
       return device.open().then(function () {
-        return device.reset();
-      }).then(function () {
         return device.selectConfiguration(1);
       }).then(function () {
-        return device.claimInterface(2);
+        if (previous != null) {
+          return device.reset();
+        }
+      }).then(function () {
+        return device.claimInterface(2).catch(function (e) {
+          if (typeof e === 'object') {
+            if (e.code) {
+              if (e.code === 19 && previous == null) {
+                throw new Error('wrong previous session');
+              }
+            }
+          }
+          throw e;
+        });
       }).then(function () {
         return path;
       }); // path == session, why not?
