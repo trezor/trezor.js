@@ -20,7 +20,7 @@ or
 * `config`: if you want to use your own config file. The value should be a hex string.
 * `transport`: if you want to provide your own Transport object (from `trezor-link` module)
 
-The config should be available either on [github](https://github.com/trezor/webwallet-data/blob/master/config_signed.bin), on [Amazon AWS](http://mytrezor.s3.amazonaws.com/config_signed.bin), or on [mytrezor.com](http://mytrezor.com/data/config_signed.bin). The AWS URL is hardcoded and is used by default, so you don't have to worry about it if you don't want to.
+The config should be available either on [github](https://github.com/trezor/webwallet-data/blob/master/config_signed.bin), on [Amazon AWS](http://mytrezor.s3.amazonaws.com/config_signed.bin), or on [wallet.trezor.io](https://wallet.trezor.io/data/config_signed.bin). The AWS URL is hardcoded and is used by default, so you don't have to worry about it if you don't want to.
 
 `DeviceList` emits following events:
  
