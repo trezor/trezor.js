@@ -15,7 +15,12 @@ export {default as Device} from './device';
 export {default as DescriptorStream} from './descriptor-stream';
 export {default as DeviceList} from './device-list';
 
-DeviceList._setTransport(() => new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb())]));
+let sharedWorkerFactory: () => SharedWorker = () => { throw new Error('Shared worker not set.'); };
+export function setSharedWorkerFactory(swf: () => SharedWorker) {
+    sharedWorkerFactory = swf;
+}
+
+DeviceList._setTransport(() => new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb(), () => sharedWorkerFactory())]));
 
 import {setFetch as installersSetFetch} from './installers';
 DeviceList._setFetch(window.fetch);
