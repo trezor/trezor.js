@@ -254,22 +254,27 @@ export default class Device extends EventEmitter {
                     this.currentSessionObject = null;
                     this.activityInProgress = false;
                     if (error != null && this.connected) {
-                        return new Promise((resolve, reject) => {
-                            let onDisconnect = () => {};
-                            const onChanged = () => {
-                                if (this.isStolen()) {
-                                    this._stolenEvent.emit();
-                                }
-                                this.disconnectEvent.removeListener(onDisconnect);
-                                resolve();
-                            };
-                            onDisconnect = () => {
-                                this.changedSessionsEvent.removeListener(onChanged);
-                                resolve();
-                            };
-                            this.changedSessionsEvent.once(onChanged);
-                            this.disconnectEvent.once(onDisconnect);
-                        });
+                        if (error.message === 'Action was interrupted.') {
+                            this._stolenEvent.emit();
+                            return Promise.resolve();
+                        } else {
+                            return new Promise((resolve, reject) => {
+                                let onDisconnect = () => {};
+                                const onChanged = () => {
+                                    if (this.isStolen()) {
+                                        this._stolenEvent.emit();
+                                    }
+                                    this.disconnectEvent.removeListener(onDisconnect);
+                                    resolve();
+                                };
+                                onDisconnect = () => {
+                                    this.changedSessionsEvent.removeListener(onChanged);
+                                    resolve();
+                                };
+                                this.changedSessionsEvent.once(onChanged);
+                                this.disconnectEvent.once(onDisconnect);
+                            });
+                        }
                     } else {
                         return Promise.resolve();
                     }
