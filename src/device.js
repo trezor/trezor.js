@@ -291,7 +291,9 @@ export default class Device extends EventEmitter {
                 }
                 if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE && waiting) {
                     // trying again!!!
-                    return this.run(fn, options);
+                    return this._waitForNullSession().then(() => {
+                        return this.run(fn, options);
+                    });
                 } else {
                     throw error;
                 }
