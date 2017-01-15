@@ -1513,6 +1513,7 @@ Object.defineProperty(exports, 'DeviceList', {
         return _interopRequireDefault(_deviceList).default;
     }
 });
+exports.setSharedWorkerFactory = setSharedWorkerFactory;
 
 var _installers = require('./installers');
 
@@ -1554,8 +1555,17 @@ var Bridge = _trezorLink2.default.Bridge,
     Fallback = _trezorLink2.default.Fallback;
 
 
+var sharedWorkerFactory = function sharedWorkerFactory() {
+    throw new Error('Shared worker not set.');
+};
+function setSharedWorkerFactory(swf) {
+    sharedWorkerFactory = swf;
+}
+
 _deviceList2.default._setTransport(function () {
-    return new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb())]);
+    return new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb(), function () {
+        return sharedWorkerFactory();
+    })]);
 });
 
 _deviceList2.default._setFetch(window.fetch);
@@ -28419,9 +28429,9 @@ var _bridge = require('./bridge');
 
 var _bridge2 = _interopRequireDefault(_bridge);
 
-var _lowlevel = require('./lowlevel');
+var _withSharedConnections = require('./lowlevel/withSharedConnections');
 
-var _lowlevel2 = _interopRequireDefault(_lowlevel);
+var _withSharedConnections2 = _interopRequireDefault(_withSharedConnections);
 
 var _extension = require('./extension');
 
@@ -28452,677 +28462,11 @@ exports.default = {
   Extension: _extension2.default,
   Parallel: _parallel2.default,
   Fallback: _fallback2.default,
-  Lowlevel: _lowlevel2.default,
+  Lowlevel: _withSharedConnections2.default,
   WebUsb: _webusb2.default
 };
 module.exports = exports['default'];
-},{"./bridge":126,"./extension":129,"./fallback":131,"./lowlevel":134,"./lowlevel/webusb":144,"./parallel":145,"whatwg-fetch":157}],134:[function(require,module,exports){
-(function (process){
-'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _desc, _value, _class;
-
-var _monkey_patch = require('./protobuf/monkey_patch');
-
-var _defered = require('../defered');
-
-var _parse_protocol = require('./protobuf/parse_protocol');
-
-var _verify = require('./verify');
-
-var _send = require('./send');
-
-var _receive = require('./receive');
-
-var _debugDecorator = require('../debug-decorator');
-
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            fq[fqStart]();
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.2-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-  var desc = {};
-  Object['ke' + 'ys'](descriptor).forEach(function (key) {
-    desc[key] = descriptor[key];
-  });
-  desc.enumerable = !!desc.enumerable;
-  desc.configurable = !!desc.configurable;
-
-  if ('value' in desc || desc.initializer) {
-    desc.writable = true;
-  }
-
-  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-    return decorator(target, property, desc) || desc;
-  }, desc);
-
-  if (context && desc.initializer !== void 0) {
-    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-    desc.initializer = undefined;
-  }
-
-  if (desc.initializer === void 0) {
-    Object['define' + 'Property'](target, property, desc);
-    desc = null;
-  }
-
-  return desc;
-}
-
-(0, _monkey_patch.patch)();
-
-// eslint-disable-next-line quotes
-var stringify = require('json-stable-stringify');
-
-function stableStringify(devices) {
-  if (devices == null) {
-    return 'null';
-  }
-
-  var pureDevices = devices.map(function (device) {
-    var path = device.path;
-    var session = device.session == null ? null : device.session;
-    return { path: path, session: session };
-  });
-
-  return stringify(pureDevices);
-}
-
-function compare(a, b) {
-  if (!isNaN(parseInt(a.path))) {
-    return parseInt(a.path) - parseInt(b.path);
-  } else {
-    return a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
-  }
-}
-
-var ITER_MAX = 60;
-var ITER_DELAY = 500;
-
-var LowlevelTransport = (_class = function () {
-
-  // session => path
-
-
-  // session => promise rejecting on release
-  function LowlevelTransport(plugin) {
-    _classCallCheck(this, LowlevelTransport);
-
-    this.name = 'LowlevelTransport';
-    this._lock = Promise.resolve();
-    this.debug = false;
-    this.deferedOnRelease = {};
-    this.connections = {};
-    this.reverse = {};
-    this.configured = false;
-    this._lastStringified = '';
-    this.requestNeeded = false;
-
-    this.plugin = plugin;
-    this.version = plugin.version;
-  }
-
-  // path => session
-
-
-  _createClass(LowlevelTransport, [{
-    key: 'lock',
-    value: function lock(fn) {
-      var res = this._lock.then(function () {
-        return fn();
-      });
-      this._lock = res.catch(function () {});
-      return res;
-    }
-  }, {
-    key: 'enumerate',
-    value: function enumerate() {
-      return this._silentEnumerate();
-    }
-  }, {
-    key: '_silentEnumerate',
-    value: function _silentEnumerate() {
-      var _this = this;
-
-      return this.lock(function () {
-        return new Promise(function ($return, $error) {
-          var devices, devicesWithSessions;
-          return _this.plugin.enumerate().then(function ($await_2) {
-            devices = $await_2;
-            devicesWithSessions = devices.map(function (device) {
-              var session = _this.connections[device.path];
-              return {
-                path: device.path,
-                session: session
-              };
-            });
-            _this._releaseDisconnected(devicesWithSessions);
-            return $return(devicesWithSessions.sort(compare));
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this));
-      });
-    }
-  }, {
-    key: '_releaseDisconnected',
-    value: function _releaseDisconnected(devices) {
-      var _this2 = this;
-
-      var connected = {};
-      devices.forEach(function (device) {
-        connected[device.path] = true;
-      });
-      Object.keys(this.connections).forEach(function (path) {
-        if (connected[path] == null) {
-          if (_this2.connections[path] != null) {
-            _this2._releaseCleanup(_this2.connections[path]);
-          }
-        }
-      });
-    }
-  }, {
-    key: 'listen',
-    value: function listen(old) {
-      return new Promise(function ($return, $error) {
-        var oldStringified = stableStringify(old);
-        var last = old == null ? this._lastStringified : oldStringified;
-        return $return(this._runIter(0, last));
-      }.$asyncbind(this));
-    }
-  }, {
-    key: '_runIter',
-    value: function _runIter(iteration, oldStringified) {
-      return new Promise(function ($return, $error) {
-        var devices, stringified;
-        return this._silentEnumerate().then(function ($await_3) {
-          devices = $await_3;
-          stringified = stableStringify(devices);
-          if (stringified !== oldStringified || iteration === ITER_MAX) {
-            this._lastStringified = stringified;
-            return $return(devices);
-          }
-          return (0, _defered.resolveTimeoutPromise)(ITER_DELAY, null).then(function ($await_4) {
-            return $return(this._runIter(iteration + 1, stringified));
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
-  }, {
-    key: '_checkAndReleaseBeforeAcquire',
-    value: function _checkAndReleaseBeforeAcquire(input) {
-      return new Promise(function ($return, $error) {
-        var realPrevious, error;
-
-        realPrevious = this.connections[input.path];
-
-        if (input.checkPrevious) {
-          error = false;
-          if (realPrevious == null) {
-            error = input.previous != null;
-          } else {
-            error = input.previous !== realPrevious;
-          }
-          if (error) {
-            return $error(new Error('wrong previous session'));
-          }
-        }
-        if (realPrevious != null) {
-          return this._realRelease(input.path, realPrevious).then(function ($await_5) {
-            return $If_1.call(this);
-          }.$asyncbind(this, $error), $error);
-        }
-
-        function $If_1() {
-          return $return();
-        }
-
-        return $If_1.call(this);
-      }.$asyncbind(this));
-    }
-  }, {
-    key: 'acquire',
-    value: function acquire(input) {
-      return new Promise(function ($return, $error) {
-        var _this3 = this;
-
-        return $return(this.lock(function () {
-          return new Promise(function ($return, $error) {
-            var session;
-            return _this3._checkAndReleaseBeforeAcquire(input).then(function ($await_6) {
-              return _this3.plugin.connect(input.path).then(function ($await_7) {
-                session = $await_7;
-                _this3.connections[input.path] = session;
-                _this3.reverse[session] = input.path;
-                _this3.deferedOnRelease[session] = (0, _defered.create)();
-                return $return(session);
-              }.$asyncbind(this, $error), $error);
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this));
-        }));
-      }.$asyncbind(this));
-    }
-  }, {
-    key: 'release',
-    value: function release(session) {
-      return new Promise(function ($return, $error) {
-        var _this4 = this;
-
-        var path = this.reverse[session];
-        if (path == null) {
-          return $error(new Error('Trying to double release.'));
-        }
-        return $return(this.lock(function () {
-          return _this4._realRelease(path, session);
-        }));
-      }.$asyncbind(this));
-    }
-  }, {
-    key: '_realRelease',
-    value: function _realRelease(path, session) {
-      return new Promise(function ($return, $error) {
-        return this.plugin.disconnect(path, session).then(function ($await_8) {
-          this._releaseCleanup(session);
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
-  }, {
-    key: '_releaseCleanup',
-    value: function _releaseCleanup(session) {
-      var path = this.reverse[session];
-      delete this.reverse[session];
-      delete this.connections[path];
-      this.deferedOnRelease[session].reject(new Error('Device released or disconnected'));
-      delete this.deferedOnRelease[session];
-      return;
-    }
-  }, {
-    key: 'configure',
-    value: function configure(signedData) {
-      return new Promise(function ($return, $error) {
-        var buffer = (0, _verify.verifyHexBin)(signedData);
-        var messages = (0, _parse_protocol.parseConfigure)(buffer);
-        this._messages = messages;
-        this.configured = true;
-        return $return();
-      }.$asyncbind(this));
-    }
-  }, {
-    key: '_sendLowlevel',
-    value: function _sendLowlevel(session) {
-      var _this5 = this;
-
-      var path = this.reverse[session];
-      return function (data) {
-        return _this5.plugin.send(path, session, data);
-      };
-    }
-  }, {
-    key: '_receiveLowlevel',
-    value: function _receiveLowlevel(session) {
-      var _this6 = this;
-
-      var path = this.reverse[session];
-      return function () {
-        return _this6.plugin.receive(path, session);
-      };
-    }
-  }, {
-    key: 'call',
-    value: function call(session, name, data) {
-      return new Promise(function ($return, $error) {
-        var _this7 = this;
-
-        if (this._messages == null) {
-          return $error(new Error('Transport not configured.'));
-        }
-        if (this.reverse[session] == null) {
-          return $error(new Error('Trying to use device after release.'));
-        }
-
-        var messages = this._messages;
-
-        var doCall = function doCall() {
-          return new Promise(function ($return, $error) {
-            var resPromise = function () {
-              return new Promise(function ($return, $error) {
-                var message;
-                return (0, _send.buildAndSend)(messages, _this7._sendLowlevel(session), name, data).then(function ($await_9) {
-                  return (0, _receive.receiveAndParse)(messages, _this7._receiveLowlevel(session)).then(function ($await_10) {
-                    message = $await_10;
-                    return $return(message);
-                  }.$asyncbind(this, $error), $error);
-                }.$asyncbind(this, $error), $error);
-              }.$asyncbind(this));
-            }();
-
-            return $return(Promise.race([_this7.deferedOnRelease[session].rejectingPromise, resPromise]));
-          }.$asyncbind(this));
-        };
-
-        var mightlock = this.plugin.allowsWriteAndEnumerate ? doCall() : this.lock(doCall);
-
-        return $return(mightlock);
-      }.$asyncbind(this));
-    }
-  }, {
-    key: 'init',
-    value: function init(debug) {
-      return new Promise(function ($return, $error) {
-        this.debug = !!debug;
-        this.requestNeeded = this.plugin.requestNeeded;
-        return $return(this.plugin.init(debug));
-      }.$asyncbind(this));
-    }
-  }, {
-    key: 'requestDevice',
-    value: function requestDevice() {
-      return new Promise(function ($return, $error) {
-        return $return(this.plugin.requestDevice());
-      }.$asyncbind(this));
-    }
-  }]);
-
-  return LowlevelTransport;
-}(), (_applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype)), _class);
-exports.default = LowlevelTransport;
-module.exports = exports['default'];
-}).call(this,require('_process'))
-},{"../debug-decorator":127,"../defered":128,"./protobuf/monkey_patch":138,"./protobuf/parse_protocol":139,"./receive":141,"./send":142,"./verify":143,"_process":98,"json-stable-stringify":146}],135:[function(require,module,exports){
+},{"./bridge":126,"./extension":129,"./fallback":131,"./lowlevel/webusb":143,"./lowlevel/withSharedConnections":144,"./parallel":145,"whatwg-fetch":157}],134:[function(require,module,exports){
 "use strict";
 
 /*
@@ -29984,7 +29328,7 @@ module.exports = require("protobufjs").newBuilder({})["import"]({
     "options": {},
     "services": []
 }).build();
-},{"protobufjs":100}],136:[function(require,module,exports){
+},{"protobufjs":100}],135:[function(require,module,exports){
 "use strict";
 
 // Helper module for converting Trezor's raw input to
@@ -30125,7 +29469,7 @@ function messageToJSON(message) {
   }
   return res;
 }
-},{"./messages.js":137,"protobufjs":100}],137:[function(require,module,exports){
+},{"./messages.js":136,"protobufjs":100}],136:[function(require,module,exports){
 "use strict";
 
 // This is a simple class that represents information about messages,
@@ -30162,7 +29506,7 @@ var Messages = exports.Messages = function Messages(messages) {
   this.messagesByType = messagesByType;
   this.messageTypes = messages.MessageType;
 };
-},{"protobufjs":100}],138:[function(require,module,exports){
+},{"protobufjs":100}],137:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -30203,7 +29547,7 @@ function patch() {
   }
   patched = true;
 }
-},{"protobufjs":100}],139:[function(require,module,exports){
+},{"protobufjs":100}],138:[function(require,module,exports){
 "use strict";
 
 // Module for loading the protobuf description from serialized description
@@ -30244,7 +29588,7 @@ function parseConfigure(data) {
 
   return new _messages.Messages(protobufMessages);
 }
-},{"./config_proto_compiled.js":135,"./messages.js":137,"./to_json.js":140,"protobufjs":100}],140:[function(require,module,exports){
+},{"./config_proto_compiled.js":134,"./messages.js":136,"./to_json.js":139,"protobufjs":100}],139:[function(require,module,exports){
 "use strict";
 
 // Helper module that does conversion from already parsed protobuf's
@@ -30367,7 +29711,7 @@ function fieldToJSON(field) {
   res.id = field.number;
   return res;
 }
-},{"object.values":93}],141:[function(require,module,exports){
+},{"object.values":93}],140:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -30798,7 +30142,7 @@ function receiveAndParse(messages, receiver) {
   }.$asyncbind(this));
 }
 }).call(this,require('_process'))
-},{"./protobuf/message_decoder.js":136,"_process":98,"protobufjs":100}],142:[function(require,module,exports){
+},{"./protobuf/message_decoder.js":135,"_process":98,"protobufjs":100}],141:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -31313,7 +30657,7 @@ function buildAndSend(messages, sender, name, data) {
   }.$asyncbind(this));
 }
 }).call(this,require('_process'))
-},{"_process":98,"protobufjs":100}],143:[function(require,module,exports){
+},{"_process":98,"protobufjs":100}],142:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -31373,7 +30717,7 @@ function verifyHexBin(data) {
   }
 }
 }).call(this,require("buffer").Buffer)
-},{"bigi":21,"bitcoinjs-lib-zcash":32,"buffer":46}],144:[function(require,module,exports){
+},{"bigi":21,"bitcoinjs-lib-zcash":32,"buffer":46}],143:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -31722,7 +31066,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.87";
+    this.version = "0.2.89";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.requestNeeded = true;
@@ -31881,7 +31225,711 @@ var WebUsbPlugin = (_class = function () {
 exports.default = WebUsbPlugin;
 module.exports = exports['default'];
 }).call(this,require('_process'))
-},{"../debug-decorator":127,"_process":98}],145:[function(require,module,exports){
+},{"../debug-decorator":127,"_process":98}],144:[function(require,module,exports){
+(function (process){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = undefined;
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _desc, _value, _class;
+
+var _monkey_patch = require('./protobuf/monkey_patch');
+
+var _defered = require('../defered');
+
+var _parse_protocol = require('./protobuf/parse_protocol');
+
+var _verify = require('./verify');
+
+var _send = require('./send');
+
+var _receive = require('./receive');
+
+var _debugDecorator = require('../debug-decorator');
+
+Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
+  "use strict";
+
+  if (!Function.prototype.$asyncbind) {
+    Object.defineProperty(Function.prototype, "$asyncbind", {
+      value: $asyncbind,
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+  }
+
+  if (!$asyncbind.trampoline) {
+    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
+      return function b(q) {
+        while (q) {
+          if (q.then) {
+            q = q.then(b, e);
+            return u ? undefined : q;
+          }
+
+          try {
+            if (q.pop) {
+              if (q.length) return q.pop() ? x.call(t) : q;
+              q = s;
+            } else q = q.call(t);
+          } catch (r) {
+            return e(r);
+          }
+        }
+      };
+    };
+  }
+
+  if (!$asyncbind.LazyThenable) {
+    $asyncbind.LazyThenable = function () {
+      function isThenable(obj) {
+        return obj && obj instanceof Object && typeof obj.then === "function";
+      }
+
+      function resolution(p, r, how) {
+        try {
+          var x = how ? how(r) : r;
+          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
+
+          if (isThenable(x)) {
+            x.then(function (y) {
+              resolution(p, y);
+            }, function (e) {
+              p.reject(e);
+            });
+          } else {
+            p.resolve(x);
+          }
+        } catch (ex) {
+          p.reject(ex);
+        }
+      }
+
+      function Chained() {}
+
+      ;
+      Chained.prototype = {
+        resolve: _unchained,
+        reject: _unchained,
+        then: thenChain
+      };
+
+      function _unchained(v) {}
+
+      function thenChain(res, rej) {
+        this.resolve = res;
+        this.reject = rej;
+      }
+
+      function then(res, rej) {
+        var chain = new Chained();
+
+        try {
+          this._resolver(function (value) {
+            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
+          }, function (ex) {
+            resolution(chain, ex, rej);
+          });
+        } catch (ex) {
+          resolution(chain, ex, rej);
+        }
+
+        return chain;
+      }
+
+      function Thenable(resolver) {
+        this._resolver = resolver;
+        this.then = then;
+      }
+
+      ;
+
+      Thenable.resolve = function (v) {
+        return Thenable.isThenable(v) ? v : {
+          then: function then(resolve) {
+            return resolve(v);
+          }
+        };
+      };
+
+      Thenable.isThenable = isThenable;
+      return Thenable;
+    }();
+
+    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
+      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
+        setTimeout(f, 0);
+      };
+
+      var soon = function () {
+        var fq = [],
+            fqStart = 0,
+            bufferSize = 1024;
+
+        function callQueue() {
+          while (fq.length - fqStart) {
+            fq[fqStart]();
+            fq[fqStart++] = undefined;
+
+            if (fqStart === bufferSize) {
+              fq.splice(0, bufferSize);
+              fqStart = 0;
+            }
+          }
+        }
+
+        return function (fn) {
+          fq.push(fn);
+          if (fq.length - fqStart === 1) tick(callQueue);
+        };
+      }();
+
+      function Zousan(func) {
+        if (func) {
+          var me = this;
+          func(function (arg) {
+            me.resolve(arg);
+          }, function (arg) {
+            me.reject(arg);
+          });
+        }
+      }
+
+      Zousan.prototype = {
+        resolve: function resolve(value) {
+          if (this.state !== undefined) return;
+          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
+          var me = this;
+
+          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
+            try {
+              var first = 0;
+              var then = value.then;
+
+              if (typeof then === "function") {
+                then.call(value, function (ra) {
+                  if (!first++) {
+                    me.resolve(ra);
+                  }
+                }, function (rr) {
+                  if (!first++) {
+                    me.reject(rr);
+                  }
+                });
+                return;
+              }
+            } catch (e) {
+              if (!first) this.reject(e);
+              return;
+            }
+          }
+
+          this.state = STATE_FULFILLED;
+          this.v = value;
+          if (me.c) soon(function () {
+            for (var n = 0, l = me.c.length; n < l; n++) {
+              STATE_FULFILLED(me.c[n], value);
+            }
+          });
+        },
+        reject: function reject(reason) {
+          if (this.state !== undefined) return;
+          this.state = STATE_REJECTED;
+          this.v = reason;
+          var clients = this.c;
+          if (clients) soon(function () {
+            for (var n = 0, l = clients.length; n < l; n++) {
+              STATE_REJECTED(clients[n], reason);
+            }
+          });
+        },
+        then: function then(onF, onR) {
+          var p = new Zousan();
+          var client = {
+            y: onF,
+            n: onR,
+            p: p
+          };
+
+          if (this.state === undefined) {
+            if (this.c) this.c.push(client);else this.c = [client];
+          } else {
+            var s = this.state,
+                a = this.v;
+            soon(function () {
+              s(client, a);
+            });
+          }
+
+          return p;
+        }
+      };
+
+      function STATE_FULFILLED(c, arg) {
+        if (typeof c.y === "function") {
+          try {
+            var yret = c.y.call(undefined, arg);
+            c.p.resolve(yret);
+          } catch (err) {
+            c.p.reject(err);
+          }
+        } else c.p.resolve(arg);
+      }
+
+      function STATE_REJECTED(c, reason) {
+        if (typeof c.n === "function") {
+          try {
+            var yret = c.n.call(undefined, reason);
+            c.p.resolve(yret);
+          } catch (err) {
+            c.p.reject(err);
+          }
+        } else c.p.reject(reason);
+      }
+
+      Zousan.resolve = function (val) {
+        if (val && val instanceof Zousan) return val;
+        var z = new Zousan();
+        z.resolve(val);
+        return z;
+      };
+
+      Zousan.reject = function (err) {
+        if (err && err instanceof Zousan) return err;
+        var z = new Zousan();
+        z.reject(err);
+        return z;
+      };
+
+      Zousan.version = "2.3.2-nodent";
+      return Zousan;
+    })();
+  }
+
+  var resolver = this;
+
+  switch (catcher) {
+    case true:
+      return new $asyncbind.Thenable(boundThen);
+
+    case 0:
+      return new $asyncbind.LazyThenable(boundThen);
+
+    case undefined:
+      boundThen.then = boundThen;
+      return boundThen;
+
+    default:
+      return function () {
+        try {
+          return resolver.apply(self, arguments);
+        } catch (ex) {
+          return catcher(ex);
+        }
+      };
+  }
+
+  function boundThen() {
+    return resolver.apply(self, arguments);
+  }
+};
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+  var desc = {};
+  Object['ke' + 'ys'](descriptor).forEach(function (key) {
+    desc[key] = descriptor[key];
+  });
+  desc.enumerable = !!desc.enumerable;
+  desc.configurable = !!desc.configurable;
+
+  if ('value' in desc || desc.initializer) {
+    desc.writable = true;
+  }
+
+  desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+    return decorator(target, property, desc) || desc;
+  }, desc);
+
+  if (context && desc.initializer !== void 0) {
+    desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+    desc.initializer = undefined;
+  }
+
+  if (desc.initializer === void 0) {
+    Object['define' + 'Property'](target, property, desc);
+    desc = null;
+  }
+
+  return desc;
+}
+
+(0, _monkey_patch.patch)();
+
+// eslint-disable-next-line quotes
+var stringify = require('json-stable-stringify');
+
+function stableStringify(devices) {
+  if (devices == null) {
+    return 'null';
+  }
+
+  var pureDevices = devices.map(function (device) {
+    var path = device.path;
+    var session = device.session == null ? null : device.session;
+    return { path: path, session: session };
+  });
+
+  return stringify(pureDevices);
+}
+
+function compare(a, b) {
+  if (!isNaN(parseInt(a.path))) {
+    return parseInt(a.path) - parseInt(b.path);
+  } else {
+    return a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
+  }
+}
+
+var ITER_MAX = 60;
+var ITER_DELAY = 500;
+
+var LowlevelTransportWithSharedConnections = (_class = function () {
+
+  // session => path, but only for my devices
+
+
+  // path => promise rejecting on release
+  function LowlevelTransportWithSharedConnections(plugin, sharedWorkerFactory) {
+    _classCallCheck(this, LowlevelTransportWithSharedConnections);
+
+    this.name = 'LowlevelTransportWithSharedConnections';
+    this.debug = false;
+    this.deferedOnRelease = {};
+    this.connections = {};
+    this.reverse = {};
+    this.configured = false;
+    this._lastStringified = '';
+    this.requestNeeded = false;
+    this.latestId = 0;
+    this.defereds = {};
+
+    this.plugin = plugin;
+    this.version = plugin.version;
+    this._sharedWorkerFactory = sharedWorkerFactory;
+    if (!this.plugin.allowsWriteAndEnumerate) {
+      // This should never happen anyway
+      throw new Error('Plugin with shared connections cannot disallow write and enumerate');
+    }
+  }
+
+  // path => session, but only for my devices
+
+
+  _createClass(LowlevelTransportWithSharedConnections, [{
+    key: 'enumerate',
+    value: function enumerate() {
+      return this._silentEnumerate();
+    }
+  }, {
+    key: '_silentEnumerate',
+    value: function _silentEnumerate() {
+      return new Promise(function ($return, $error) {
+        var devices, sessionsM, sessions, devicesWithSessions;
+        return this.plugin.enumerate().then(function ($await_4) {
+          devices = $await_4;
+          return this.sendToWorker({ type: 'get-sessions' }).then(function ($await_5) {
+            sessionsM = $await_5;
+            if (sessionsM.type !== 'sessions') {
+              return $error(new Error('Wrong reply'));
+            }
+            sessions = sessionsM.sessions;
+
+            devicesWithSessions = devices.map(function (device) {
+              var session = sessions[device.path];
+              return {
+                path: device.path,
+                session: session
+              };
+            });
+
+            // TODO - what if this.connections / this.reverse differ from what worker gives me?
+            // Can that actually happen?
+            this._releaseDisconnected(devicesWithSessions);
+            return $return(devicesWithSessions.sort(compare));
+          }.$asyncbind(this, $error), $error);
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
+    }
+  }, {
+    key: '_releaseDisconnected',
+    value: function _releaseDisconnected(devices) {
+      var _this = this;
+
+      var connected = {};
+      devices.forEach(function (device) {
+        connected[device.path] = true;
+      });
+      Object.keys(this.connections).forEach(function (path) {
+        if (connected[path] == null) {
+          _this._releaseCleanup(path);
+        }
+      });
+    }
+  }, {
+    key: 'listen',
+    value: function listen(old) {
+      return new Promise(function ($return, $error) {
+        var oldStringified = stableStringify(old);
+        var last = old == null ? this._lastStringified : oldStringified;
+        return $return(this._runIter(0, last));
+      }.$asyncbind(this));
+    }
+  }, {
+    key: '_runIter',
+    value: function _runIter(iteration, oldStringified) {
+      return new Promise(function ($return, $error) {
+        var devices, stringified;
+        return this._silentEnumerate().then(function ($await_6) {
+          devices = $await_6;
+          stringified = stableStringify(devices);
+          if (stringified !== oldStringified || iteration === ITER_MAX) {
+            this._lastStringified = stringified;
+            return $return(devices);
+          }
+          return (0, _defered.resolveTimeoutPromise)(ITER_DELAY, null).then(function ($await_7) {
+            return $return(this._runIter(iteration + 1, stringified));
+          }.$asyncbind(this, $error), $error);
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
+    }
+  }, {
+    key: 'acquire',
+    value: function acquire(input) {
+      return new Promise(function ($return, $error) {
+        var messBack, session;
+        return this.sendToWorker(_extends({ type: 'acquire-intent' }, input)).then(function ($await_8) {
+          messBack = $await_8;
+          if (messBack.type === 'wrong-previous-session') {
+            return $error(new Error('wrong previous session'));
+          }
+
+          session = '';
+
+          function $Try_1_Post() {
+            return this.sendToWorker({ type: 'acquire-done', session: session }).then(function ($await_9) {
+              this.connections[input.path] = session;
+              this.reverse[session] = input.path;
+              this.deferedOnRelease[input.path] = (0, _defered.create)();
+              return $return(session);
+            }.$asyncbind(this, $error), $error);
+          }
+
+          var $Try_1_Catch = function (e) {
+            return this.sendToWorker({ type: 'acquire-failed' }).then(function ($await_10) {
+              return $error(e);
+            }.$asyncbind(this, $error), $error);
+          }.$asyncbind(this, $error);
+
+          try {
+            if (this.connections[input.path] != null) {
+              return this._realRelease(input.path, this.connections[input.path]).then(function ($await_11) {
+                return $If_3.call(this);
+              }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
+            }
+
+            function $If_3() {
+              return this.plugin.connect(input.path, input.previous != null).then(function ($await_12) {
+                session = $await_12;
+                return this.sendToWorker({ type: 'acquire-done', session: session }).then(function ($await_9) {
+                  this.connections[input.path] = session;this.reverse[session] = input.path;this.deferedOnRelease[input.path] = (0, _defered.create)();return $return(session);
+                }.$asyncbind(this, $error), $error);
+              }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
+            }
+
+            return $If_3.call(this);
+          } catch (e) {
+            $Try_1_Catch(e)
+          }
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
+    }
+  }, {
+    key: 'release',
+    value: function release(session) {
+      return new Promise(function ($return, $error) {
+        var _path;
+
+        return this.sendToWorker({ type: 'release-intent' }).then(function ($await_13) {
+          function $Try_2_Post() {
+            return $return();
+          }
+
+          var $Try_2_Catch = function (e) {
+            return this.sendToWorker({ type: 'release-failed' }).then(function ($await_14) {
+              return $error(e);
+            }.$asyncbind(this, $error), $error);
+          }.$asyncbind(this, $error);
+          try {
+            _path = this.reverse[session];
+            if (_path == null) {
+              return $Try_2_Catch(new Error('Trying to double release.'));
+            }
+            return this._realRelease(_path, session).then(function ($await_15) {
+              return this.sendToWorker({ type: 'release-done', path: _path }).then(function ($await_16) {
+                return $return();
+              }.$asyncbind(this, $Try_2_Catch), $Try_2_Catch);
+            }.$asyncbind(this, $Try_2_Catch), $Try_2_Catch);
+          } catch (e) {
+            $Try_2_Catch(e)
+          }
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
+    }
+  }, {
+    key: '_realRelease',
+    value: function _realRelease(path, session) {
+      return new Promise(function ($return, $error) {
+        return this.plugin.disconnect(path, session).then(function ($await_17) {
+          this._releaseCleanup(session);
+          return $return();
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
+    }
+  }, {
+    key: '_releaseCleanup',
+    value: function _releaseCleanup(session) {
+      var path = this.reverse[session];
+      delete this.reverse[session];
+      delete this.connections[path];
+      this.deferedOnRelease[session].reject(new Error('Device released or disconnected'));
+      delete this.deferedOnRelease[session];
+      return;
+    }
+  }, {
+    key: 'configure',
+    value: function configure(signedData) {
+      return new Promise(function ($return, $error) {
+        var buffer = (0, _verify.verifyHexBin)(signedData);
+        var messages = (0, _parse_protocol.parseConfigure)(buffer);
+        this._messages = messages;
+        this.configured = true;
+        return $return();
+      }.$asyncbind(this));
+    }
+  }, {
+    key: '_sendLowlevel',
+    value: function _sendLowlevel(session) {
+      var _this2 = this;
+
+      var path = this.reverse[session];
+      return function (data) {
+        return _this2.plugin.send(path, session, data);
+      };
+    }
+  }, {
+    key: '_receiveLowlevel',
+    value: function _receiveLowlevel(session) {
+      var _this3 = this;
+
+      var path = this.reverse[session];
+      return function () {
+        return _this3.plugin.receive(path, session);
+      };
+    }
+  }, {
+    key: 'call',
+    value: function call(session, name, data) {
+      return new Promise(function ($return, $error) {
+        var _this4 = this;
+
+        if (this._messages == null) {
+          return $error(new Error('Transport not configured.'));
+        }
+        var path = this.connections[session];
+        if (path == null) {
+          return $error(new Error('Trying to use device after release.'));
+        }
+
+        var messages = this._messages;
+
+        var resPromise = function () {
+          return new Promise(function ($return, $error) {
+            var message;
+            return (0, _send.buildAndSend)(messages, _this4._sendLowlevel(session), name, data).then(function ($await_18) {
+              return (0, _receive.receiveAndParse)(messages, _this4._receiveLowlevel(session)).then(function ($await_19) {
+                message = $await_19;
+                return $return(message);
+              }.$asyncbind(this, $error), $error);
+            }.$asyncbind(this, $error), $error);
+          }.$asyncbind(this));
+        }();
+
+        return $return(Promise.race([this.deferedOnRelease[path].rejectingPromise, resPromise]));
+      }.$asyncbind(this));
+    }
+  }, {
+    key: 'init',
+    value: function init(debug) {
+      return new Promise(function ($return, $error) {
+        var _this5;
+
+        _this5 = this;
+
+        this.debug = !!debug;
+        this.requestNeeded = this.plugin.requestNeeded;
+        return this.plugin.init(debug).then(function ($await_20) {
+          // create the worker ONLY when the plugin is successfully inited
+          this.sharedWorker = this._sharedWorkerFactory();
+          this.sharedWorker.port.onmessage = function (e) {
+            // $FlowIssue
+            _this5.receiveFromWorker(e.data);
+          };
+          return $return();
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
+    }
+  }, {
+    key: 'requestDevice',
+    value: function requestDevice() {
+      return new Promise(function ($return, $error) {
+        return $return(this.plugin.requestDevice());
+      }.$asyncbind(this));
+    }
+  }, {
+    key: 'sendToWorker',
+    value: function sendToWorker(message) {
+      this.latestId++;
+      var id = this.latestId;
+      this.defereds[id] = (0, _defered.create)();
+      this.sharedWorker.port.postMessage({ id: id, message: message });
+      return this.defereds[id].promise;
+    }
+  }, {
+    key: 'receiveFromWorker',
+    value: function receiveFromWorker(m) {
+      this.defereds[m.id].resolve(m.message);
+      delete this.defereds[m.id];
+    }
+  }]);
+
+  return LowlevelTransportWithSharedConnections;
+}(), (_applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype)), _class);
+exports.default = LowlevelTransportWithSharedConnections;
+module.exports = exports['default'];
+}).call(this,require('_process'))
+},{"../debug-decorator":127,"../defered":128,"./protobuf/monkey_patch":137,"./protobuf/parse_protocol":138,"./receive":140,"./send":141,"./verify":142,"_process":98,"json-stable-stringify":146}],145:[function(require,module,exports){
 (function (process){
 'use strict';
 
