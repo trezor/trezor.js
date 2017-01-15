@@ -28836,13 +28836,11 @@ var ITER_DELAY = 500;
 
 var LowlevelTransport = (_class = function () {
 
-  // path => session
+  // session => path
 
 
-  // path => session
+  // session => promise rejecting on release
   function LowlevelTransport(plugin) {
-    var _this = this;
-
     _classCallCheck(this, LowlevelTransport);
 
     this.name = 'LowlevelTransport';
@@ -28851,22 +28849,15 @@ var LowlevelTransport = (_class = function () {
     this.deferedOnRelease = {};
     this.connections = {};
     this.reverse = {};
-    this.externalConnections = {};
     this.configured = false;
     this._lastStringified = '';
     this.requestNeeded = false;
 
     this.plugin = plugin;
     this.version = plugin.version;
-    plugin.onExternalSessionChange = function (a, b) {
-      _this._externalSessionChange(a, b);
-    };
   }
 
-  // session => path
-
-
-  // path => promise rejecting on release
+  // path => session
 
 
   _createClass(LowlevelTransport, [{
@@ -28886,21 +28877,21 @@ var LowlevelTransport = (_class = function () {
   }, {
     key: '_silentEnumerate',
     value: function _silentEnumerate() {
-      var _this2 = this;
+      var _this = this;
 
       return this.lock(function () {
         return new Promise(function ($return, $error) {
           var devices, devicesWithSessions;
-          return _this2.plugin.enumerate().then(function ($await_2) {
+          return _this.plugin.enumerate().then(function ($await_2) {
             devices = $await_2;
             devicesWithSessions = devices.map(function (device) {
-              var session = _this2.connections[device.path] == null ? _this2.externalConnections[device.path] : _this2.connections[device.path];
+              var session = _this.connections[device.path];
               return {
                 path: device.path,
                 session: session
               };
             });
-            _this2._releaseDisconnected(devicesWithSessions);
+            _this._releaseDisconnected(devicesWithSessions);
             return $return(devicesWithSessions.sort(compare));
           }.$asyncbind(this, $error), $error);
         }.$asyncbind(this));
@@ -28909,7 +28900,7 @@ var LowlevelTransport = (_class = function () {
   }, {
     key: '_releaseDisconnected',
     value: function _releaseDisconnected(devices) {
-      var _this3 = this;
+      var _this2 = this;
 
       var connected = {};
       devices.forEach(function (device) {
@@ -28917,8 +28908,8 @@ var LowlevelTransport = (_class = function () {
       });
       Object.keys(this.connections).forEach(function (path) {
         if (connected[path] == null) {
-          if (_this3.connections[path] != null) {
-            _this3._releaseCleanup(_this3.connections[path]);
+          if (_this2.connections[path] != null) {
+            _this2._releaseCleanup(_this2.connections[path]);
           }
         }
       });
@@ -28954,33 +28945,28 @@ var LowlevelTransport = (_class = function () {
     key: '_checkAndReleaseBeforeAcquire',
     value: function _checkAndReleaseBeforeAcquire(input) {
       return new Promise(function ($return, $error) {
-        var myPrevious, externalPrevious, checkedPrevious, error;
+        var realPrevious, error;
 
-        myPrevious = this.connections[input.path];
-        externalPrevious = this.externalConnections[input.path];
-        checkedPrevious = myPrevious == null ? externalPrevious : myPrevious;
+        realPrevious = this.connections[input.path];
 
         if (input.checkPrevious) {
           error = false;
-          if (checkedPrevious == null) {
+          if (realPrevious == null) {
             error = input.previous != null;
           } else {
-            error = input.previous !== checkedPrevious;
+            error = input.previous !== realPrevious;
           }
           if (error) {
             return $error(new Error('wrong previous session'));
           }
         }
-        if (myPrevious != null) {
-          return this._realRelease(input.path, myPrevious).then(function ($await_5) {
+        if (realPrevious != null) {
+          return this._realRelease(input.path, realPrevious).then(function ($await_5) {
             return $If_1.call(this);
           }.$asyncbind(this, $error), $error);
         }
 
         function $If_1() {
-          if (externalPrevious != null) {
-            delete this.externalConnections[input.path];
-          }
           return $return();
         }
 
@@ -28991,17 +28977,17 @@ var LowlevelTransport = (_class = function () {
     key: 'acquire',
     value: function acquire(input) {
       return new Promise(function ($return, $error) {
-        var _this4 = this;
+        var _this3 = this;
 
         return $return(this.lock(function () {
           return new Promise(function ($return, $error) {
             var session;
-            return _this4._checkAndReleaseBeforeAcquire(input).then(function ($await_6) {
-              return _this4.plugin.connect(input.path, input.previous).then(function ($await_7) {
+            return _this3._checkAndReleaseBeforeAcquire(input).then(function ($await_6) {
+              return _this3.plugin.connect(input.path).then(function ($await_7) {
                 session = $await_7;
-                _this4.connections[input.path] = session;
-                _this4.reverse[session] = input.path;
-                _this4.deferedOnRelease[session] = (0, _defered.create)();
+                _this3.connections[input.path] = session;
+                _this3.reverse[session] = input.path;
+                _this3.deferedOnRelease[session] = (0, _defered.create)();
                 return $return(session);
               }.$asyncbind(this, $error), $error);
             }.$asyncbind(this, $error), $error);
@@ -29013,30 +28999,15 @@ var LowlevelTransport = (_class = function () {
     key: 'release',
     value: function release(session) {
       return new Promise(function ($return, $error) {
-        var _this5 = this;
+        var _this4 = this;
 
         var path = this.reverse[session];
         if (path == null) {
           return $error(new Error('Trying to double release.'));
         }
         return $return(this.lock(function () {
-          return _this5._realRelease(path, session);
+          return _this4._realRelease(path, session);
         }));
-      }.$asyncbind(this));
-    }
-  }, {
-    key: '_externalSessionChange',
-    value: function _externalSessionChange(path, session) {
-      return new Promise(function ($return, $error) {
-        if (this.connections[path] != null) {
-          this._releaseCleanup(this.connections[path]);
-        }
-        if (session == null) {
-          delete this.externalConnections[path];
-        } else {
-          this.externalConnections[path] = session;
-        }
-        return $return();
       }.$asyncbind(this));
     }
   }, {
@@ -29073,28 +29044,28 @@ var LowlevelTransport = (_class = function () {
   }, {
     key: '_sendLowlevel',
     value: function _sendLowlevel(session) {
-      var _this6 = this;
+      var _this5 = this;
 
       var path = this.reverse[session];
       return function (data) {
-        return _this6.plugin.send(path, session, data);
+        return _this5.plugin.send(path, session, data);
       };
     }
   }, {
     key: '_receiveLowlevel',
     value: function _receiveLowlevel(session) {
-      var _this7 = this;
+      var _this6 = this;
 
       var path = this.reverse[session];
       return function () {
-        return _this7.plugin.receive(path, session);
+        return _this6.plugin.receive(path, session);
       };
     }
   }, {
     key: 'call',
     value: function call(session, name, data) {
       return new Promise(function ($return, $error) {
-        var _this8 = this;
+        var _this7 = this;
 
         if (this._messages == null) {
           return $error(new Error('Transport not configured.'));
@@ -29110,8 +29081,8 @@ var LowlevelTransport = (_class = function () {
             var resPromise = function () {
               return new Promise(function ($return, $error) {
                 var message;
-                return (0, _send.buildAndSend)(messages, _this8._sendLowlevel(session), name, data).then(function ($await_9) {
-                  return (0, _receive.receiveAndParse)(messages, _this8._receiveLowlevel(session)).then(function ($await_10) {
+                return (0, _send.buildAndSend)(messages, _this7._sendLowlevel(session), name, data).then(function ($await_9) {
+                  return (0, _receive.receiveAndParse)(messages, _this7._receiveLowlevel(session)).then(function ($await_10) {
                     message = $await_10;
                     return $return(message);
                   }.$asyncbind(this, $error), $error);
@@ -29119,7 +29090,7 @@ var LowlevelTransport = (_class = function () {
               }.$asyncbind(this));
             }();
 
-            return $return(Promise.race([_this8.deferedOnRelease[session].rejectingPromise, resPromise]));
+            return $return(Promise.race([_this7.deferedOnRelease[session].rejectingPromise, resPromise]));
           }.$asyncbind(this));
         };
 
@@ -31403,7 +31374,10 @@ function verifyHexBin(data) {
 }
 }).call(this,require("buffer").Buffer)
 },{"bigi":21,"bitcoinjs-lib-zcash":32,"buffer":46}],144:[function(require,module,exports){
+(function (process){
 'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -31415,6 +31389,294 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _desc, _value, _class;
 
 var _debugDecorator = require('../debug-decorator');
+
+Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
+  "use strict";
+
+  if (!Function.prototype.$asyncbind) {
+    Object.defineProperty(Function.prototype, "$asyncbind", {
+      value: $asyncbind,
+      enumerable: false,
+      configurable: true,
+      writable: true
+    });
+  }
+
+  if (!$asyncbind.trampoline) {
+    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
+      return function b(q) {
+        while (q) {
+          if (q.then) {
+            q = q.then(b, e);
+            return u ? undefined : q;
+          }
+
+          try {
+            if (q.pop) {
+              if (q.length) return q.pop() ? x.call(t) : q;
+              q = s;
+            } else q = q.call(t);
+          } catch (r) {
+            return e(r);
+          }
+        }
+      };
+    };
+  }
+
+  if (!$asyncbind.LazyThenable) {
+    $asyncbind.LazyThenable = function () {
+      function isThenable(obj) {
+        return obj && obj instanceof Object && typeof obj.then === "function";
+      }
+
+      function resolution(p, r, how) {
+        try {
+          var x = how ? how(r) : r;
+          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
+
+          if (isThenable(x)) {
+            x.then(function (y) {
+              resolution(p, y);
+            }, function (e) {
+              p.reject(e);
+            });
+          } else {
+            p.resolve(x);
+          }
+        } catch (ex) {
+          p.reject(ex);
+        }
+      }
+
+      function Chained() {}
+
+      ;
+      Chained.prototype = {
+        resolve: _unchained,
+        reject: _unchained,
+        then: thenChain
+      };
+
+      function _unchained(v) {}
+
+      function thenChain(res, rej) {
+        this.resolve = res;
+        this.reject = rej;
+      }
+
+      function then(res, rej) {
+        var chain = new Chained();
+
+        try {
+          this._resolver(function (value) {
+            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
+          }, function (ex) {
+            resolution(chain, ex, rej);
+          });
+        } catch (ex) {
+          resolution(chain, ex, rej);
+        }
+
+        return chain;
+      }
+
+      function Thenable(resolver) {
+        this._resolver = resolver;
+        this.then = then;
+      }
+
+      ;
+
+      Thenable.resolve = function (v) {
+        return Thenable.isThenable(v) ? v : {
+          then: function then(resolve) {
+            return resolve(v);
+          }
+        };
+      };
+
+      Thenable.isThenable = isThenable;
+      return Thenable;
+    }();
+
+    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
+      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
+        setTimeout(f, 0);
+      };
+
+      var soon = function () {
+        var fq = [],
+            fqStart = 0,
+            bufferSize = 1024;
+
+        function callQueue() {
+          while (fq.length - fqStart) {
+            fq[fqStart]();
+            fq[fqStart++] = undefined;
+
+            if (fqStart === bufferSize) {
+              fq.splice(0, bufferSize);
+              fqStart = 0;
+            }
+          }
+        }
+
+        return function (fn) {
+          fq.push(fn);
+          if (fq.length - fqStart === 1) tick(callQueue);
+        };
+      }();
+
+      function Zousan(func) {
+        if (func) {
+          var me = this;
+          func(function (arg) {
+            me.resolve(arg);
+          }, function (arg) {
+            me.reject(arg);
+          });
+        }
+      }
+
+      Zousan.prototype = {
+        resolve: function resolve(value) {
+          if (this.state !== undefined) return;
+          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
+          var me = this;
+
+          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
+            try {
+              var first = 0;
+              var then = value.then;
+
+              if (typeof then === "function") {
+                then.call(value, function (ra) {
+                  if (!first++) {
+                    me.resolve(ra);
+                  }
+                }, function (rr) {
+                  if (!first++) {
+                    me.reject(rr);
+                  }
+                });
+                return;
+              }
+            } catch (e) {
+              if (!first) this.reject(e);
+              return;
+            }
+          }
+
+          this.state = STATE_FULFILLED;
+          this.v = value;
+          if (me.c) soon(function () {
+            for (var n = 0, l = me.c.length; n < l; n++) {
+              STATE_FULFILLED(me.c[n], value);
+            }
+          });
+        },
+        reject: function reject(reason) {
+          if (this.state !== undefined) return;
+          this.state = STATE_REJECTED;
+          this.v = reason;
+          var clients = this.c;
+          if (clients) soon(function () {
+            for (var n = 0, l = clients.length; n < l; n++) {
+              STATE_REJECTED(clients[n], reason);
+            }
+          });
+        },
+        then: function then(onF, onR) {
+          var p = new Zousan();
+          var client = {
+            y: onF,
+            n: onR,
+            p: p
+          };
+
+          if (this.state === undefined) {
+            if (this.c) this.c.push(client);else this.c = [client];
+          } else {
+            var s = this.state,
+                a = this.v;
+            soon(function () {
+              s(client, a);
+            });
+          }
+
+          return p;
+        }
+      };
+
+      function STATE_FULFILLED(c, arg) {
+        if (typeof c.y === "function") {
+          try {
+            var yret = c.y.call(undefined, arg);
+            c.p.resolve(yret);
+          } catch (err) {
+            c.p.reject(err);
+          }
+        } else c.p.resolve(arg);
+      }
+
+      function STATE_REJECTED(c, reason) {
+        if (typeof c.n === "function") {
+          try {
+            var yret = c.n.call(undefined, reason);
+            c.p.resolve(yret);
+          } catch (err) {
+            c.p.reject(err);
+          }
+        } else c.p.reject(reason);
+      }
+
+      Zousan.resolve = function (val) {
+        if (val && val instanceof Zousan) return val;
+        var z = new Zousan();
+        z.resolve(val);
+        return z;
+      };
+
+      Zousan.reject = function (err) {
+        if (err && err instanceof Zousan) return err;
+        var z = new Zousan();
+        z.reject(err);
+        return z;
+      };
+
+      Zousan.version = "2.3.2-nodent";
+      return Zousan;
+    })();
+  }
+
+  var resolver = this;
+
+  switch (catcher) {
+    case true:
+      return new $asyncbind.Thenable(boundThen);
+
+    case 0:
+      return new $asyncbind.LazyThenable(boundThen);
+
+    case undefined:
+      boundThen.then = boundThen;
+      return boundThen;
+
+    default:
+      return function () {
+        try {
+          return resolver.apply(self, arguments);
+        } catch (ex) {
+          return catcher(ex);
+        }
+      };
+  }
+
+  function boundThen() {
+    return resolver.apply(self, arguments);
+  }
+};
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -31460,203 +31722,157 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.86";
+    this.version = "0.2.87";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
-    this.devices = {};
-    this.lastPath = 0;
-    this.lastSession = 0;
     this.requestNeeded = true;
-    this._lock = Promise.resolve();
-    this.onExternalSessionChange = null;
   }
 
   _createClass(WebUsbPlugin, [{
-    key: 'onChannelMessage',
-    value: function onChannelMessage(obj) {
-      var _this = this;
-
-      this.lock(function () {
-        if (obj.session != null) {
-          _this.lastSession = parseInt(obj.session);
-        }
-        Object.keys(_this.devices).forEach(function (k) {
-          var d = _this.devices[k];
-          if (obj.serialNumber == null && d.device.serialNumber == null || d.device.serialNumber === obj.serialNumber) {
-            d.session = obj.session;
-            if (_this.onExternalSessionChange != null) {
-              _this.onExternalSessionChange(k, obj.session);
-            }
-          }
-        });
-        return Promise.resolve();
-      });
-    }
-  }, {
     key: 'init',
     value: function init(debug) {
-      var _this2 = this;
-
-      this.debug = !!debug;
-      try {
+      return new Promise(function ($return, $error) {
+        this.debug = !!debug;
         // $FlowIssue
         var usb = navigator.usb;
         if (usb == null) {
-          return Promise.reject(new Error('WebUSB is not available on this browser.'));
+          return $error(new Error('WebUSB is not available on this browser.'));
         } else {
           this.usb = usb;
-
-          this.channel = new BroadcastChannel('trezor_webusb_sessions');
-          this.channel.onmessage = function (event) {
-            _this2.onChannelMessage(event.data);
-          };
-
-          return Promise.resolve();
         }
-      } catch (e) {
-        return Promise.reject(e);
-      }
+        return $return();
+      }.$asyncbind(this));
+    }
+  }, {
+    key: '_listDevices',
+    value: function _listDevices() {
+      return new Promise(function ($return, $error) {
+        var bootloaderId, devices;
+
+        bootloaderId = 0;
+        return this.usb.getDevices().then(function ($await_1) {
+          devices = $await_1;
+          return $return(devices.filter(function (dev) {
+            var isTrezor = TREZOR_DESCS.some(function (desc) {
+              return dev.vendorId === desc.vendorId && dev.productId === desc.productId;
+            });
+            return isTrezor;
+          }).map(function (device) {
+            // path is just serial number
+            // more bootloaders => number them, hope for the best
+            var serialNumber = device.serialNumber;
+            var path = serialNumber == null || serialNumber === '' ? 'bootloader' : serialNumber;
+            if (path === 'bootloader') {
+              bootloaderId++;
+              path = path + bootloaderId;
+            }
+            return { path: path, device: device };
+          }));
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
     }
   }, {
     key: 'enumerate',
     value: function enumerate() {
-      var _this3 = this;
-
-      return this.usb.getDevices().then(function (devices) {
-        var res = [];
-        devices.forEach(function (dev, i) {
-          var isTrezor = TREZOR_DESCS.some(function (desc) {
-            return dev.vendorId === desc.vendorId && dev.productId === desc.productId;
+      return new Promise(function ($return, $error) {
+        return this._listDevices().then(function ($await_2) {
+          return $return($await_2.map(function (info) {
+            return { path: info.path };
+          }));
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
+    }
+  }, {
+    key: '_findDevice',
+    value: function _findDevice(path) {
+      return new Promise(function ($return, $error) {
+        var deviceO;
+        return this._listDevices().then(function ($await_3) {
+          deviceO = $await_3.find(function (d) {
+            return d.path === path;
           });
-          if (isTrezor) {
-            var isPresent = false;
-            var _path = '';
-            Object.keys(_this3.devices).forEach(function (kpath) {
-              if (_this3.devices[kpath].device === dev) {
-                isPresent = true;
-                _path = kpath;
-              }
-            });
-            if (!isPresent) {
-              _this3.lastPath++;
-              _this3.devices[_this3.lastPath.toString()] = { device: dev, session: null };
-              _path = _this3.lastPath.toString();
-            }
-            res.push({ path: _path });
+          if (deviceO == null) {
+            return $error(new Error('Device not present.'));
           }
-        });
-        Object.keys(_this3.devices).forEach(function (kpath) {
-          var isPresent = devices.some(function (device) {
-            return _this3.devices[kpath].device === device;
-          });
-          if (!isPresent) {
-            delete _this3.devices[kpath];
-          }
-        });
-        return res;
-      });
+          return $return(deviceO.device);
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
     }
   }, {
     key: 'send',
     value: function send(path, session, data) {
-      var device = this.devices[path];
-      if (device == null) {
-        return Promise.reject(new Error('Device not found'));
-      }
+      return new Promise(function ($return, $error) {
+        var device, newArray;
+        return this._findDevice(path).then(function ($await_4) {
+          device = $await_4;
 
-      var uDevice = device.device;
+          newArray = new Uint8Array(64);
+          newArray[0] = 63;
+          newArray.set(new Uint8Array(data), 1);
 
-      var newArray = new Uint8Array(64);
-      newArray[0] = 63;
-      newArray.set(new Uint8Array(data), 1);
-
-      return uDevice.transferOut(2, newArray).then(function () {});
+          return $return(device.transferOut(2, newArray).then(function () {}));
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
     }
   }, {
     key: 'receive',
     value: function receive(path, session) {
-      var device = this.devices[path];
-      if (device == null) {
-        return Promise.reject(new Error('Device not found'));
-      }
+      return new Promise(function ($return, $error) {
+        var device;
+        return this._findDevice(path).then(function ($await_5) {
+          device = $await_5;
 
-      var uDevice = device.device;
-
-      return uDevice.transferIn(2, 64).then(function (result) {
-        return result.data.buffer.slice(1);
-      });
+          return $return(device.transferIn(2, 64).then(function (result) {
+            return result.data.buffer.slice(1);
+          }));
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
     }
   }, {
     key: 'connect',
-    value: function connect(path, previous) {
-      var _this4 = this;
+    value: function connect(path) {
+      return new Promise(function ($return, $error) {
+        var device;
+        return this._findDevice(path).then(function ($await_6) {
+          device = $await_6;
+          return device.open().then(function ($await_7) {
+            return device.selectConfiguration(1).then(function ($await_8) {
+              return device.reset().then(function ($await_9) {
+                return device.claimInterface(2).then(function ($await_10) {
 
-      return this.lock(function () {
-        var device = _this4.devices[path];
-        if (device == null) {
-          return Promise.reject(new Error('Device not present.'));
-        }
-
-        return device.device.open().then(function () {
-          return device.device.selectConfiguration(1);
-        }).then(function () {
-          if (previous != null) {
-            return device.device.reset();
-          }
-        }).then(function () {
-          return device.device.claimInterface(2).catch(function (e) {
-            if (typeof e === 'object') {
-              if (e.code) {
-                if (e.code === 19 && previous == null) {
-                  throw new Error('wrong previous session');
-                }
-              }
-            }
-            throw e;
-          });
-        }).then(function () {
-          _this4.lastSession++;
-          var newSession = _this4.lastSession.toString();
-          device.session = newSession;
-          _this4.channel.postMessage({ serialNumber: device.device.serialNumber, session: device.session });
-          return newSession;
-        }); // path == session, why not?
-      });
+                  // path == session == serial code, why not?
+                  return $return(path);
+                }.$asyncbind(this, $error), $error);
+              }.$asyncbind(this, $error), $error);
+            }.$asyncbind(this, $error), $error);
+          }.$asyncbind(this, $error), $error);
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
     }
   }, {
     key: 'disconnect',
     value: function disconnect(path, session) {
-      var _this5 = this;
+      return new Promise(function ($return, $error) {
+        var device;
+        return this._findDevice(path).then(function ($await_11) {
+          device = $await_11;
 
-      return this.lock(function () {
-        var device = _this5.devices[path];
-        if (device == null) {
-          return Promise.reject(new Error('Device not present.'));
-        }
-
-        return device.device.releaseInterface(2).then(function () {
-          return device.device.close();
-        }).then(function () {
-          device.session = null;
-          _this5.channel.postMessage({ serialNumber: device.device.serialNumber, session: null });
-          return;
-        });
-      });
+          return device.releaseInterface(2).then(function ($await_12) {
+            return device.close().then(function ($await_13) {
+              return $return();
+            }.$asyncbind(this, $error), $error);
+          }.$asyncbind(this, $error), $error);
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
     }
   }, {
     key: 'requestDevice',
     value: function requestDevice() {
-      // I am throwing away the resulting device, since it appears in enumeration anyway
-      return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function () {});
-    }
-  }, {
-    key: 'lock',
-    value: function lock(fn) {
-      var res = this._lock.then(function () {
-        return fn();
-      });
-      this._lock = res.catch(function () {});
-      return res;
+      return new Promise(function ($return, $error) {
+        return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function ($await_14) {
+          return $return();
+        }.$asyncbind(this, $error), $error);
+      }.$asyncbind(this));
     }
   }]);
 
@@ -31664,7 +31880,8 @@ var WebUsbPlugin = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'connect', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'connect'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'disconnect', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'disconnect'), _class.prototype)), _class);
 exports.default = WebUsbPlugin;
 module.exports = exports['default'];
-},{"../debug-decorator":127}],145:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"../debug-decorator":127,"_process":98}],145:[function(require,module,exports){
 (function (process){
 'use strict';
 
