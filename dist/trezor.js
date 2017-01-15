@@ -31068,7 +31068,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.95";
+    this.version = "0.2.96";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.requestNeeded = true;
@@ -31206,7 +31206,9 @@ var WebUsbPlugin = (_class = function () {
           return new Promise(function ($return, $error) {
             if (i > 0) {
               return new Promise(function (resolve) {
-                return setTimeout(i * 200);
+                return setTimeout(function () {
+                  return resolve();
+                }, i * 200);
               }).then(function ($await_14) {
                 return $If_4.call(this);
               }.$asyncbind(this, $error), $error);
@@ -31215,7 +31217,9 @@ var WebUsbPlugin = (_class = function () {
             function $If_4() {
               var $Try_1_Catch = function (e) {
                 // ignore
-
+                if (i === 4) {
+                  return $error(e);
+                }
                 return $return();
               }.$asyncbind(this, $error);
 
