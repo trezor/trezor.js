@@ -862,22 +862,27 @@ var Device = function (_EventEmitter) {
                     _this2.currentSessionObject = null;
                     _this2.activityInProgress = false;
                     if (error != null && _this2.connected) {
-                        return new Promise(function (resolve, reject) {
-                            var onDisconnect = function onDisconnect() {};
-                            var onChanged = function onChanged() {
-                                if (_this2.isStolen()) {
-                                    _this2._stolenEvent.emit();
-                                }
-                                _this2.disconnectEvent.removeListener(onDisconnect);
-                                resolve();
-                            };
-                            onDisconnect = function onDisconnect() {
-                                _this2.changedSessionsEvent.removeListener(onChanged);
-                                resolve();
-                            };
-                            _this2.changedSessionsEvent.once(onChanged);
-                            _this2.disconnectEvent.once(onDisconnect);
-                        });
+                        if (error.message === 'Action was interrupted.') {
+                            _this2._stolenEvent.emit();
+                            return Promise.resolve();
+                        } else {
+                            return new Promise(function (resolve, reject) {
+                                var onDisconnect = function onDisconnect() {};
+                                var onChanged = function onChanged() {
+                                    if (_this2.isStolen()) {
+                                        _this2._stolenEvent.emit();
+                                    }
+                                    _this2.disconnectEvent.removeListener(onDisconnect);
+                                    resolve();
+                                };
+                                onDisconnect = function onDisconnect() {
+                                    _this2.changedSessionsEvent.removeListener(onChanged);
+                                    resolve();
+                                };
+                                _this2.changedSessionsEvent.once(onChanged);
+                                _this2.disconnectEvent.once(onDisconnect);
+                            });
+                        }
                     } else {
                         return Promise.resolve();
                     }
@@ -31068,7 +31073,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.97";
+    this.version = "0.2.98";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this._lastDevices = [];
@@ -31097,8 +31102,8 @@ var WebUsbPlugin = (_class = function () {
         var bootloaderId, devices;
 
         bootloaderId = 0;
-        return this.usb.getDevices().then(function ($await_7) {
-          devices = $await_7;
+        return this.usb.getDevices().then(function ($await_8) {
+          devices = $await_8;
           this._lastDevices = devices.filter(function (dev) {
             var isTrezor = TREZOR_DESCS.some(function (desc) {
               return dev.vendorId === desc.vendorId && dev.productId === desc.productId;
@@ -31123,8 +31128,8 @@ var WebUsbPlugin = (_class = function () {
     key: 'enumerate',
     value: function enumerate() {
       return new Promise(function ($return, $error) {
-        return this._listDevices().then(function ($await_8) {
-          return $return($await_8.map(function (info) {
+        return this._listDevices().then(function ($await_9) {
+          return $return($await_9.map(function (info) {
             return { path: info.path };
           }));
         }.$asyncbind(this, $error), $error);
@@ -31138,7 +31143,7 @@ var WebUsbPlugin = (_class = function () {
           return d.path === path;
         });
         if (deviceO == null) {
-          return $error(new Error('Device not present.'));
+          return $error(new Error('Action was interrupted.'));
         }
         return $return(deviceO.device);
       }.$asyncbind(this));
@@ -31148,24 +31153,24 @@ var WebUsbPlugin = (_class = function () {
     value: function send(path, data) {
       return new Promise(function ($return, $error) {
         var device, newArray;
-        return this._findDevice(path).then(function ($await_9) {
-          device = $await_9;
+        return this._findDevice(path).then(function ($await_10) {
+          device = $await_10;
 
           newArray = new Uint8Array(64);
           newArray[0] = 63;
           newArray.set(new Uint8Array(data), 1);
 
           if (!device.opened) {
-            return this.connect(path).then(function ($await_10) {
-              return $If_2.call(this);
+            return this.connect(path).then(function ($await_11) {
+              return $If_3.call(this);
             }.$asyncbind(this, $error), $error);
           }
 
-          function $If_2() {
+          function $If_3() {
             return $return(device.transferOut(2, newArray).then(function () {}));
           }
 
-          return $If_2.call(this);
+          return $If_3.call(this);
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
     }
@@ -31173,23 +31178,41 @@ var WebUsbPlugin = (_class = function () {
     key: 'receive',
     value: function receive(path) {
       return new Promise(function ($return, $error) {
-        var device;
-        return this._findDevice(path).then(function ($await_11) {
-          device = $await_11;
+        var device, res;
+        return this._findDevice(path).then(function ($await_12) {
+          device = $await_12;
 
-          if (!device.opened) {
-            return this.connect(path).then(function ($await_12) {
-              return $If_3.call(this);
-            }.$asyncbind(this, $error), $error);
+          function $Try_1_Post() {
+            return $return();
           }
 
-          function $If_3() {
-            return $return(device.transferIn(2, 64).then(function (result) {
-              return result.data.buffer.slice(1);
-            }));
-          }
+          var $Try_1_Catch = function (e) {
+            if (e.message === 'Device unavailable.') {
+              return $error(new Error('Action was interrupted.'));
+            } else {
+              return $error(e);
+            }
+            return $return();
+          }.$asyncbind(this, $error);
 
-          return $If_3.call(this);
+          try {
+            if (!device.opened) {
+              return this.connect(path).then(function ($await_13) {
+                return $If_4.call(this);
+              }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
+            }
+
+            function $If_4() {
+              return device.transferIn(2, 64).then(function ($await_14) {
+                res = $await_14;
+                return $return(res.data.buffer.slice(1));
+              }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
+            }
+
+            return $If_4.call(this);
+          } catch (e) {
+            $Try_1_Catch(e)
+          }
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
     }
@@ -31208,54 +31231,52 @@ var WebUsbPlugin = (_class = function () {
                 return setTimeout(function () {
                   return resolve();
                 }, i * 200);
-              }).then(function ($await_13) {
-                return $If_4.call(this);
+              }).then(function ($await_15) {
+                return $If_5.call(this);
               }.$asyncbind(this, $error), $error);
             }
 
-            function $If_4() {
-              var $Try_1_Catch = function (e) {
+            function $If_5() {
+              var $Try_2_Catch = function (e) {
                 // ignore
                 if (i === 4) {
                   return $error(e);
                 }
                 return $return();
-              }.$asyncbind(this, $error);
-
-              try {
-                return _this._connectIn(path).then(function ($await_14) {
+              }.$asyncbind(this, $error);try {
+                return _this._connectIn(path).then(function ($await_16) {
                   return $return({
-                    v: $await_14
+                    v: $await_16
                   });
-                }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
+                }.$asyncbind(this, $Try_2_Catch), $Try_2_Catch);
               } catch (e) {
-                $Try_1_Catch(e)
+                $Try_2_Catch(e)
               }
             }
 
-            return $If_4.call(this);
+            return $If_5.call(this);
           }.$asyncbind(this));
         };
 
         i = 0;
-        return Function.$asyncbind.trampoline(this, $Loop_5_exit, $Loop_5_step, $error, true)($Loop_5);
+        return Function.$asyncbind.trampoline(this, $Loop_6_exit, $Loop_6_step, $error, true)($Loop_6);
 
-        function $Loop_5() {
+        function $Loop_6() {
           if (i < 5) {
-            return _loop(i).then(function ($await_15) {
-              _ret = $await_15;
+            return _loop(i).then(function ($await_17) {
+              _ret = $await_17;
               if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return $return(_ret.v);
-              return $Loop_5_step;
+              return $Loop_6_step;
             }.$asyncbind(this, $error), $error);
           } else return [1];
         }
 
-        function $Loop_5_step() {
+        function $Loop_6_step() {
           i++;
-          return $Loop_5;
+          return $Loop_6;
         }
 
-        function $Loop_5_exit() {
+        function $Loop_6_exit() {
           return $return();
         }
       }.$asyncbind(this));
@@ -31265,12 +31286,12 @@ var WebUsbPlugin = (_class = function () {
     value: function _connectIn(path) {
       return new Promise(function ($return, $error) {
         var device;
-        return this._findDevice(path).then(function ($await_16) {
-          device = $await_16;
-          return device.open().then(function ($await_17) {
-            return device.selectConfiguration(1).then(function ($await_18) {
-              return device.reset().then(function ($await_19) {
-                return device.claimInterface(2).then(function ($await_20) {
+        return this._findDevice(path).then(function ($await_18) {
+          device = $await_18;
+          return device.open().then(function ($await_19) {
+            return device.selectConfiguration(1).then(function ($await_20) {
+              return device.reset().then(function ($await_21) {
+                return device.claimInterface(2).then(function ($await_22) {
                   return $return();
                 }.$asyncbind(this, $error), $error);
               }.$asyncbind(this, $error), $error);
@@ -31284,11 +31305,11 @@ var WebUsbPlugin = (_class = function () {
     value: function disconnect(path) {
       return new Promise(function ($return, $error) {
         var device;
-        return this._findDevice(path).then(function ($await_21) {
-          device = $await_21;
+        return this._findDevice(path).then(function ($await_23) {
+          device = $await_23;
 
-          return device.releaseInterface(2).then(function ($await_22) {
-            return device.close().then(function ($await_23) {
+          return device.releaseInterface(2).then(function ($await_24) {
+            return device.close().then(function ($await_25) {
               return $return();
             }.$asyncbind(this, $error), $error);
           }.$asyncbind(this, $error), $error);
@@ -31299,7 +31320,7 @@ var WebUsbPlugin = (_class = function () {
     key: 'requestDevice',
     value: function requestDevice() {
       return new Promise(function ($return, $error) {
-        return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function ($await_24) {
+        return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function ($await_26) {
           return $return();
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
