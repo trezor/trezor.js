@@ -31066,7 +31066,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.90";
+    this.version = "0.2.91";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.requestNeeded = true;
@@ -31639,7 +31639,7 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
         var devices, sessionsM, sessions, devicesWithSessions;
         return this.plugin.enumerate().then(function ($await_3) {
           devices = $await_3;
-          return this.sendToWorker({ type: 'get-sessions' }).then(function ($await_4) {
+          return this.sendToWorker({ type: 'get-sessions-and-disconnect', devices: devices }).then(function ($await_4) {
             sessionsM = $await_4;
             if (sessionsM.type !== 'sessions') {
               return $error(new Error('Wrong reply'));
@@ -31774,14 +31774,12 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
           }
 
           var $Try_2_Catch = function (e) {
-            return this.sendToWorker({ type: 'release-done' }).then(function ($await_13) {
-              return $error(e);
-            }.$asyncbind(this, $error), $error);
+            // ignore release errors, it's not important that much
+
+            return $Try_2_Post.call(this);
           }.$asyncbind(this, $error);try {
-            return this.plugin.disconnect(path).then(function ($await_14) {
-              return this.sendToWorker({ type: 'release-done' }).then(function ($await_12) {
-                return $return();
-              }.$asyncbind(this, $error), $error);
+            return this.plugin.disconnect(path).then(function ($await_13) {
+              return $Try_2_Post.call(this);
             }.$asyncbind(this, $Try_2_Catch), $Try_2_Catch);
           } catch (e) {
             $Try_2_Catch(e)
@@ -31792,8 +31790,10 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
   }, {
     key: '_releaseCleanup',
     value: function _releaseCleanup(session) {
-      this.deferedOnRelease[session].reject(new Error('Device released or disconnected'));
-      delete this.deferedOnRelease[session];
+      if (this.deferedOnRelease[session] != null) {
+        this.deferedOnRelease[session].reject(new Error('Device released or disconnected'));
+        delete this.deferedOnRelease[session];
+      }
     }
   }, {
     key: 'configure',
@@ -31831,8 +31831,8 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
         var _this4, sessionsM, messages, path_, path, resPromise;
 
         _this4 = this;
-        return this.sendToWorker({ type: 'get-sessions' }).then(function ($await_15) {
-          sessionsM = $await_15;
+        return this.sendToWorker({ type: 'get-sessions' }).then(function ($await_14) {
+          sessionsM = $await_14;
 
           if (this._messages == null) {
             return $error(new Error('Transport not configured.'));
@@ -31858,9 +31858,9 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
           resPromise = function () {
             return new Promise(function ($return, $error) {
               var message;
-              return (0, _send.buildAndSend)(messages, _this4._sendLowlevel(path), name, data).then(function ($await_16) {
-                return (0, _receive.receiveAndParse)(messages, _this4._receiveLowlevel(path)).then(function ($await_17) {
-                  message = $await_17;
+              return (0, _send.buildAndSend)(messages, _this4._sendLowlevel(path), name, data).then(function ($await_15) {
+                return (0, _receive.receiveAndParse)(messages, _this4._receiveLowlevel(path)).then(function ($await_16) {
+                  message = $await_16;
                   return $return(message);
                 }.$asyncbind(this, $error), $error);
               }.$asyncbind(this, $error), $error);
@@ -31881,7 +31881,7 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
 
         this.debug = !!debug;
         this.requestNeeded = this.plugin.requestNeeded;
-        return this.plugin.init(debug).then(function ($await_18) {
+        return this.plugin.init(debug).then(function ($await_17) {
           // create the worker ONLY when the plugin is successfully inited
           this.sharedWorker = this._sharedWorkerFactory();
           this.sharedWorker.port.onmessage = function (e) {
