@@ -30723,12 +30723,12 @@ function verifyHexBin(data) {
 (function (process){
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = undefined;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -31068,7 +31068,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.94";
+    this.version = "0.2.95";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.requestNeeded = true;
@@ -31096,8 +31096,8 @@ var WebUsbPlugin = (_class = function () {
         var bootloaderId, devices;
 
         bootloaderId = 0;
-        return this.usb.getDevices().then(function ($await_3) {
-          devices = $await_3;
+        return this.usb.getDevices().then(function ($await_7) {
+          devices = $await_7;
           return $return(devices.filter(function (dev) {
             var isTrezor = TREZOR_DESCS.some(function (desc) {
               return dev.vendorId === desc.vendorId && dev.productId === desc.productId;
@@ -31121,8 +31121,8 @@ var WebUsbPlugin = (_class = function () {
     key: 'enumerate',
     value: function enumerate() {
       return new Promise(function ($return, $error) {
-        return this._listDevices().then(function ($await_4) {
-          return $return($await_4.map(function (info) {
+        return this._listDevices().then(function ($await_8) {
+          return $return($await_8.map(function (info) {
             return { path: info.path };
           }));
         }.$asyncbind(this, $error), $error);
@@ -31133,8 +31133,8 @@ var WebUsbPlugin = (_class = function () {
     value: function _findDevice(path) {
       return new Promise(function ($return, $error) {
         var deviceO;
-        return this._listDevices().then(function ($await_5) {
-          deviceO = $await_5.find(function (d) {
+        return this._listDevices().then(function ($await_9) {
+          deviceO = $await_9.find(function (d) {
             return d.path === path;
           });
           if (deviceO == null) {
@@ -31149,24 +31149,24 @@ var WebUsbPlugin = (_class = function () {
     value: function send(path, data) {
       return new Promise(function ($return, $error) {
         var device, newArray;
-        return this._findDevice(path).then(function ($await_6) {
-          device = $await_6;
+        return this._findDevice(path).then(function ($await_10) {
+          device = $await_10;
 
           newArray = new Uint8Array(64);
           newArray[0] = 63;
           newArray.set(new Uint8Array(data), 1);
 
           if (!device.opened) {
-            return this.connect(path).then(function ($await_7) {
-              return $If_1.call(this);
+            return this.connect(path).then(function ($await_11) {
+              return $If_2.call(this);
             }.$asyncbind(this, $error), $error);
           }
 
-          function $If_1() {
+          function $If_2() {
             return $return(device.transferOut(2, newArray).then(function () {}));
           }
 
-          return $If_1.call(this);
+          return $If_2.call(this);
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
     }
@@ -31175,22 +31175,22 @@ var WebUsbPlugin = (_class = function () {
     value: function receive(path) {
       return new Promise(function ($return, $error) {
         var device;
-        return this._findDevice(path).then(function ($await_8) {
-          device = $await_8;
+        return this._findDevice(path).then(function ($await_12) {
+          device = $await_12;
 
           if (!device.opened) {
-            return this.connect(path).then(function ($await_9) {
-              return $If_2.call(this);
+            return this.connect(path).then(function ($await_13) {
+              return $If_3.call(this);
             }.$asyncbind(this, $error), $error);
           }
 
-          function $If_2() {
+          function $If_3() {
             return $return(device.transferIn(2, 64).then(function (result) {
               return result.data.buffer.slice(1);
             }));
           }
 
-          return $If_2.call(this);
+          return $If_3.call(this);
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
     }
@@ -31198,13 +31198,76 @@ var WebUsbPlugin = (_class = function () {
     key: 'connect',
     value: function connect(path) {
       return new Promise(function ($return, $error) {
+        var _this, _loop, i, _ret;
+
+        _this = this;
+
+        _loop = function _loop(i) {
+          return new Promise(function ($return, $error) {
+            if (i > 0) {
+              return new Promise(function (resolve) {
+                return setTimeout(i * 200);
+              }).then(function ($await_14) {
+                return $If_4.call(this);
+              }.$asyncbind(this, $error), $error);
+            }
+
+            function $If_4() {
+              var $Try_1_Catch = function (e) {
+                // ignore
+
+                return $return();
+              }.$asyncbind(this, $error);
+
+              try {
+                return _this._connectIn(path).then(function ($await_15) {
+                  return $return({
+                    v: $await_15
+                  });
+                }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
+              } catch (e) {
+                $Try_1_Catch(e)
+              }
+            }
+
+            return $If_4.call(this);
+          }.$asyncbind(this));
+        };
+
+        i = 0;
+        return Function.$asyncbind.trampoline(this, $Loop_5_exit, $Loop_5_step, $error, true)($Loop_5);
+
+        function $Loop_5() {
+          if (i < 5) {
+            return _loop(i).then(function ($await_16) {
+              _ret = $await_16;
+              if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return $return(_ret.v);
+              return $Loop_5_step;
+            }.$asyncbind(this, $error), $error);
+          } else return [1];
+        }
+
+        function $Loop_5_step() {
+          i++;
+          return $Loop_5;
+        }
+
+        function $Loop_5_exit() {
+          return $return();
+        }
+      }.$asyncbind(this));
+    }
+  }, {
+    key: '_connectIn',
+    value: function _connectIn(path) {
+      return new Promise(function ($return, $error) {
         var device;
-        return this._findDevice(path).then(function ($await_10) {
-          device = $await_10;
-          return device.open().then(function ($await_11) {
-            return device.selectConfiguration(1).then(function ($await_12) {
-              return device.reset().then(function ($await_13) {
-                return device.claimInterface(2).then(function ($await_14) {
+        return this._findDevice(path).then(function ($await_17) {
+          device = $await_17;
+          return device.open().then(function ($await_18) {
+            return device.selectConfiguration(1).then(function ($await_19) {
+              return device.reset().then(function ($await_20) {
+                return device.claimInterface(2).then(function ($await_21) {
                   return $return();
                 }.$asyncbind(this, $error), $error);
               }.$asyncbind(this, $error), $error);
@@ -31218,11 +31281,11 @@ var WebUsbPlugin = (_class = function () {
     value: function disconnect(path) {
       return new Promise(function ($return, $error) {
         var device;
-        return this._findDevice(path).then(function ($await_15) {
-          device = $await_15;
+        return this._findDevice(path).then(function ($await_22) {
+          device = $await_22;
 
-          return device.releaseInterface(2).then(function ($await_16) {
-            return device.close().then(function ($await_17) {
+          return device.releaseInterface(2).then(function ($await_23) {
+            return device.close().then(function ($await_24) {
               return $return();
             }.$asyncbind(this, $error), $error);
           }.$asyncbind(this, $error), $error);
@@ -31233,7 +31296,7 @@ var WebUsbPlugin = (_class = function () {
     key: 'requestDevice',
     value: function requestDevice() {
       return new Promise(function ($return, $error) {
-        return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function ($await_18) {
+        return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function ($await_25) {
           return $return();
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
@@ -31659,10 +31722,10 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     value: function _silentEnumerate() {
       return new Promise(function ($return, $error) {
         var devices, sessionsM, sessions, devicesWithSessions;
-        return this.plugin.enumerate().then(function ($await_4) {
-          devices = $await_4;
-          return this.sendToWorker({ type: 'get-sessions-and-disconnect', devices: devices }).then(function ($await_5) {
-            sessionsM = $await_5;
+        return this.plugin.enumerate().then(function ($await_3) {
+          devices = $await_3;
+          return this.sendToWorker({ type: 'get-sessions-and-disconnect', devices: devices }).then(function ($await_4) {
+            sessionsM = $await_4;
             if (sessionsM.type !== 'sessions') {
               return $error(new Error('Wrong reply'));
             }
@@ -31713,14 +31776,14 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     value: function _runIter(iteration, oldStringified) {
       return new Promise(function ($return, $error) {
         var devices, stringified;
-        return this._silentEnumerate().then(function ($await_6) {
-          devices = $await_6;
+        return this._silentEnumerate().then(function ($await_5) {
+          devices = $await_5;
           stringified = stableStringify(devices);
           if (stringified !== oldStringified || iteration === ITER_MAX) {
             this._lastStringified = stringified;
             return $return(devices);
           }
-          return (0, _defered.resolveTimeoutPromise)(ITER_DELAY, null).then(function ($await_7) {
+          return (0, _defered.resolveTimeoutPromise)(ITER_DELAY, null).then(function ($await_6) {
             return $return(this._runIter(iteration + 1, stringified));
           }.$asyncbind(this, $error), $error);
         }.$asyncbind(this, $error), $error);
@@ -31731,16 +31794,16 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     value: function acquire(input) {
       return new Promise(function ($return, $error) {
         var messBack, messBack2, session;
-        return this.sendToWorker(_extends({ type: 'acquire-intent' }, input)).then(function ($await_8) {
-          messBack = $await_8;
+        return this.sendToWorker(_extends({ type: 'acquire-intent' }, input)).then(function ($await_7) {
+          messBack = $await_7;
           if (messBack.type === 'wrong-previous-session') {
             return $error(new Error('wrong previous session'));
           }
 
           function $Try_1_Post() {
-            return this.sendToWorker({ type: 'acquire-done' }).then(function ($await_9) {
+            return this.sendToWorker({ type: 'acquire-done' }).then(function ($await_8) {
 
-              messBack2 = $await_9;
+              messBack2 = $await_8;
               if (messBack2.type !== 'session-number') {
                 return $error(new Error('Strange reply.'));
               }
@@ -31753,15 +31816,15 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
           }
 
           var $Try_1_Catch = function (e) {
-            return this.sendToWorker({ type: 'acquire-failed' }).then(function ($await_10) {
+            return this.sendToWorker({ type: 'acquire-failed' }).then(function ($await_9) {
               return $error(e);
             }.$asyncbind(this, $error), $error);
           }.$asyncbind(this, $error);
 
           try {
-            return this.plugin.connect(input.path).then(function ($await_11) {
-              return this.sendToWorker({ type: 'acquire-done' }).then(function ($await_9) {
-                messBack2 = $await_9;if (messBack2.type !== 'session-number') {
+            return this.plugin.connect(input.path).then(function ($await_10) {
+              return this.sendToWorker({ type: 'acquire-done' }).then(function ($await_8) {
+                messBack2 = $await_8;if (messBack2.type !== 'session-number') {
                   return $error(new Error('Strange reply.'));
                 }session = messBack2.number;this.deferedOnRelease[session] = (0, _defered.create)();return $return(session);
               }.$asyncbind(this, $error), $error);
@@ -31777,10 +31840,8 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     value: function release(session) {
       return new Promise(function ($return, $error) {
         var messback, path;
-
-        this._releaseCleanup(session);
-        return this.sendToWorker({ type: 'release-intent', session: session }).then(function ($await_12) {
-          messback = $await_12;
+        return this.sendToWorker({ type: 'release-intent', session: session }).then(function ($await_11) {
+          messback = $await_11;
           if (messback.type === 'double-release') {
             return $error(new Error('Trying to double release.'));
           }
@@ -31789,8 +31850,10 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
           }
           path = messback.path;
 
+          this._releaseCleanup(session);
+
           function $Try_2_Post() {
-            return this.sendToWorker({ type: 'release-done' }).then(function ($await_13) {
+            return this.sendToWorker({ type: 'release-done' }).then(function ($await_12) {
               return $return();
             }.$asyncbind(this, $error), $error);
           }
@@ -31800,7 +31863,7 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
 
             return $Try_2_Post.call(this);
           }.$asyncbind(this, $error);try {
-            return this.plugin.disconnect(path).then(function ($await_14) {
+            return this.plugin.disconnect(path).then(function ($await_13) {
               return $Try_2_Post.call(this);
             }.$asyncbind(this, $Try_2_Catch), $Try_2_Catch);
           } catch (e) {
@@ -31850,57 +31913,46 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     key: 'call',
     value: function call(session, name, data) {
       return new Promise(function ($return, $error) {
-        var _this4, pathM, messages, path, resPromise, res;
+        var _this4, sessionsM, messages, path_, path, resPromise;
 
         _this4 = this;
-        return this.sendToWorker({ type: 'call-intent', session: session }).then(function ($await_15) {
-          pathM = $await_15;
+        return this.sendToWorker({ type: 'get-sessions' }).then(function ($await_14) {
+          sessionsM = $await_14;
 
           if (this._messages == null) {
             return $error(new Error('Transport not configured.'));
           }
           messages = this._messages;
 
-          if (pathM.type === 'wrong-session') {
+          if (sessionsM.type !== 'sessions') {
+            return $error(new Error('Wrong reply'));
+          }
+
+          path_ = null;
+          Object.keys(sessionsM.sessions).forEach(function (kpath) {
+            if (sessionsM.sessions[kpath] === session) {
+              path_ = kpath;
+            }
+          });
+
+          if (path_ == null) {
             return $error(new Error('Session not available.'));
           }
-
-          if (pathM.type !== 'path') {
-            return $error(new Error('Strange reply.'));
-          }
-
-          path = pathM.path;
+          path = path_;
 
           resPromise = function () {
             return new Promise(function ($return, $error) {
               var message;
-              return (0, _send.buildAndSend)(messages, _this4._sendLowlevel(path), name, data).then(function ($await_16) {
-                return (0, _receive.receiveAndParse)(messages, _this4._receiveLowlevel(path)).then(function ($await_17) {
-                  message = $await_17;
+              return (0, _send.buildAndSend)(messages, _this4._sendLowlevel(path), name, data).then(function ($await_15) {
+                return (0, _receive.receiveAndParse)(messages, _this4._receiveLowlevel(path)).then(function ($await_16) {
+                  message = $await_16;
                   return $return(message);
                 }.$asyncbind(this, $error), $error);
               }.$asyncbind(this, $error), $error);
             }.$asyncbind(this));
           }();
 
-          function $Try_3_Post() {
-            return $return();
-          }
-
-          var $Try_3_Catch = function (e) {
-            return this.sendToWorker({ type: 'call-done' }).then(function ($await_18) {
-              return $error(e);
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this, $error);try {
-            return Promise.race([this.deferedOnRelease[session].rejectingPromise, resPromise]).then(function ($await_19) {
-              res = $await_19;
-              return this.sendToWorker({ type: 'call-done' }).then(function ($await_20) {
-                return $return(res);
-              }.$asyncbind(this, $Try_3_Catch), $Try_3_Catch);
-            }.$asyncbind(this, $Try_3_Catch), $Try_3_Catch);
-          } catch (e) {
-            $Try_3_Catch(e)
-          }
+          return $return(Promise.race([this.deferedOnRelease[session].rejectingPromise, resPromise]));
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
     }
@@ -31914,7 +31966,7 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
 
         this.debug = !!debug;
         this.requestNeeded = this.plugin.requestNeeded;
-        return this.plugin.init(debug).then(function ($await_21) {
+        return this.plugin.init(debug).then(function ($await_17) {
           // create the worker ONLY when the plugin is successfully inited
           this.sharedWorker = this._sharedWorkerFactory();
           this.sharedWorker.port.onmessage = function (e) {
