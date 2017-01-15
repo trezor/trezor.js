@@ -31066,7 +31066,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.91";
+    this.version = "0.2.92";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.requestNeeded = true;
@@ -31094,8 +31094,8 @@ var WebUsbPlugin = (_class = function () {
         var bootloaderId, devices;
 
         bootloaderId = 0;
-        return this.usb.getDevices().then(function ($await_1) {
-          devices = $await_1;
+        return this.usb.getDevices().then(function ($await_2) {
+          devices = $await_2;
           return $return(devices.filter(function (dev) {
             var isTrezor = TREZOR_DESCS.some(function (desc) {
               return dev.vendorId === desc.vendorId && dev.productId === desc.productId;
@@ -31119,8 +31119,8 @@ var WebUsbPlugin = (_class = function () {
     key: 'enumerate',
     value: function enumerate() {
       return new Promise(function ($return, $error) {
-        return this._listDevices().then(function ($await_2) {
-          return $return($await_2.map(function (info) {
+        return this._listDevices().then(function ($await_3) {
+          return $return($await_3.map(function (info) {
             return { path: info.path };
           }));
         }.$asyncbind(this, $error), $error);
@@ -31131,8 +31131,8 @@ var WebUsbPlugin = (_class = function () {
     value: function _findDevice(path) {
       return new Promise(function ($return, $error) {
         var deviceO;
-        return this._listDevices().then(function ($await_3) {
-          deviceO = $await_3.find(function (d) {
+        return this._listDevices().then(function ($await_4) {
+          deviceO = $await_4.find(function (d) {
             return d.path === path;
           });
           if (deviceO == null) {
@@ -31147,14 +31147,24 @@ var WebUsbPlugin = (_class = function () {
     value: function send(path, data) {
       return new Promise(function ($return, $error) {
         var device, newArray;
-        return this._findDevice(path).then(function ($await_4) {
-          device = $await_4;
+        return this._findDevice(path).then(function ($await_5) {
+          device = $await_5;
 
           newArray = new Uint8Array(64);
           newArray[0] = 63;
           newArray.set(new Uint8Array(data), 1);
 
-          return $return(device.transferOut(2, newArray).then(function () {}));
+          if (!device.opened) {
+            return this.connect(path).then(function ($await_6) {
+              return $If_1.call(this);
+            }.$asyncbind(this, $error), $error);
+          }
+
+          function $If_1() {
+            return $return(device.transferOut(2, newArray).then(function () {}));
+          }
+
+          return $If_1.call(this);
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
     }
@@ -31163,8 +31173,8 @@ var WebUsbPlugin = (_class = function () {
     value: function receive(path) {
       return new Promise(function ($return, $error) {
         var device;
-        return this._findDevice(path).then(function ($await_5) {
-          device = $await_5;
+        return this._findDevice(path).then(function ($await_7) {
+          device = $await_7;
 
           return $return(device.transferIn(2, 64).then(function (result) {
             return result.data.buffer.slice(1);
@@ -31177,12 +31187,12 @@ var WebUsbPlugin = (_class = function () {
     value: function connect(path) {
       return new Promise(function ($return, $error) {
         var device;
-        return this._findDevice(path).then(function ($await_6) {
-          device = $await_6;
-          return device.open().then(function ($await_7) {
-            return device.selectConfiguration(1).then(function ($await_8) {
-              return device.reset().then(function ($await_9) {
-                return device.claimInterface(2).then(function ($await_10) {
+        return this._findDevice(path).then(function ($await_8) {
+          device = $await_8;
+          return device.open().then(function ($await_9) {
+            return device.selectConfiguration(1).then(function ($await_10) {
+              return device.reset().then(function ($await_11) {
+                return device.claimInterface(2).then(function ($await_12) {
                   return $return();
                 }.$asyncbind(this, $error), $error);
               }.$asyncbind(this, $error), $error);
@@ -31196,11 +31206,11 @@ var WebUsbPlugin = (_class = function () {
     value: function disconnect(path) {
       return new Promise(function ($return, $error) {
         var device;
-        return this._findDevice(path).then(function ($await_11) {
-          device = $await_11;
+        return this._findDevice(path).then(function ($await_13) {
+          device = $await_13;
 
-          return device.releaseInterface(2).then(function ($await_12) {
-            return device.close().then(function ($await_13) {
+          return device.releaseInterface(2).then(function ($await_14) {
+            return device.close().then(function ($await_15) {
               return $return();
             }.$asyncbind(this, $error), $error);
           }.$asyncbind(this, $error), $error);
@@ -31211,7 +31221,7 @@ var WebUsbPlugin = (_class = function () {
     key: 'requestDevice',
     value: function requestDevice() {
       return new Promise(function ($return, $error) {
-        return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function ($await_14) {
+        return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function ($await_16) {
           return $return();
         }.$asyncbind(this, $error), $error);
       }.$asyncbind(this));
