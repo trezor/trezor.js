@@ -31068,7 +31068,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.93";
+    this.version = "0.2.94";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.requestNeeded = true;
@@ -31777,6 +31777,8 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     value: function release(session) {
       return new Promise(function ($return, $error) {
         var messback, path;
+
+        this._releaseCleanup(session);
         return this.sendToWorker({ type: 'release-intent', session: session }).then(function ($await_12) {
           messback = $await_12;
           if (messback.type === 'double-release') {
@@ -31786,8 +31788,6 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
             return $error(new Error('Strange reply.'));
           }
           path = messback.path;
-
-          this._releaseCleanup(session);
 
           function $Try_2_Post() {
             return this.sendToWorker({ type: 'release-done' }).then(function ($await_13) {
