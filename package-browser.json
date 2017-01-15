@@ -45,7 +45,7 @@
     "ecurve": "^1.0.2",
     "randombytes": "^2.0.1",
     "semver-compare": "1.0.0",
-    "trezor-link": "0.2.93",
+    "trezor-link": "0.2.94",
     "unorm": "^1.3.3",
     "whatwg-fetch": "0.11.0"
   }
