@@ -126,6 +126,22 @@ export default class Session extends EventEmitter {
         });
     }
 
+    ethereumGetAddress(
+        address_n: Array<number>,
+        show_display: ?boolean
+    ): Promise<MessageResponse<{
+        address: string;
+        path: Array<number>;
+    }>> {
+        return this.typedCall('EthereumGetAddress', 'EthereumAddress', {
+            address_n: address_n,
+            show_display: !!show_display,
+        }).then(res => {
+            res.message.path = address_n || [];
+            return res;
+        });
+    }
+
     getPublicKey(address_n: Array<number>): Promise<MessageResponse<trezor.PublicKey>> {
         return this.typedCall('GetPublicKey', 'PublicKey', {
             address_n: address_n,
