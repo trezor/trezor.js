@@ -814,7 +814,7 @@ var Device = function (_EventEmitter) {
 
             var currentSession = this.deviceList.getSession(this.originalDescriptor.path);
             if (!aggressive && !waiting && currentSession != null) {
-                return Promise.reject(new Error('Unable to grab device when not aggressive'));
+                return Promise.reject(new Error('Device used in another window.'));
             }
             if (aggressive && waiting) {
                 return Promise.reject(new Error('Combination of aggressive and waiting doesn\'t make sense.'));
@@ -1874,6 +1874,17 @@ var Session = function (_EventEmitter) {
             return this.typedCall('GetAddress', 'Address', {
                 address_n: address_n,
                 coin_name: coin_name,
+                show_display: !!show_display
+            }).then(function (res) {
+                res.message.path = address_n || [];
+                return res;
+            });
+        }
+    }, {
+        key: 'ethereumGetAddress',
+        value: function ethereumGetAddress(address_n, show_display) {
+            return this.typedCall('EthereumGetAddress', 'EthereumAddress', {
+                address_n: address_n,
                 show_display: !!show_display
             }).then(function (res) {
                 res.message.path = address_n || [];
