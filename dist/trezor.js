@@ -639,6 +639,14 @@ var DeviceList = function (_EventEmitter) {
         value: function acquireFirstDevice(rejectOnEmpty) {
             var _this8 = this;
 
+            var timeoutPromiseFn = function timeoutPromiseFn(t) {
+                return new Promise(function (resolve) {
+                    setTimeout(function () {
+                        return resolve();
+                    }, t);
+                });
+            };
+
             return new Promise(function (resolve, reject) {
                 _this8.stealFirstDevice(rejectOnEmpty).then(function (device) {
                     device.run(function (session) {
@@ -649,6 +657,13 @@ var DeviceList = function (_EventEmitter) {
                 }, function (err) {
                     reject(err);
                 });
+            }).catch(function (err) {
+                if (err.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE) {
+                    return timeoutPromiseFn(1000).then(function () {
+                        return _this8.acquireFirstDevice(rejectOnEmpty);
+                    });
+                }
+                throw err;
             });
         }
     }, {
