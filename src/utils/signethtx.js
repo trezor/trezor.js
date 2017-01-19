@@ -23,8 +23,7 @@ function splitString(str: ?string, len: number): [string, string] {
 function processTxRequest(
     session: Session,
     request: trezor.EthereumTxRequest,
-    data: string,
-    i: number
+    data: ?string
 ): Promise<EthereumSignature> {
     if (!request.data_length) {
         const v = request.signature_v;
@@ -41,12 +40,11 @@ function processTxRequest(
 
     const [first, rest] = splitString(data, request.data_length * 2);
 
-    return session.typedCall('EthereumTxAck', 'EthereumTxAck', {data_chunk: first}).then(
+    return session.typedCall('EthereumTxAck', 'EthereumTxRequest', {data_chunk: first}).then(
         (response) => processTxRequest(
             session,
             response.message,
-            rest,
-            i + 1
+            rest
         )
     );
 }
@@ -63,7 +61,7 @@ export function signEthTx(
 ): Promise<EthereumSignature> {
     const length = data == null ? 0 : data.length * 2;
 
-    const [first, rest] = splitString(data, 1024 * 2);
+    const [first] = splitString(data, 1024 * 2);
 
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n,
@@ -75,6 +73,6 @@ export function signEthTx(
         data_initial_chunk: first,
         data_length: length,
     }).then((res) =>
-        processTxRequest(session, res.message, rest, 1)
+        processTxRequest(session, res.message, data)
     );
 }
