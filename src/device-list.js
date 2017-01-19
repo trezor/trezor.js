@@ -441,6 +441,8 @@ export default class DeviceList extends EventEmitter {
 
     // steals the first devices, acquires it and *never* releases it until the window is closed
     acquireFirstDevice(rejectOnEmpty?: ?boolean): Promise<{device: Device, session: Session}> {
+        const timeoutPromiseFn = (t) => new Promise((resolve) => { setTimeout(() => resolve(), t); });
+
         return new Promise((resolve, reject) => {
             this.stealFirstDevice(rejectOnEmpty).then(
                 (device) => {
@@ -454,6 +456,11 @@ export default class DeviceList extends EventEmitter {
                     reject(err);
                 }
             );
+        }).catch((err) => {
+            if (err.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE) {
+                return timeoutPromiseFn(1000).then(() => this.acquireFirstDevice(rejectOnEmpty));
+            }
+            throw err;
         });
     }
 
