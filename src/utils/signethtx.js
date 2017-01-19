@@ -11,13 +11,22 @@ export type EthereumSignature = {
   s: string,
 };
 
+function splitString(str: ?string, len: number): [string, string] {
+    if (str == null) {
+        return ['', ''];
+    }
+    const first = str.slice(0, len);
+    const second = str.slice(len);
+    return [first, second];
+}
+
 function processTxRequest(
     session: Session,
     request: trezor.EthereumTxRequest,
-    split: Array<string>,
+    data: string,
     i: number
 ): Promise<EthereumSignature> {
-    if (request.data_length) {
+    if (!request.data_length) {
         const v = request.signature_v;
         const r = request.signature_r;
         const s = request.signature_s;
@@ -30,22 +39,16 @@ function processTxRequest(
         });
     }
 
-    return session.typedCall('EthereumTxAck', 'EthereumTxAck', {data_chunk: split[i]}).then(
+    const [first, rest] = splitString(data, request.data_length * 2);
+
+    return session.typedCall('EthereumTxAck', 'EthereumTxAck', {data_chunk: first}).then(
         (response) => processTxRequest(
             session,
             response.message,
-            split,
+            rest,
             i + 1
         )
     );
-}
-
-function splitString(str: string, len: number): Array<string> {
-    const ret = [ ];
-    for (let offset = 0, strLen = str.length; offset < strLen; offset += len) {
-        ret.push(str.slice(offset, len + offset));
-    }
-    return ret;
 }
 
 export function signEthTx(
@@ -58,9 +61,9 @@ export function signEthTx(
     value: string,
     data?: string,
 ): Promise<EthereumSignature> {
-    const split: Array<string> = data == null ? [] : splitString(data, 1024 * 2);
     const length = data == null ? 0 : data.length * 2;
-    const first = split[0]; // if length 0 => null will be sent, no problem
+
+    const [first, rest] = splitString(data, 1024 * 2);
 
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n,
@@ -72,6 +75,6 @@ export function signEthTx(
         data_initial_chunk: first,
         data_length: length,
     }).then((res) =>
-        processTxRequest(session, res.message, split, 1)
+        processTxRequest(session, res.message, rest, 1)
     );
 }
