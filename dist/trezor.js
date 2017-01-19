@@ -2928,7 +2928,7 @@ function splitString(str, len) {
     return [first, second];
 }
 
-function processTxRequest(session, request, data, i) {
+function processTxRequest(session, request, data) {
     if (!request.data_length) {
         var _v = request.signature_v;
         var _r = request.signature_r;
@@ -2947,8 +2947,8 @@ function processTxRequest(session, request, data, i) {
         first = _splitString2[0],
         rest = _splitString2[1];
 
-    return session.typedCall('EthereumTxAck', 'EthereumTxAck', { data_chunk: first }).then(function (response) {
-        return processTxRequest(session, response.message, rest, i + 1);
+    return session.typedCall('EthereumTxAck', 'EthereumTxRequest', { data_chunk: first }).then(function (response) {
+        return processTxRequest(session, response.message, rest);
     });
 }
 
@@ -2956,9 +2956,8 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
     var length = data == null ? 0 : data.length * 2;
 
     var _splitString3 = splitString(data, 1024 * 2),
-        _splitString4 = _slicedToArray(_splitString3, 2),
-        first = _splitString4[0],
-        rest = _splitString4[1];
+        _splitString4 = _slicedToArray(_splitString3, 1),
+        first = _splitString4[0];
 
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n: address_n,
@@ -2970,7 +2969,7 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
         data_initial_chunk: first,
         data_length: length
     }).then(function (res) {
-        return processTxRequest(session, res.message, rest, 1);
+        return processTxRequest(session, res.message, data);
     });
 }
 },{"../trezortypes":9}],16:[function(require,module,exports){
