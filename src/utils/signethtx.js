@@ -59,7 +59,7 @@ export function signEthTx(
     value: string,
     data?: string,
 ): Promise<EthereumSignature> {
-    const length = data == null ? 0 : data.length * 2;
+    const length = data == null ? 0 : data.length / 2;
 
     const [first] = splitString(data, 1024 * 2);
 
