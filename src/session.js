@@ -8,10 +8,12 @@ import * as bitcoin from 'bitcoinjs-lib-zcash';
 import * as hdnodeUtils from './utils/hdnode';
 import * as signTxHelper from './utils/signtx';
 import * as signBjsTxHelper from './utils/signbjstx';
+import * as signEthTxHelper from './utils/signethtx';
 import {CallHelper} from './utils/call';
 
 import * as trezor from './trezortypes';
 import type {TxInfo} from './utils/signbjstx';
+import type {EthereumSignature} from './utils/signethtx';
 import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
 
 export type MessageResponse<T> = {
@@ -313,6 +315,18 @@ export default class Session extends EventEmitter {
         network: ?bitcoin.Network
     ): Promise<bitcoin.Transaction> {
         return signBjsTxHelper.signBjsTx(this, info, refTxs, nodes, coinName, network);
+    }
+
+    signEthTx(
+        address_n: Array<number>,
+        nonce: string,
+        gas_price: string,
+        gas_limit: string,
+        to: string,
+        value: string,
+        data?: string,
+    ): Promise<EthereumSignature> {
+        return signEthTxHelper.signEthTx(this, address_n, nonce, gas_price, gas_limit, to, value, data);
     }
 
     typedCall(type: string, resType: string, msg: Object = {}): Promise<DefaultMessageResponse> {

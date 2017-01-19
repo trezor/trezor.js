@@ -157,6 +157,13 @@ export type SignedTx = {
     }
 };
 
+export type EthereumTxRequest = {
+    data_length?: number;
+    signature_v?: number;
+    signature_r?: string;
+    signature_s?: string;
+};
+
 export type Identity = {
     proto?: string;
     user?: string;
