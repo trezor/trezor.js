@@ -2953,7 +2953,7 @@ function processTxRequest(session, request, data) {
 }
 
 function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, data) {
-    var length = data == null ? 0 : data.length * 2;
+    var length = data == null ? 0 : data.length / 2;
 
     var _splitString3 = splitString(data, 1024 * 2),
         _splitString4 = _slicedToArray(_splitString3, 1),
