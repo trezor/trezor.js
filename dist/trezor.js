@@ -2963,13 +2963,16 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
     var length_or_null = length === 0 ? null : length;
     var first_or_null = length === 0 ? null : first;
 
+    var value_zero = /^(00)*$/.test(value);
+    var value_or_null = value_zero ? null : value;
+
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n: address_n,
         nonce: nonce,
         gas_price: gas_price,
         gas_limit: gas_limit,
         to: to,
-        value: value,
+        value: value_or_null,
         data_initial_chunk: first_or_null,
         data_length: length_or_null
     }).then(function (res) {
