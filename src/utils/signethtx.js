@@ -66,13 +66,16 @@ export function signEthTx(
     const length_or_null = length === 0 ? null : length;
     const first_or_null = length === 0 ? null : first;
 
+    const value_zero = /^(00)*$/.test(value);
+    const value_or_null = value_zero ? null : value;
+
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n,
         nonce,
         gas_price,
         gas_limit,
         to,
-        value,
+        value: value_or_null,
         data_initial_chunk: first_or_null,
         data_length: length_or_null,
     }).then((res) =>
