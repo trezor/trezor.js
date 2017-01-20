@@ -61,7 +61,7 @@ export function signEthTx(
 ): Promise<EthereumSignature> {
     const length = data == null ? 0 : data.length / 2;
 
-    const [first] = splitString(data, 1024 * 2);
+    const [first, rest] = splitString(data, 1024 * 2);
 
     const length_or_null = length === 0 ? null : length;
     const first_or_null = length === 0 ? null : first;
@@ -76,6 +76,6 @@ export function signEthTx(
         data_initial_chunk: first_or_null,
         data_length: length_or_null,
     }).then((res) =>
-        processTxRequest(session, res.message, data)
+        processTxRequest(session, res.message, rest)
     );
 }
