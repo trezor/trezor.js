@@ -2956,8 +2956,9 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
     var length = data == null ? 0 : data.length / 2;
 
     var _splitString3 = splitString(data, 1024 * 2),
-        _splitString4 = _slicedToArray(_splitString3, 1),
-        first = _splitString4[0];
+        _splitString4 = _slicedToArray(_splitString3, 2),
+        first = _splitString4[0],
+        rest = _splitString4[1];
 
     var length_or_null = length === 0 ? null : length;
     var first_or_null = length === 0 ? null : first;
@@ -2972,7 +2973,7 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
         data_initial_chunk: first_or_null,
         data_length: length_or_null
     }).then(function (res) {
-        return processTxRequest(session, res.message, data);
+        return processTxRequest(session, res.message, rest);
     });
 }
 },{"../trezortypes":9}],16:[function(require,module,exports){
