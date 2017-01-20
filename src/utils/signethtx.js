@@ -69,9 +69,12 @@ export function signEthTx(
     const value_zero = /^(00)*$/.test(value);
     const value_or_null = value_zero ? null : value;
 
+    const nonce_zero = /^(00)*$/.test(nonce);
+    const nonce_or_null = nonce_zero ? null : nonce;
+
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n,
-        nonce,
+        nonce_or_null,
         gas_price,
         gas_limit,
         to,
