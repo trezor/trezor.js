@@ -2966,9 +2966,12 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
     var value_zero = /^(00)*$/.test(value);
     var value_or_null = value_zero ? null : value;
 
+    var nonce_zero = /^(00)*$/.test(nonce);
+    var nonce_or_null = nonce_zero ? null : nonce;
+
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n: address_n,
-        nonce: nonce,
+        nonce_or_null: nonce_or_null,
         gas_price: gas_price,
         gas_limit: gas_limit,
         to: to,
