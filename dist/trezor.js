@@ -2959,6 +2959,9 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
         _splitString4 = _slicedToArray(_splitString3, 1),
         first = _splitString4[0];
 
+    var length_or_null = length === 0 ? null : length;
+    var first_or_null = length === 0 ? null : first;
+
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n: address_n,
         nonce: nonce,
@@ -2966,8 +2969,8 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
         gas_limit: gas_limit,
         to: to,
         value: value,
-        data_initial_chunk: first,
-        data_length: length
+        data_initial_chunk: first_or_null,
+        data_length: length_or_null
     }).then(function (res) {
         return processTxRequest(session, res.message, data);
     });
