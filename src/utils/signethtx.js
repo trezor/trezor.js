@@ -63,6 +63,9 @@ export function signEthTx(
 
     const [first] = splitString(data, 1024 * 2);
 
+    const length_or_null = length === 0 ? null : length;
+    const first_or_null = length === 0 ? null : first;
+
     return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
         address_n,
         nonce,
@@ -70,8 +73,8 @@ export function signEthTx(
         gas_limit,
         to,
         value,
-        data_initial_chunk: first,
-        data_length: length,
+        data_initial_chunk: first_or_null,
+        data_length: length_or_null,
     }).then((res) =>
         processTxRequest(session, res.message, data)
     );
