@@ -325,8 +325,9 @@ export default class Session extends EventEmitter {
         to: string,
         value: string,
         data?: string,
+        chain_id?: number
     ): Promise<EthereumSignature> {
-        return signEthTxHelper.signEthTx(this, address_n, nonce, gas_price, gas_limit, to, value, data);
+        return signEthTxHelper.signEthTx(this, address_n, nonce, gas_price, gas_limit, to, value, data, chain_id);
     }
 
     typedCall(type: string, resType: string, msg: Object = {}): Promise<DefaultMessageResponse> {

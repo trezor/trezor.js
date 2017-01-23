@@ -49,6 +49,13 @@ function processTxRequest(
     );
 }
 
+function stripLeadingZeroes(str: string) {
+    while (/^00/.test(str)) {
+        str = str.slice(2);
+    }
+    return str;
+}
+
 export function signEthTx(
     session: Session,
     address_n: Array<number>,
@@ -58,30 +65,37 @@ export function signEthTx(
     to: string,
     value: string,
     data?: string,
+    chain_id?: number
 ): Promise<EthereumSignature> {
     const length = data == null ? 0 : data.length / 2;
 
     const [first, rest] = splitString(data, 1024 * 2);
 
-    const length_or_null = length === 0 ? null : length;
-    const first_or_null = length === 0 ? null : first;
-
-    const value_zero = /^(00)*$/.test(value);
-    const value_or_null = value_zero ? null : value;
-
-    const nonce_zero = /^(00)*$/.test(nonce);
-    const nonce_or_empty = nonce_zero ? '' : nonce;
-
-    return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
+    let message = {
         address_n,
-        nonce: nonce_or_empty,
-        gas_price,
-        gas_limit,
+        nonce: stripLeadingZeroes(nonce),
+        gas_price: stripLeadingZeroes(gas_price),
+        gas_limit: stripLeadingZeroes(gas_limit),
         to,
-        value: value_or_null,
-        data_initial_chunk: first_or_null,
-        data_length: length_or_null,
-    }).then((res) =>
+        value: stripLeadingZeroes(value),
+    };
+
+    if (length !== 0) {
+        message = {
+            ...message,
+            data_length: length,
+            data_initial_chunk: first,
+        };
+    }
+
+    if (chain_id != null) {
+        message = {
+            ...message,
+            chain_id,
+        };
+    }
+
+    return session.typedCall('EthereumSignTx', 'EthereumTxRequest', message).then((res) =>
         processTxRequest(session, res.message, rest)
     );
 }
