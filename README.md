@@ -13,7 +13,7 @@ We have two versions - one for node, one for browser.
 
 `npm install trezor.js` for the browser version.
 
-`npm install trezor.js-node` for the browser version.
+`npm install trezor.js-node` for the node version.
 
 Read more in [README-node.md](https://github.com/trezor/trezor.js/blob/master/README-node.md), [README-browser.md](https://github.com/trezor/trezor.js/blob/master/README-browser.md), [API.md](https://github.com/trezor/trezor.js/blob/master/API.md)
 
