@@ -2062,8 +2062,8 @@ var Session = function (_EventEmitter) {
         }
     }, {
         key: 'signEthTx',
-        value: function signEthTx(address_n, nonce, gas_price, gas_limit, to, value, data) {
-            return signEthTxHelper.signEthTx(this, address_n, nonce, gas_price, gas_limit, to, value, data);
+        value: function signEthTx(address_n, nonce, gas_price, gas_limit, to, value, data, chain_id) {
+            return signEthTxHelper.signEthTx(this, address_n, nonce, gas_price, gas_limit, to, value, data, chain_id);
         }
     }, {
         key: 'typedCall',
@@ -2909,6 +2909,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.signEthTx = signEthTx;
@@ -2952,7 +2954,14 @@ function processTxRequest(session, request, data) {
     });
 }
 
-function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, data) {
+function stripLeadingZeroes(str) {
+    while (/^00/.test(str)) {
+        str = str.slice(2);
+    }
+    return str;
+}
+
+function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, data, chain_id) {
     var length = data == null ? 0 : data.length / 2;
 
     var _splitString3 = splitString(data, 1024 * 2),
@@ -2960,25 +2969,29 @@ function signEthTx(session, address_n, nonce, gas_price, gas_limit, to, value, d
         first = _splitString4[0],
         rest = _splitString4[1];
 
-    var length_or_null = length === 0 ? null : length;
-    var first_or_null = length === 0 ? null : first;
-
-    var value_zero = /^(00)*$/.test(value);
-    var value_or_null = value_zero ? null : value;
-
-    var nonce_zero = /^(00)*$/.test(nonce);
-    var nonce_or_empty = nonce_zero ? '' : nonce;
-
-    return session.typedCall('EthereumSignTx', 'EthereumTxRequest', {
+    var message = {
         address_n: address_n,
-        nonce: nonce_or_empty,
-        gas_price: gas_price,
-        gas_limit: gas_limit,
+        nonce: stripLeadingZeroes(nonce),
+        gas_price: stripLeadingZeroes(gas_price),
+        gas_limit: stripLeadingZeroes(gas_limit),
         to: to,
-        value: value_or_null,
-        data_initial_chunk: first_or_null,
-        data_length: length_or_null
-    }).then(function (res) {
+        value: stripLeadingZeroes(value)
+    };
+
+    if (length !== 0) {
+        message = _extends({}, message, {
+            data_length: length,
+            data_initial_chunk: first
+        });
+    }
+
+    if (chain_id != null) {
+        message = _extends({}, message, {
+            chain_id: chain_id
+        });
+    }
+
+    return session.typedCall('EthereumSignTx', 'EthereumTxRequest', message).then(function (res) {
         return processTxRequest(session, res.message, rest);
     });
 }
