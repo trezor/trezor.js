@@ -2,7 +2,7 @@
 .*/node_modules/bitcoinjs-lib-zcash/.*
 .*/node_modules/bitcoinjs-lib/.*
 .*/node_modules/events/.*
-.*/node_modules/protobufjs/src/bower.json
+.*/node_modules/protobufjs-old-fixed-webpack/src/bower.json
 
 [include]
 ../node_modules/ecurve/
@@ -13,7 +13,7 @@
 ../node_modules/whatwg-fetch/
 ../node_modules/trezor-link/
 ../node_modules/trezor-link-node/
-../node_modules/protobufjs/
+../node_modules/protobufjs-old-fixed-webpack/
 ../node_modules/trezor-link-node/node_modules/protobufjs/
 ../node_modules/json-stable-stringify/
 ../node_modules/trezor-link-node/node_modules/json-stable-stringify/
