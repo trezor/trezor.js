@@ -83,7 +83,7 @@ export type RecoverDeviceSettings = {
     language?: string;
     label?: string;
     enforce_wordlist?: boolean;
-
+    type?: number;
     u2f_counter?: number;
 };
 
