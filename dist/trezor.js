@@ -22570,7 +22570,7 @@ process.umask = function() { return 0; };
         return ProtoBuf;
     }
 
-    module.eports = init(require("bytebuffer-old-fixed-webpack"));
+    module.exports = init(require("bytebuffer-old-fixed-webpack"));
 
 })(this);
 
@@ -31168,7 +31168,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.102";
+    this.version = "0.2.103";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this._lastDevices = [];
