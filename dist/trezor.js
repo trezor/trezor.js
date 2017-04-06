@@ -1888,12 +1888,13 @@ var Session = function (_EventEmitter) {
         }
     }, {
         key: 'getAddress',
-        value: function getAddress(address_n, coin, show_display) {
+        value: function getAddress(address_n, coin, show_display, segwit) {
             var coin_name = coinName(coin);
             return this.typedCall('GetAddress', 'Address', {
                 address_n: address_n,
                 coin_name: coin_name,
-                show_display: !!show_display
+                show_display: !!show_display,
+                script_type: segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS'
             }).then(function (res) {
                 res.message.path = address_n || [];
                 return res;
@@ -2074,10 +2075,10 @@ var Session = function (_EventEmitter) {
         }
     }, {
         key: 'verifyAddress',
-        value: function verifyAddress(path, address, coin) {
+        value: function verifyAddress(path, address, coin, segwit) {
             var _this3 = this;
 
-            return this.getAddress(path, coin, true).then(function (res) {
+            return this.getAddress(path, coin, true, segwit).then(function (res) {
                 var verified = res.message.address === address;
 
                 if (!verified) {
@@ -2726,7 +2727,8 @@ function input2trezor(input) {
     return {
         prev_index: index,
         prev_hash: reverseBuffer(hash).toString('hex'),
-        address_n: path
+        address_n: path,
+        script_type: input.segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS'
     };
 }
 
@@ -2754,7 +2756,7 @@ function output2trezor(output, network) {
         return {
             address_n: pathArr,
             amount: output.value,
-            script_type: 'PAYTOADDRESS'
+            script_type: output.segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS'
         };
     }
     var address = output.address;
@@ -2811,17 +2813,41 @@ function _flow_getPathOrAddress(output) {
     throw new Error('Wrong output type.');
 }
 
-function deriveOutputScript(pathOrAddress, nodes, network) {
-    var scriptType = typeof pathOrAddress === 'string' ? getAddressScriptType(pathOrAddress, network) : 'PAYTOADDRESS';
+function _flow_makeBoolean(segwit) {
+    if (typeof segwit === 'boolean') {
+        return segwit;
+    }
+    return !!segwit;
+}
+
+function _flow_getSegwit(output) {
+    if (output.segwit) {
+        var _segwit = output.segwit;
+        return _flow_makeBoolean(_segwit);
+    }
+    if (typeof output.address === 'string') {
+        return false;
+    }
+    throw new Error('Wrong output type.');
+}
+
+function deriveOutputScript(pathOrAddress, nodes, network, segwit) {
+    var scriptType = typeof pathOrAddress === 'string' ? getAddressScriptType(pathOrAddress, network) : segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS';
 
     var pkh = typeof pathOrAddress === 'string' ? bitcoin.address.fromBase58Check(pathOrAddress).hash : hdnodeUtils.derivePubKeyHash(nodes, pathOrAddress[pathOrAddress.length - 2], pathOrAddress[pathOrAddress.length - 1]);
 
     if (scriptType === 'PAYTOADDRESS') {
-        return bitcoin.script.pubKeyHashOutput(pkh);
+        return bitcoin.script.pubKeyHash.output.encode(pkh);
     }
+
     if (scriptType === 'PAYTOSCRIPTHASH') {
-        return bitcoin.script.scriptHashOutput(pkh);
+        return bitcoin.script.scriptHash.output.encode(pkh);
     }
+
+    if (scriptType === 'PAYTOP2SHWITNESS') {
+        return bitcoin.script.witnessScriptHash.output.encode(pkh);
+    }
+
     throw new Error('Unknown script type ' + scriptType);
 }
 
@@ -2842,7 +2868,8 @@ function verifyBjsTx(inputs, outputs, nodes, resTx, network) {
         }
 
         var addressOrPath = _flow_getPathOrAddress(output);
-        var scriptA = deriveOutputScript(addressOrPath, nodes, network);
+        var segwit = _flow_getSegwit(output);
+        var scriptA = deriveOutputScript(addressOrPath, nodes, network, segwit);
         var scriptB = resTx.outs[i].script;
         if (scriptA.compare(scriptB) !== 0) {
             throw new Error('Scripts differ');
