@@ -112,7 +112,8 @@ export default class Session extends EventEmitter {
     getAddress(
         address_n: Array<number>,
         coin: trezor.CoinType | string,
-        show_display: ?boolean
+        show_display: ?boolean,
+        segwit: boolean
     ): Promise<MessageResponse<{
         address: string;
         path: Array<number>;
@@ -122,6 +123,7 @@ export default class Session extends EventEmitter {
             address_n: address_n,
             coin_name: coin_name,
             show_display: !!show_display,
+            script_type: segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS',
         }).then(res => {
             res.message.path = address_n || [];
             return res;
@@ -334,8 +336,8 @@ export default class Session extends EventEmitter {
         return this.callHelper.typedCall(type, resType, msg);
     }
 
-    verifyAddress(path: Array<number>, address: string, coin: string | trezor.CoinType): Promise<boolean> {
-        return this.getAddress(path, coin, true).then((res) => {
+    verifyAddress(path: Array<number>, address: string, coin: string | trezor.CoinType, segwit: boolean): Promise<boolean> {
+        return this.getAddress(path, coin, true, segwit).then((res) => {
             const verified = res.message.address === address;
 
             if (!verified) {

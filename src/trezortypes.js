@@ -105,16 +105,18 @@ export type TransactionInput = {
     sequence?: number;
     prev_hash: string;
     script_sig?: string;
+    script_type?: 'SPENDADDRESS' | 'SPENDMULTISIG' | 'EXTERNAL' | 'SPENDWITNESS' | 'SPENDP2SHWITNESS';
 };
 
+type OutputScriptType = 'PAYTOADDRESS' | 'PAYTOSCRIPTHASH' | 'PAYTOMULTISIG' | 'PAYTOOPRETURN' | 'PAYTOWITNESS' | 'PAYTOP2SHWITNESS';
 export type TransactionOutput = {
     address: string;
     amount: number; // in satoshis
-    script_type: string;
+    script_type: OutputScriptType;
 } | {
     address_n: Array<number>;
     amount: number; // in satoshis
-    script_type: string;
+    script_type: OutputScriptType;
 };
 
 export type TransactionBinOutput = {

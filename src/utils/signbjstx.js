@@ -10,6 +10,7 @@ import type Session, {MessageResponse} from '../session';
 export type OutputInfo = {
     path: Array<number>;
     value: number;
+    segwit: boolean;
 } | {
     address: string;
     value: number;
@@ -19,6 +20,7 @@ export type InputInfo = {
     hash: Buffer;
     index: number;
     path?: Array<number>;
+    segwit: boolean;
 };
 
 export type TxInfo = {
@@ -32,6 +34,7 @@ function input2trezor(input: InputInfo): trezor.TransactionInput {
         prev_index: index,
         prev_hash: reverseBuffer(hash).toString('hex'),
         address_n: path,
+        script_type: input.segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS'
     };
 }
 
@@ -59,7 +62,7 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network): trezor.Tra
         return {
             address_n: pathArr,
             amount: output.value,
-            script_type: 'PAYTOADDRESS',
+            script_type: output.segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS',
         };
     }
     const address = output.address;
@@ -119,11 +122,12 @@ function _flow_getPathOrAddress(output: OutputInfo): string | Array<number> {
 function deriveOutputScript(
     pathOrAddress: string | Array<number>,
     nodes: Array<bitcoin.HDNode>,
-    network: bitcoin.Network
+    network: bitcoin.Network,
+    segwit: boolean
 ): Buffer {
     const scriptType = typeof pathOrAddress === 'string'
                         ? getAddressScriptType(pathOrAddress, network)
-                        : 'PAYTOADDRESS';
+                        : (segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS');
 
     const pkh: Buffer = typeof pathOrAddress === 'string'
                                 ? bitcoin.address.fromBase58Check(pathOrAddress).hash
@@ -134,11 +138,17 @@ function deriveOutputScript(
                                 );
 
     if (scriptType === 'PAYTOADDRESS') {
-        return bitcoin.script.pubKeyHashOutput(pkh);
+        return bitcoin.script.pubKeyHash.output.encode(pkh);
     }
+
     if (scriptType === 'PAYTOSCRIPTHASH') {
-        return bitcoin.script.scriptHashOutput(pkh);
+        return bitcoin.script.scriptHash.output.encode(pkh);
     }
+
+    if (scriptType === 'PAYTOP2SHWITNESS') {
+        return bitcoin.script.scriptHash.witnessscripthash.encode(pkh);
+    }
+
     throw new Error('Unknown script type ' + scriptType);
 }
 
@@ -173,7 +183,7 @@ function verifyBjsTx(
     });
 }
 
-function getAddressScriptType(address: string, network: bitcoin.Network): string {
+function getAddressScriptType(address: string, network: bitcoin.Network): 'PAYTOADDRESS' | 'PAYTOSCRIPTHASH' {
     const decoded = bitcoin.address.fromBase58Check(address);
     if (decoded.version === network.pubKeyHash) {
         return 'PAYTOADDRESS';
