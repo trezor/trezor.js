@@ -134,48 +134,49 @@ declare module 'bitcoinjs-lib-zcash' {
         toOutputScipt(network?: Network): Buffer;
     };
 
+    declare type Stack = Array<Buffer | number>;
+
     declare var script: {
-        fromAddress(address: string, network?: Network): Buffer;
-        scriptHashOutput(sho: Buffer): Buffer;
-
-        compile(chunks: Buffer | Array<Buffer | number>): Buffer;
-        decompile(buffer: Buffer | Array<Buffer | number>): Array<Buffer | number>;
-        fromASM(asm: string): Buffer;
-        toASM(string: Buffer): string;
-        number: {
-          decode: (buf: Buffer, maxLength: number, minimal: boolean) => number;
-          encode: (n: number) => Buffer;
+      scriptHash: {
+        input: {
+          check: (script: Buffer, allowIncomplete: boolean) => boolean;
+          decode: (script: Buffer) => {
+            redeemScriptStack: Stack,
+            redeemScript: Buffer
+          };
+          encode: (redeemScriptSig: Buffer, redeemScript: Buffer) => Buffer;
         };
-        isCanonicalPubKey(buffer: Buffer): boolean;
-        isCanonicalSignature(buffer: Buffer): boolean;
-        isDefinedHashType(type: number): boolean;
-        isPubKeyHashInput(script: Array<Buffer | number> | Buffer): boolean;
-        isPubKeyHashOutput(script: Array<Buffer | number> | Buffer): boolean;
-        isPubKeyInput(script: Array<Buffer | number> | Buffer): boolean;
-        isPubKeyOutput(script: Array<Buffer | number> | Buffer): boolean;
-        isScriptHashInput(script: Array<Buffer | number> | Buffer, allowIncomplete?: boolean): boolean;
-        isScriptHashOutput(script: Array<Buffer | number> | Buffer): boolean;
-        isWitnessPubKeyHashOutput(script: Array<Buffer | number> | Buffer): boolean;
-        isWitnessScriptHashOutput(script: Array<Buffer | number> | Buffer): boolean;
-        isMultisigInput(script: Array<Buffer | number> | Buffer, allowIncomplete?: boolean): boolean;
-        isMultisigOutput(script: Array<Buffer | number> | Buffer): boolean;
-        isNullDataOutput(script: Array<Buffer | number> | Buffer): boolean;
-
-        classifyOutput(script: Array<Buffer | number> | Buffer): string;
-        classifyInput(script: Array<Buffer | number> | Buffer): string;
-        pubKeyOutput(pubKey: Buffer): Buffer;
-        pubKeyHashOutput(pubKeyHash: Buffer): Buffer;
-        scriptHashOutput(scriptHash: Buffer): Buffer;
-        witnessPubKeyHashOutput(pubKeyHash: Buffer): Buffer;
-        witnessScriptHashInput(scriptSig: Array<Buffer | number> | Buffer, scriptPubKey: Array<Buffer | number> | Buffer): Buffer;
-        witnessScriptHashOutput(scriptHash: Buffer): Buffer;
-
-        multisigOutput(m: number, pubKeys: Array<Buffer>): Buffer;
-        pubKeyInput(signature: Buffer): Buffer;
-        pubKeyHashInput(signature: Buffer, pubKey: Buffer): Buffer;
-        scriptHashInput(scriptSig: Array<Buffer | number> | Buffer, scriptPubKey: Array<Buffer | number> | Buffer):Buffer;
-        multisigInput(signatures: Array<Buffer>, scriptPubKey?: Array<Buffer | number> | Buffer): Buffer;
-        nullDataOutput(data: Buffer): Buffer;
+        output: {
+          check: (script: Stack) => boolean;
+          encode: (scriptHash: Buffer) => Buffer;
+          decode: (script: Buffer) => Buffer;
+        };
+      };
+      pubKeyHash: {
+        input: {
+          check: (script: Buffer, allowIncomplete: boolean) => boolean;
+          decode: (script: Buffer) => {
+            signature: Buffer,
+            pubKey: Buffer
+          };
+          encode: (signature: Buffer, pubKey: Buffer) => Buffer;
+        };
+        output: {
+          check: (script: Stack) => boolean;
+          encode: (pubKeyHash: Buffer) => Buffer;
+          decode: (script: Buffer) => Buffer;
+        };
+      };
+      witnessScriptHash: {
+        input: {
+          check: (script: Buffer, allowIncomplete: boolean) => boolean;
+        };
+        output: {
+          check: (script: Stack) => boolean;
+          encode: (scriptHash: Buffer) => Buffer;
+          decode: (script: Buffer) => Buffer;
+        };
+      };
     };
 
     declare var crypto: {

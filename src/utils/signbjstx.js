@@ -34,7 +34,7 @@ function input2trezor(input: InputInfo): trezor.TransactionInput {
         prev_index: index,
         prev_hash: reverseBuffer(hash).toString('hex'),
         address_n: path,
-        script_type: input.segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS'
+        script_type: input.segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS',
     };
 }
 
@@ -119,6 +119,24 @@ function _flow_getPathOrAddress(output: OutputInfo): string | Array<number> {
     throw new Error('Wrong output type.');
 }
 
+function _flow_makeBoolean(segwit: mixed) {
+    if (typeof segwit === 'boolean') {
+        return segwit;
+    }
+    return !!segwit;
+}
+
+function _flow_getSegwit(output: OutputInfo): boolean {
+    if (output.segwit) {
+        const segwit = output.segwit;
+        return _flow_makeBoolean(segwit);
+    }
+    if (typeof output.address === 'string') {
+        return false;
+    }
+    throw new Error('Wrong output type.');
+}
+
 function deriveOutputScript(
     pathOrAddress: string | Array<number>,
     nodes: Array<bitcoin.HDNode>,
@@ -146,7 +164,7 @@ function deriveOutputScript(
     }
 
     if (scriptType === 'PAYTOP2SHWITNESS') {
-        return bitcoin.script.scriptHash.witnessscripthash.encode(pkh);
+        return bitcoin.script.witnessScriptHash.output.encode(pkh);
     }
 
     throw new Error('Unknown script type ' + scriptType);
@@ -175,7 +193,8 @@ function verifyBjsTx(
         }
 
         const addressOrPath = _flow_getPathOrAddress(output);
-        const scriptA = deriveOutputScript(addressOrPath, nodes, network);
+        const segwit = _flow_getSegwit(output);
+        const scriptA = deriveOutputScript(addressOrPath, nodes, network, segwit);
         const scriptB = resTx.outs[i].script;
         if (scriptA.compare(scriptB) !== 0) {
             throw new Error('Scripts differ');
