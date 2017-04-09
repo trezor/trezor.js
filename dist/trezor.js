@@ -2722,13 +2722,15 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function input2trezor(input) {
     var hash = input.hash,
         index = input.index,
-        path = input.path;
+        path = input.path,
+        amount = input.amount;
 
     return {
         prev_index: index,
         prev_hash: reverseBuffer(hash).toString('hex'),
         address_n: path,
-        script_type: input.segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS'
+        script_type: input.segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS',
+        amount: amount
     };
 }
 
