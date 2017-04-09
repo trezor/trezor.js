@@ -106,6 +106,7 @@ export type TransactionInput = {
     prev_hash: string;
     script_sig?: string;
     script_type?: 'SPENDADDRESS' | 'SPENDMULTISIG' | 'EXTERNAL' | 'SPENDWITNESS' | 'SPENDP2SHWITNESS';
+    amount?: number; // only with segwit
 };
 
 type OutputScriptType = 'PAYTOADDRESS' | 'PAYTOSCRIPTHASH' | 'PAYTOMULTISIG' | 'PAYTOOPRETURN' | 'PAYTOWITNESS' | 'PAYTOP2SHWITNESS';

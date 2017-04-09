@@ -21,6 +21,7 @@ export type InputInfo = {
     index: number;
     path?: Array<number>;
     segwit: boolean;
+    amount?: number; // only with segwit
 };
 
 export type TxInfo = {
@@ -29,12 +30,13 @@ export type TxInfo = {
 };
 
 function input2trezor(input: InputInfo): trezor.TransactionInput {
-    const {hash, index, path} = input;
+    const {hash, index, path, amount} = input;
     return {
         prev_index: index,
         prev_hash: reverseBuffer(hash).toString('hex'),
         address_n: path,
         script_type: input.segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS',
+        amount,
     };
 }
 
