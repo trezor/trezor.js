@@ -121,22 +121,11 @@ function _flow_getPathOrAddress(output: OutputInfo): string | Array<number> {
     throw new Error('Wrong output type.');
 }
 
-function _flow_makeBoolean(segwit: mixed) {
-    if (typeof segwit === 'boolean') {
-        return segwit;
-    }
-    return !!segwit;
-}
-
 function _flow_getSegwit(output: OutputInfo): boolean {
     if (output.segwit) {
-        const segwit = output.segwit;
-        return _flow_makeBoolean(segwit);
+        return true;
     }
-    if (typeof output.address === 'string') {
-        return false;
-    }
-    throw new Error('Wrong output type.');
+    return false;
 }
 
 function deriveWitnessOutput(pkh) {
