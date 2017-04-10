@@ -2833,6 +2833,22 @@ function _flow_getSegwit(output) {
     throw new Error('Wrong output type.');
 }
 
+function deriveWitnessOutput(pkh) {
+    // see https://github.com/bitcoin/bips/blob/master/bip-0049.mediawiki
+    // address derivation + test vectors
+    var scriptSig = new Buffer(pkh.length + 2);
+    scriptSig[0] = 0;
+    scriptSig[1] = 0x14;
+    pkh.copy(scriptSig, 2);
+    var addressBytes = bitcoin.crypto.hash160(scriptSig);
+    var scriptPubKey = new Buffer(23);
+    scriptPubKey[0] = 0xa9;
+    scriptPubKey[1] = 0x14;
+    scriptPubKey[22] = 0x87;
+    addressBytes.copy(scriptPubKey, 2);
+    return scriptPubKey;
+}
+
 function deriveOutputScript(pathOrAddress, nodes, network, segwit) {
     var scriptType = typeof pathOrAddress === 'string' ? getAddressScriptType(pathOrAddress, network) : segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS';
 
@@ -2847,7 +2863,7 @@ function deriveOutputScript(pathOrAddress, nodes, network, segwit) {
     }
 
     if (scriptType === 'PAYTOP2SHWITNESS') {
-        return bitcoin.script.witnessScriptHash.output.encode(pkh);
+        return deriveWitnessOutput(pkh);
     }
 
     throw new Error('Unknown script type ' + scriptType);
