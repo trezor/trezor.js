@@ -2815,22 +2815,11 @@ function _flow_getPathOrAddress(output) {
     throw new Error('Wrong output type.');
 }
 
-function _flow_makeBoolean(segwit) {
-    if (typeof segwit === 'boolean') {
-        return segwit;
-    }
-    return !!segwit;
-}
-
 function _flow_getSegwit(output) {
     if (output.segwit) {
-        var _segwit = output.segwit;
-        return _flow_makeBoolean(_segwit);
+        return true;
     }
-    if (typeof output.address === 'string') {
-        return false;
-    }
-    throw new Error('Wrong output type.');
+    return false;
 }
 
 function deriveWitnessOutput(pkh) {
