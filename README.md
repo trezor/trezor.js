@@ -1,7 +1,7 @@
 trezor.js
 =========
 
-[![Build Status](https://travis-ci.org/trezor/trezor.js.svg?branch=master)](https://travis-ci.org/trezor/trezor.js)
+[![Build Status](https://travis-ci.org/trezor/trezor.js.svg?branch=master)](https://travis-ci.org/trezor/trezor.js) [![gitter](https://badges.gitter.im/trezor/community.svg)](https://gitter.im/trezor/community)
 
 Javascript API for Bitcoin TREZOR.
 
