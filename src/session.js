@@ -148,13 +148,15 @@ export default class Session extends EventEmitter {
 
     getPublicKey(
       address_n: Array<number>,
-      coin: trezor.CoinType | string,
+      coin: ?(trezor.CoinType | string),
     ): Promise<MessageResponse<trezor.PublicKey>> {
-        const coin_name = coinName(coin);
-        return this.typedCall('GetPublicKey', 'PublicKey', {
-            address_n: address_n,
-            coin_name: coin_name,
-        }).then(res => {
+        const coinNameStr = coin == null ? null : coinName(coin);
+        const args = {};
+        args.address_n = address_n;
+        if (coinNameStr !== null) {
+            args.coin_name = coinNameStr;
+        }
+        return this.typedCall('GetPublicKey', 'PublicKey', args).then(res => {
             res.message.node.path = address_n || [];
             return res;
         });
