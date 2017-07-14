@@ -433,6 +433,15 @@ export default class Session extends EventEmitter {
             show_display: !!show_display,
         });
     }
+
+    nemSignTx(
+        transaction: Object
+    ): Promise<MessageResponse<{
+        data: string;
+        signature: string;
+    }>> {
+        return this.typedCall('NEMSignTx', 'NEMSignedTx', transaction);
+    }
 }
 
 export function coinName(coin: trezor.CoinType | string): string {
