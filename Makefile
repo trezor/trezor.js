@@ -1,6 +1,6 @@
 check: node_modules
 	`npm bin`/flow check src/
-	cd src/; eslint .
+	cd src/; `npm bin`/eslint .
 
 git-ancestor:
 	git fetch origin
