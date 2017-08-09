@@ -45,13 +45,14 @@ build-browser: clean node_modules
 
 .version-%: .move-in-%
 	rm -f yarn.lock && yarn && rm yarn.lock
+	make check || ( make .cleanup-$* && false )
 	make build-$* || ( make .cleanup-$* && false )
 	`npm bin`/bump ${TYPE} || ( make .cleanup-$* && false )
 	make build-$* || ( make .cleanup-$* && false )
 	npm publish || ( make .cleanup-$* && false )
 	make .cleanup-$*
 
-.versions: git-clean git-ancestor check .version-node .version-browser
+.versions: git-clean git-ancestor .version-node .version-browser
 	rm -rf lib
 	git add package*.json
 	mv package-node.json package.json
