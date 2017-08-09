@@ -231,6 +231,18 @@ export default class Session extends EventEmitter {
         });
     }
 
+    verifyEthMessage(
+        address: string,
+        signature: string,
+        message: string
+    ): Promise<MessageResponse<trezor.Success>> {
+        return this.typedCall('EthereumVerifyMessage', 'Success', {
+            address: address,
+            signature: signature,
+            message: message
+        });
+    }
+
     signMessage(
         address_n: Array<number>,
         message: string,
@@ -240,6 +252,16 @@ export default class Session extends EventEmitter {
             address_n: address_n,
             message: message,
             coin_name: coinName(coin),
+        });
+    }
+
+    signEthMessage(
+        address_n: Array<number>,
+        message: string
+    ): Promise<MessageResponse<trezor.MessageSignature>> {
+        return this.typedCall('EthereumSignMessage', 'EthereumMessageSignature', {
+            address_n: address_n,
+            message: message
         });
     }
 
