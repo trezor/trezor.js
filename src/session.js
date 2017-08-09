@@ -239,7 +239,7 @@ export default class Session extends EventEmitter {
         return this.typedCall('EthereumVerifyMessage', 'Success', {
             address: address,
             signature: signature,
-            message: message
+            message: message,
         });
     }
 
@@ -261,7 +261,7 @@ export default class Session extends EventEmitter {
     ): Promise<MessageResponse<trezor.MessageSignature>> {
         return this.typedCall('EthereumSignMessage', 'EthereumMessageSignature', {
             address_n: address_n,
-            message: message
+            message: message,
         });
     }
 

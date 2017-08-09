@@ -19,7 +19,6 @@ export type DeviceDescriptorDiff = {
 };
 
 export default class DescriptorStream extends EventEmitter {
-
     transport: Transport;
     listening: boolean = false;
     previous: ?Array<DeviceDescriptor> = null;
@@ -61,14 +60,14 @@ export default class DescriptorStream extends EventEmitter {
         const previous = this.previous || [];
         const promise = waitForEvent ? this.transport.listen(previous) : this.transport.enumerate();
         promise.then(descriptors => {
-            if (!this.listening) {  // do not continue if stop() was called
+            if (!this.listening) { // do not continue if stop() was called
                 return;
             }
 
             this.current = descriptors;
             this._reportChanges();
 
-            if (this.listening) {   // handlers might have called stop()
+            if (this.listening) { // handlers might have called stop()
                 this.listen();
             }
             return;

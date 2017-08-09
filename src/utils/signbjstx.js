@@ -151,16 +151,16 @@ function deriveOutputScript(
     segwit: boolean
 ): Buffer {
     const scriptType = typeof pathOrAddress === 'string'
-                        ? getAddressScriptType(pathOrAddress, network)
-                        : (segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS');
+        ? getAddressScriptType(pathOrAddress, network)
+        : (segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS');
 
     const pkh: Buffer = typeof pathOrAddress === 'string'
-                                ? bitcoin.address.fromBase58Check(pathOrAddress).hash
-                                : hdnodeUtils.derivePubKeyHash(
-                                      nodes,
-                                      pathOrAddress[pathOrAddress.length - 2],
-                                      pathOrAddress[pathOrAddress.length - 1]
-                                );
+        ? bitcoin.address.fromBase58Check(pathOrAddress).hash
+        : hdnodeUtils.derivePubKeyHash(
+            nodes,
+            pathOrAddress[pathOrAddress.length - 2],
+            pathOrAddress[pathOrAddress.length - 1]
+        );
 
     if (scriptType === 'PAYTOADDRESS') {
         return bitcoin.script.pubKeyHash.output.encode(pkh);
@@ -254,10 +254,10 @@ export function signBjsTx(
         trezorRefTxs,
         coinName
     ).then(tx => signedTx2bjsTx(tx))
-    .then(res => {
-        verifyBjsTx(info.inputs, info.outputs, nodes, res, network);
-        return res;
-    });
+        .then(res => {
+            verifyBjsTx(info.inputs, info.outputs, nodes, res, network);
+            return res;
+        });
 }
 
 function reverseBuffer(buf: Buffer): Buffer {

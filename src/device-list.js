@@ -12,8 +12,8 @@ import type Session from './session';
 import type {DeviceDescriptorDiff} from './descriptor-stream';
 
 import type {
-  Transport,
-  TrezorDeviceInfoWithSession as DeviceDescriptor,
+    Transport,
+    TrezorDeviceInfoWithSession as DeviceDescriptor,
 } from 'trezor-link';
 
 const CONFIG_URL = 'https://wallet.trezor.io/data/config_signed.bin';
@@ -45,7 +45,6 @@ const WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 //  stream: DescriptorStream
 //
 export default class DeviceList extends EventEmitter {
-
     static _fetch: (input: string | Request, init?: RequestOptions) => Promise<Response> =
         () => Promise.reject(new Error('No fetch defined'));
 
@@ -467,7 +466,6 @@ export default class DeviceList extends EventEmitter {
     onbeforeunload(clearSession?: ?boolean) {
         this.asArray().forEach(device => device.onbeforeunload(clearSession));
     }
-
 }
 
 function objectValues<X>(object: {[key: string]: X}): Array<X> {

@@ -4,9 +4,9 @@
 // slight hack to make Flow happy, but to allow Node to set its own fetch
 // Request, RequestOptions and Response are built-in types of Flow for fetch API
 let _fetch: (input: string | Request, init?: RequestOptions) => Promise<Response> =
-  typeof window === 'undefined'
-  ? () => Promise.reject()
-  : window.fetch;
+    typeof window === 'undefined'
+        ? () => Promise.reject()
+        : window.fetch;
 
 export function setFetch(fetch: any) {
     _fetch = fetch;
@@ -116,17 +116,17 @@ export function latestVersion(options: ?VersionOptions): Promise<string> {
     const o: VersionOptions = options || {};
     const bridgeUrl: string = o.bridgeUrl || BRIDGE_VERSION_URL;
     return _fetch(bridgeUrl)
-      .then(response => {
-          return response.ok
-            ? response.text()
-            : response.text().then((text) => Promise.reject(text));
-      })
-      .then(version_ => {
-          if (typeof version_ !== 'string') {
-              throw new Error('Wrong version load result.');
-          }
-          return version_.trim();
-      });
+        .then(response => {
+            return response.ok
+                ? response.text()
+                : response.text().then((text) => Promise.reject(text));
+        })
+        .then(version_ => {
+            if (typeof version_ !== 'string') {
+                throw new Error('Wrong version load result.');
+            }
+            return version_.trim();
+        });
 }
 
 type BridgeOptions = {
