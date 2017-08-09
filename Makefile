@@ -1,5 +1,5 @@
 check: node_modules
-	flow check src/
+	`npm bin`/flow check src/
 	cd src/; eslint .
 
 git-ancestor:
@@ -44,7 +44,7 @@ build-browser: clean node_modules
 	rm -rf lib
 
 .version-%: .move-in-%
-	npm install
+	rm -f yarn.lock && yarn && rm yarn.lock
 	make build-$* || ( make .cleanup-$* && false )
 	`npm bin`/bump ${TYPE} || ( make .cleanup-$* && false )
 	make build-$* || ( make .cleanup-$* && false )

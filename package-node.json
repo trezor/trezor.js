@@ -41,6 +41,7 @@
   "dependencies": {
     "bitcoinjs-lib-zcash": "^3.0.0",
     "ecurve": "^1.0.2",
+    "flow-bin": "0.45.0",
     "node-fetch": "^1.6.0",
     "randombytes": "^2.0.1",
     "semver-compare": "1.0.0",
