@@ -42,7 +42,7 @@
     "eslint-plugin-flowtype": "^2.35.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
-    "flow-bin": "0.45.0",
+    "flow-bin": "0.45.0"
   },
   "dependencies": {
     "bitcoinjs-lib-zcash": "^3.0.0",
