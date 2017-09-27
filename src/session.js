@@ -246,12 +246,14 @@ export default class Session extends EventEmitter {
     signMessage(
         address_n: Array<number>,
         message: string,
-        coin: trezor.CoinType | string
+        coin: trezor.CoinType | string,
+        segwit: boolean,
     ): Promise<MessageResponse<trezor.MessageSignature>> {
         return this.typedCall('SignMessage', 'MessageSignature', {
             address_n: address_n,
             message: message,
             coin_name: coinName(coin),
+            script_type: segwit ? 'SPENDP2SHWITNESS' : undefined,
         });
     }
 
