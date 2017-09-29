@@ -40,8 +40,8 @@ export type ResetDeviceSettings = {
     pin_protection?: boolean;
     language?: string;
     label?: string;
-
     u2f_counter?: number;
+    skip_backup?: boolean;
 };
 
 export type HDPrivNode = {

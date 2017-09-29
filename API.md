@@ -154,7 +154,7 @@ Note that the lenght of the action is not tied to the actual device actions. You
 | verifyAddress | path:&nbsp;Array&lt;number&gt;<br>refAddress:&nbsp;string&nbsp;<br>coin:&nbsp;string&nbsp; | Promise&lt;boolean&gt; | Gets address with the given path, displays it on display and compares to the `refAddress`.<br><br>Note: promise doesn't reject on different result, but resolves with **false**. It rejects on user not confirming on device. |
 | getHDNode | path:&nbsp;Array&lt;number&gt;<br>coin:&nbsp;string&nbsp; | Promise&lt;HDNode&gt; | Returns [bitcoin.js HDNode](https://github.com/bitcoinjs/bitcoinjs-lib/blob/master/src/hdnode.js) with the given path. (No confirmation needed; it's public node.) |
 | wipeDevice | | Promise | Wipes the device (after user confirms). |
-| resetDevice | settings:&nbsp;{<br>`strength`:&nbsp;number,<br>`passphrase_protection`:<br>boolean,<br>`pin_protection`:&nbsp;boolean,<br>`label`:&nbsp;string } | Promise | Sets a new device. It has to be wiped first. It resolves after user confirms all the words on display. |
+| resetDevice | settings:&nbsp;{<br>`strength`:&nbsp;number,<br>`passphrase_protection`:<br>boolean,<br>`pin_protection`:&nbsp;boolean,<br>`label`:&nbsp;string<br>`language`:&nbsp;string<br>`u2f_counter`:&nbsp;number<br>`skip_backup`:&nbsp;boolean } | Promise | Sets a new device. It has to be wiped first. It resolves after user confirms all the words on display. |
 | loadDevice | settings:&nbsp;{<br>`strength`:&nbsp;number,<br>`passphrase_protection`:<br>boolean,<br>`pin_protection`:&nbsp;boolean,<br>`label`:&nbsp;string,<br>`mnemonic`:&nbsp;string,<br>`node`&nbsp;HDNode,<br>`payload`:&nbsp;string }<br>network:&nbsp;string | Promise | Loads a device with specific mnemonic and/or HD Node and/or xprv. *Do not use this if you don't need to; use recoverDevice*<br>Either mnemonic, node or payload have to be present. HDNode is an internal TREZOR structure, not bitcoin.js HD Node. |
 | recoverDevice | settings:&nbsp;{<br>`word_cound`:&nbsp;number,<br>`passphrase_protection`:<br>boolean,<br>`pin_protection`:&nbsp;boolean,<br>`label`:&nbsp;string } | Promise | Recovers device. |
 | clearSession | | Promise | Clears device "session".<br><br>"Session" has nothing to do with Session object or multitasking sessions; clearSession just clears currently remembered PIN and passphrase from device. |
@@ -167,6 +167,8 @@ Note that the lenght of the action is not tied to the actual device actions. You
 | togglePassphrase | enable:&nbsp;boolean | Promise | Turns the passphrase on/off. |
 | changeHomescreen | picture: string (hex) | Promise | changes the homescreen. |
 | signBjsTx | info:&nbsp;TxInfo<br>refTx:&nbsp;Array&lt;Transaction&gt;<br>nodes:&nbsp;Array&lt;HDNode&gt;<br>coinName:&nbsp;string<br>network:&nbsp;bitcoin.Network | Promise&lt;Transaction&gt; | Signs transaction after asking user on the device.<br>The name is `signBjsTx` for backwards compatibility, meaning "sign Bitcoin.js transaction", since it accepts and returns blockchain.js data structures.<br><br>The parameters are explained under this table. |
+| backupDevice | | Promise | Initiates the display of recovery mnemonic, works only for devices with needs_backup `true`, sets needs_backup to `false`|
+
 
 `Response<X>` is an object with type `{type: string, message: X}`.
 

@@ -419,6 +419,10 @@ export default class Session extends EventEmitter {
             u2f_counter: counter,
         });
     }
+
+    backupDevice(): Promise<DefaultMessageResponse> {
+        return this.typedCall('BackupDevice', 'Success');
+    }
 }
 
 export function coinName(coin: trezor.CoinType | string): string {
