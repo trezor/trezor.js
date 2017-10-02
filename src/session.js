@@ -419,6 +419,29 @@ export default class Session extends EventEmitter {
             u2f_counter: counter,
         });
     }
+
+    nemGetAddress(
+        address_n: Array<number>,
+        network: number,
+        show_display: ?boolean
+    ): Promise<MessageResponse<{
+        address: string;
+    }>> {
+        return this.typedCall('NEMGetAddress', 'NEMAddress', {
+            address_n: address_n,
+            network: network,
+            show_display: !!show_display,
+        });
+    }
+
+    nemSignTx(
+        transaction: Object
+    ): Promise<MessageResponse<{
+        data: string;
+        signature: string;
+    }>> {
+        return this.typedCall('NEMSignTx', 'NEMSignedTx', transaction);
+    }
 }
 
 export function coinName(coin: trezor.CoinType | string): string {
