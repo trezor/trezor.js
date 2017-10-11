@@ -31,6 +31,8 @@ export type Features = {
     imported: boolean;
     pin_cached: boolean;
     passphrase_cached: boolean;
+    needs_backup?: boolean;
+    firmware_present?: boolean;
 };
 
 export type ResetDeviceSettings = {
