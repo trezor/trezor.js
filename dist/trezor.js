@@ -2151,6 +2151,25 @@ var Session = function (_EventEmitter) {
                 u2f_counter: counter
             });
         }
+    }, {
+        key: 'backupDevice',
+        value: function backupDevice() {
+            return this.typedCall('BackupDevice', 'Success');
+        }
+    }, {
+        key: 'nemGetAddress',
+        value: function nemGetAddress(address_n, network, show_display) {
+            return this.typedCall('NEMGetAddress', 'NEMAddress', {
+                address_n: address_n,
+                network: network,
+                show_display: !!show_display
+            });
+        }
+    }, {
+        key: 'nemSignTx',
+        value: function nemSignTx(transaction) {
+            return this.typedCall('NEMSignTx', 'NEMSignedTx', transaction);
+        }
     }]);
 
     return Session;
@@ -5528,43 +5547,21 @@ require('./convert')
 module.exports = BigInteger
 },{"./bigi":20,"./convert":21}],23:[function(require,module,exports){
 module.exports={
-  "_args": [
-    [
-      {
-        "raw": "bigi@^1.4.0",
-        "scope": null,
-        "escapedName": "bigi",
-        "name": "bigi",
-        "rawSpec": "^1.4.0",
-        "spec": ">=1.4.0 <2.0.0",
-        "type": "range"
-      },
-      "/Users/mikenova/repos/trezor.js/node_modules/bitcoinjs-lib-zcash"
-    ]
-  ],
-  "_from": "bigi@>=1.4.0 <2.0.0",
+  "_from": "bigi@^1.4.0",
   "_id": "bigi@1.4.2",
-  "_inCache": true,
+  "_inBundle": false,
+  "_integrity": "sha1-nGZalfiLiwj8Bc/XMfVhhZ1yWCU=",
   "_location": "/bigi",
-  "_nodeVersion": "6.1.0",
-  "_npmOperationalInternal": {
-    "host": "packages-12-west.internal.npmjs.com",
-    "tmp": "tmp/bigi-1.4.2.tgz_1469584192413_0.6801238611806184"
-  },
-  "_npmUser": {
-    "name": "jprichardson",
-    "email": "jprichardson@gmail.com"
-  },
-  "_npmVersion": "3.8.6",
   "_phantomChildren": {},
   "_requested": {
+    "type": "range",
+    "registry": true,
     "raw": "bigi@^1.4.0",
-    "scope": null,
-    "escapedName": "bigi",
     "name": "bigi",
+    "escapedName": "bigi",
     "rawSpec": "^1.4.0",
-    "spec": ">=1.4.0 <2.0.0",
-    "type": "range"
+    "saveSpec": null,
+    "fetchSpec": "^1.4.0"
   },
   "_requiredBy": [
     "/bitcoinjs-lib-zcash",
@@ -5573,13 +5570,14 @@ module.exports={
   ],
   "_resolved": "https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz",
   "_shasum": "9c665a95f88b8b08fc05cfd731f561859d725825",
-  "_shrinkwrap": null,
   "_spec": "bigi@^1.4.0",
-  "_where": "/Users/mikenova/repos/trezor.js/node_modules/bitcoinjs-lib-zcash",
+  "_where": "/home/peepee/dev/trezor.js/node_modules/bitcoinjs-lib-zcash",
   "bugs": {
     "url": "https://github.com/cryptocoinjs/bigi/issues"
   },
+  "bundleDependencies": false,
   "dependencies": {},
+  "deprecated": false,
   "description": "Big integers.",
   "devDependencies": {
     "coveralls": "^2.11.2",
@@ -5588,12 +5586,6 @@ module.exports={
     "mocha": "^2.1.0",
     "mochify": "^2.1.0"
   },
-  "directories": {},
-  "dist": {
-    "shasum": "9c665a95f88b8b08fc05cfd731f561859d725825",
-    "tarball": "https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz"
-  },
-  "gitHead": "c25308081c896ff84702303722bf5ecd8b3f78e3",
   "homepage": "https://github.com/cryptocoinjs/bigi#readme",
   "keywords": [
     "cryptography",
@@ -5613,27 +5605,7 @@ module.exports={
     "float"
   ],
   "main": "./lib/index.js",
-  "maintainers": [
-    {
-      "name": "midnightlightning",
-      "email": "boydb@midnightdesign.ws"
-    },
-    {
-      "name": "sidazhang",
-      "email": "sidazhang89@gmail.com"
-    },
-    {
-      "name": "nadav",
-      "email": "npm@shesek.info"
-    },
-    {
-      "name": "jprichardson",
-      "email": "jprichardson@gmail.com"
-    }
-  ],
   "name": "bigi",
-  "optionalDependencies": {},
-  "readme": "ERROR: No README data found!",
   "repository": {
     "url": "git+https://github.com/cryptocoinjs/bigi.git",
     "type": "git"
@@ -15840,6 +15812,7 @@ module.exports = Point
 'use strict';
 
 var has = require('has');
+var toPrimitive = require('es-to-primitive/es6');
 
 var toStr = Object.prototype.toString;
 var hasSymbols = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol';
@@ -15852,7 +15825,6 @@ var assign = require('./helpers/assign');
 var sign = require('./helpers/sign');
 var mod = require('./helpers/mod');
 var isPrimitive = require('./helpers/isPrimitive');
-var toPrimitive = require('es-to-primitive/es6');
 var parseInteger = parseInt;
 var bind = require('function-bind');
 var arraySlice = bind.call(Function.call, Array.prototype.slice);
@@ -16108,7 +16080,7 @@ var ES6 = assign(assign({}, ES5), {
 
 		// 7.3.9.4
 		if (func == null) {
-			return undefined;
+			return void 0;
 		}
 
 		// 7.3.9.5
@@ -16158,7 +16130,7 @@ var ES6 = assign(assign({}, ES5), {
 		if (this.Type(C) !== 'Object') {
 			throw new TypeError('O.constructor is not an Object');
 		}
-		var S = hasSymbols && Symbol.species ? C[Symbol.species] : undefined;
+		var S = hasSymbols && Symbol.species ? C[Symbol.species] : void 0;
 		if (S == null) {
 			return defaultConstructor;
 		}
@@ -16295,6 +16267,75 @@ var ES6 = assign(assign({}, ES5), {
 			throw new TypeError('"exec" method must return `null` or an Object');
 		}
 		return regexExec(R, S);
+	},
+
+	// http://ecma-international.org/ecma-262/6.0/#sec-arrayspeciescreate
+	ArraySpeciesCreate: function ArraySpeciesCreate(originalArray, length) {
+		if (!this.IsInteger(length) || length < 0) {
+			throw new TypeError('Assertion failed: length must be an integer >= 0');
+		}
+		var len = length === 0 ? 0 : length;
+		var C;
+		var isArray = this.IsArray(originalArray);
+		if (isArray) {
+			C = this.Get(originalArray, 'constructor');
+			// TODO: figure out how to make a cross-realm normal Array, a same-realm Array
+			// if (this.IsConstructor(C)) {
+			// 	if C is another realm's Array, C = undefined
+			// 	Object.getPrototypeOf(Object.getPrototypeOf(Object.getPrototypeOf(Array))) === null ?
+			// }
+			if (this.Type(C) === 'Object' && hasSymbols && Symbol.species) {
+				C = this.Get(C, Symbol.species);
+				if (C === null) {
+					C = void 0;
+				}
+			}
+		}
+		if (typeof C === 'undefined') {
+			return Array(len);
+		}
+		if (!this.IsConstructor(C)) {
+			throw new TypeError('C must be a constructor');
+		}
+		return new C(len); // this.Construct(C, len);
+	},
+
+	CreateDataProperty: function CreateDataProperty(O, P, V) {
+		if (this.Type(O) !== 'Object') {
+			throw new TypeError('Assertion failed: Type(O) is not Object');
+		}
+		if (!this.IsPropertyKey(P)) {
+			throw new TypeError('Assertion failed: IsPropertyKey(P) is not true');
+		}
+		var oldDesc = Object.getOwnPropertyDescriptor(O, P);
+		var extensible = oldDesc || (typeof Object.isExtensible !== 'function' || Object.isExtensible(O));
+		var immutable = oldDesc && (!oldDesc.writable || !oldDesc.configurable);
+		if (immutable || !extensible) {
+			return false;
+		}
+		var newDesc = {
+			configurable: true,
+			enumerable: true,
+			value: V,
+			writable: true
+		};
+		Object.defineProperty(O, P, newDesc);
+		return true;
+	},
+
+	// http://ecma-international.org/ecma-262/6.0/#sec-createdatapropertyorthrow
+	CreateDataPropertyOrThrow: function CreateDataPropertyOrThrow(O, P, V) {
+		if (this.Type(O) !== 'Object') {
+			throw new TypeError('Assertion failed: Type(O) is not Object');
+		}
+		if (!this.IsPropertyKey(P)) {
+			throw new TypeError('Assertion failed: IsPropertyKey(P) is not true');
+		}
+		var success = this.CreateDataProperty(O, P, V);
+		if (!success) {
+			throw new TypeError('unable to create data property');
+		}
+		return success;
 	}
 });
 
@@ -26855,67 +26896,78 @@ module.exports = function cmp (a, b) {
 };
 
 },{}],145:[function(require,module,exports){
-(function (Buffer){
+var Buffer = require('safe-buffer').Buffer
+
 // prototype class for hash functions
 function Hash (blockSize, finalSize) {
-  this._block = new Buffer(blockSize)
+  this._block = Buffer.alloc(blockSize)
   this._finalSize = finalSize
   this._blockSize = blockSize
   this._len = 0
-  this._s = 0
 }
 
 Hash.prototype.update = function (data, enc) {
   if (typeof data === 'string') {
     enc = enc || 'utf8'
-    data = new Buffer(data, enc)
+    data = Buffer.from(data, enc)
   }
 
-  var l = this._len += data.length
-  var s = this._s || 0
-  var f = 0
-  var buffer = this._block
+  var block = this._block
+  var blockSize = this._blockSize
+  var length = data.length
+  var accum = this._len
 
-  while (s < l) {
-    var t = Math.min(data.length, f + this._blockSize - (s % this._blockSize))
-    var ch = (t - f)
+  for (var offset = 0; offset < length;) {
+    var assigned = accum % blockSize
+    var remainder = Math.min(length - offset, blockSize - assigned)
 
-    for (var i = 0; i < ch; i++) {
-      buffer[(s % this._blockSize) + i] = data[i + f]
+    for (var i = 0; i < remainder; i++) {
+      block[assigned + i] = data[offset + i]
     }
 
-    s += ch
-    f += ch
+    accum += remainder
+    offset += remainder
 
-    if ((s % this._blockSize) === 0) {
-      this._update(buffer)
+    if ((accum % blockSize) === 0) {
+      this._update(block)
     }
   }
-  this._s = s
 
+  this._len += length
   return this
 }
 
 Hash.prototype.digest = function (enc) {
-  // Suppose the length of the message M, in bits, is l
-  var l = this._len * 8
+  var rem = this._len % this._blockSize
 
-  // Append the bit 1 to the end of the message
-  this._block[this._len % this._blockSize] = 0x80
+  this._block[rem] = 0x80
 
-  // and then k zero bits, where k is the smallest non-negative solution to the equation (l + 1 + k) === finalSize mod blockSize
-  this._block.fill(0, this._len % this._blockSize + 1)
+  // zero (rem + 1) trailing bits, where (rem + 1) is the smallest
+  // non-negative solution to the equation (length + 1 + (rem + 1)) === finalSize mod blockSize
+  this._block.fill(0, rem + 1)
 
-  if (l % (this._blockSize * 8) >= this._finalSize * 8) {
+  if (rem >= this._finalSize) {
     this._update(this._block)
     this._block.fill(0)
   }
 
-  // to this append the block which is equal to the number l written in binary
-  // TODO: handle case where l is > Math.pow(2, 29)
-  this._block.writeInt32BE(l, this._blockSize - 4)
+  var bits = this._len * 8
 
-  var hash = this._update(this._block) || this._hash()
+  // uint32
+  if (bits <= 0xffffffff) {
+    this._block.writeUInt32BE(bits, this._blockSize - 4)
+
+  // uint64
+  } else {
+    var lowBits = bits & 0xffffffff
+    var highBits = (bits - lowBits) / 0x100000000
+
+    this._block.writeUInt32BE(highBits, this._blockSize - 8)
+    this._block.writeUInt32BE(lowBits, this._blockSize - 4)
+  }
+
+  this._update(this._block)
+  var hash = this._hash()
 
   return enc ? hash.toString(enc) : hash
 }
@@ -26926,8 +26978,7 @@ Hash.prototype._update = function () {
 
 module.exports = Hash
 
-}).call(this,require("buffer").Buffer)
-},{"buffer":68}],146:[function(require,module,exports){
+},{"safe-buffer":143}],146:[function(require,module,exports){
 var exports = module.exports = function SHA (algorithm) {
   algorithm = algorithm.toLowerCase()
 
@@ -26945,7 +26996,6 @@ exports.sha384 = require('./sha384')
 exports.sha512 = require('./sha512')
 
 },{"./sha":147,"./sha1":148,"./sha224":149,"./sha256":150,"./sha384":151,"./sha512":152}],147:[function(require,module,exports){
-(function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-0, as defined
  * in FIPS PUB 180-1
@@ -26956,6 +27006,7 @@ exports.sha512 = require('./sha512')
 
 var inherits = require('inherits')
 var Hash = require('./hash')
+var Buffer = require('safe-buffer').Buffer
 
 var K = [
   0x5a827999, 0x6ed9eba1, 0x8f1bbcdc | 0, 0xca62c1d6 | 0
@@ -27027,7 +27078,7 @@ Sha.prototype._update = function (M) {
 }
 
 Sha.prototype._hash = function () {
-  var H = new Buffer(20)
+  var H = Buffer.allocUnsafe(20)
 
   H.writeInt32BE(this._a | 0, 0)
   H.writeInt32BE(this._b | 0, 4)
@@ -27040,9 +27091,7 @@ Sha.prototype._hash = function () {
 
 module.exports = Sha
 
-}).call(this,require("buffer").Buffer)
-},{"./hash":145,"buffer":68,"inherits":103}],148:[function(require,module,exports){
-(function (Buffer){
+},{"./hash":145,"inherits":103,"safe-buffer":143}],148:[function(require,module,exports){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
  * in FIPS PUB 180-1
@@ -27054,6 +27103,7 @@ module.exports = Sha
 
 var inherits = require('inherits')
 var Hash = require('./hash')
+var Buffer = require('safe-buffer').Buffer
 
 var K = [
   0x5a827999, 0x6ed9eba1, 0x8f1bbcdc | 0, 0xca62c1d6 | 0
@@ -27129,7 +27179,7 @@ Sha1.prototype._update = function (M) {
 }
 
 Sha1.prototype._hash = function () {
-  var H = new Buffer(20)
+  var H = Buffer.allocUnsafe(20)
 
   H.writeInt32BE(this._a | 0, 0)
   H.writeInt32BE(this._b | 0, 4)
@@ -27142,9 +27192,7 @@ Sha1.prototype._hash = function () {
 
 module.exports = Sha1
 
-}).call(this,require("buffer").Buffer)
-},{"./hash":145,"buffer":68,"inherits":103}],149:[function(require,module,exports){
-(function (Buffer){
+},{"./hash":145,"inherits":103,"safe-buffer":143}],149:[function(require,module,exports){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
  * in FIPS 180-2
@@ -27156,6 +27204,7 @@ module.exports = Sha1
 var inherits = require('inherits')
 var Sha256 = require('./sha256')
 var Hash = require('./hash')
+var Buffer = require('safe-buffer').Buffer
 
 var W = new Array(64)
 
@@ -27183,7 +27232,7 @@ Sha224.prototype.init = function () {
 }
 
 Sha224.prototype._hash = function () {
-  var H = new Buffer(28)
+  var H = Buffer.allocUnsafe(28)
 
   H.writeInt32BE(this._a, 0)
   H.writeInt32BE(this._b, 4)
@@ -27198,9 +27247,7 @@ Sha224.prototype._hash = function () {
 
 module.exports = Sha224
 
-}).call(this,require("buffer").Buffer)
-},{"./hash":145,"./sha256":150,"buffer":68,"inherits":103}],150:[function(require,module,exports){
-(function (Buffer){
+},{"./hash":145,"./sha256":150,"inherits":103,"safe-buffer":143}],150:[function(require,module,exports){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
  * in FIPS 180-2
@@ -27211,6 +27258,7 @@ module.exports = Sha224
 
 var inherits = require('inherits')
 var Hash = require('./hash')
+var Buffer = require('safe-buffer').Buffer
 
 var K = [
   0x428A2F98, 0x71374491, 0xB5C0FBCF, 0xE9B5DBA5,
@@ -27320,7 +27368,7 @@ Sha256.prototype._update = function (M) {
 }
 
 Sha256.prototype._hash = function () {
-  var H = new Buffer(32)
+  var H = Buffer.allocUnsafe(32)
 
   H.writeInt32BE(this._a, 0)
   H.writeInt32BE(this._b, 4)
@@ -27336,12 +27384,11 @@ Sha256.prototype._hash = function () {
 
 module.exports = Sha256
 
-}).call(this,require("buffer").Buffer)
-},{"./hash":145,"buffer":68,"inherits":103}],151:[function(require,module,exports){
-(function (Buffer){
+},{"./hash":145,"inherits":103,"safe-buffer":143}],151:[function(require,module,exports){
 var inherits = require('inherits')
 var SHA512 = require('./sha512')
 var Hash = require('./hash')
+var Buffer = require('safe-buffer').Buffer
 
 var W = new Array(160)
 
@@ -27377,7 +27424,7 @@ Sha384.prototype.init = function () {
 }
 
 Sha384.prototype._hash = function () {
-  var H = new Buffer(48)
+  var H = Buffer.allocUnsafe(48)
 
   function writeInt64BE (h, l, offset) {
     H.writeInt32BE(h, offset)
@@ -27396,11 +27443,10 @@ Sha384.prototype._hash = function () {
 
 module.exports = Sha384
 
-}).call(this,require("buffer").Buffer)
-},{"./hash":145,"./sha512":152,"buffer":68,"inherits":103}],152:[function(require,module,exports){
-(function (Buffer){
+},{"./hash":145,"./sha512":152,"inherits":103,"safe-buffer":143}],152:[function(require,module,exports){
 var inherits = require('inherits')
 var Hash = require('./hash')
+var Buffer = require('safe-buffer').Buffer
 
 var K = [
   0x428a2f98, 0xd728ae22, 0x71374491, 0x23ef65cd,
@@ -27638,7 +27684,7 @@ Sha512.prototype._update = function (M) {
 }
 
 Sha512.prototype._hash = function () {
-  var H = new Buffer(64)
+  var H = Buffer.allocUnsafe(64)
 
   function writeInt64BE (h, l, offset) {
     H.writeInt32BE(h, offset)
@@ -27659,8 +27705,7 @@ Sha512.prototype._hash = function () {
 
 module.exports = Sha512
 
-}).call(this,require("buffer").Buffer)
-},{"./hash":145,"buffer":68,"inherits":103}],153:[function(require,module,exports){
+},{"./hash":145,"inherits":103,"safe-buffer":143}],153:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -35081,7 +35126,6 @@ exports.default = ParallelTransport;
 module.exports = exports['default'];
 }).call(this,require('_process'))
 },{"./debug-decorator":157,"_process":124}],176:[function(require,module,exports){
-var inherits = require('inherits')
 var native = require('./native')
 
 function getTypeName (fn) {
@@ -35115,6 +35159,19 @@ function tfErrorString (type, value, valueTypeName) {
     (valueJson !== '' ? ' ' + valueJson : '')
 }
 
+function TfTypeError (type, value, valueTypeName) {
+  valueTypeName = valueTypeName || getValueTypeName(value)
+  this.message = tfErrorString(type, value, valueTypeName)
+
+  Error.captureStackTrace(this, TfTypeError)
+  this.__type = type
+  this.__value = value
+  this.__valueTypeName = valueTypeName
+}
+
+TfTypeError.prototype = Object.create(Error.prototype)
+TfTypeError.prototype.constructor = TfTypeError
+
 function tfPropertyErrorString (type, label, name, value, valueTypeName) {
   var description = '" of type '
   if (label === 'key') description = '" with key type '
@@ -35122,66 +35179,24 @@ function tfPropertyErrorString (type, label, name, value, valueTypeName) {
   return tfErrorString('property "' + tfJSON(name) + description + tfJSON(type), value, valueTypeName)
 }
 
-function TfTypeError (type, value, valueTypeName) {
-  this.__error = Error.call(this)
-  this.__type = type
-  this.__value = value
-  this.__valueTypeName = valueTypeName
+function TfPropertyTypeError (type, property, label, value, valueTypeName) {
+  if (type) {
+    valueTypeName = valueTypeName || getValueTypeName(value)
+    this.message = tfPropertyErrorString(type, label, property, value, valueTypeName)
+  } else {
+    this.message = 'Unexpected property "' + property + '"'
+  }
 
-  var message
-  Object.defineProperty(this, 'message', {
-    enumerable: true,
-    get: function () {
-      if (message) return message
-
-      valueTypeName = valueTypeName || getValueTypeName(value)
-      message = tfErrorString(type, value, valueTypeName)
-
-      return message
-    }
-  })
-
-  Object.defineProperty(this, 'stack', {
-    get: function () {
-      return this.__error.stack
-    }
-  })
-}
-
-inherits(TfTypeError, Error)
-
-function TfPropertyTypeError (type, property, label, value, error, valueTypeName) {
-  this.__error = error || Error.call(this)
+  Error.captureStackTrace(this, TfTypeError)
   this.__label = label
   this.__property = property
   this.__type = type
   this.__value = value
   this.__valueTypeName = valueTypeName
-
-  var message
-  Object.defineProperty(this, 'message', {
-    enumerable: true,
-    get: function () {
-      if (message) return message
-      if (type) {
-        valueTypeName = valueTypeName || getValueTypeName(value)
-        message = tfPropertyErrorString(type, label, property, value, valueTypeName)
-      } else {
-        message = 'Unexpected property "' + property + '"'
-      }
-
-      return message
-    }
-  })
-
-  Object.defineProperty(this, 'stack', {
-    get: function () {
-      return this.__error.stack
-    }
-  })
 }
 
-inherits(TfPropertyTypeError, Error)
+TfPropertyTypeError.prototype = Object.create(Error.prototype)
+TfPropertyTypeError.prototype.constructor = TfTypeError
 
 function tfCustomError (expected, actual) {
   return new TfTypeError(expected, {}, actual)
@@ -35191,20 +35206,19 @@ function tfSubError (e, property, label) {
   // sub child?
   if (e instanceof TfPropertyTypeError) {
     property = property + '.' + e.__property
-    label = e.__label
 
-    return new TfPropertyTypeError(
-      e.__type, property, label, e.__value, e.__error, e.__valueTypeName
+    e = new TfPropertyTypeError(
+      e.__type, property, e.__label, e.__value, e.__valueTypeName
     )
-  }
 
   // child?
-  if (e instanceof TfTypeError) {
-    return new TfPropertyTypeError(
-      e.__type, property, label, e.__value, e.__error, e.__valueTypeName
+  } else if (e instanceof TfTypeError) {
+    e = new TfPropertyTypeError(
+      e.__type, property, label, e.__value, e.__valueTypeName
     )
   }
 
+  Error.captureStackTrace(e)
   return e
 }
 
@@ -35217,7 +35231,7 @@ module.exports = {
   getValueTypeName: getValueTypeName
 }
 
-},{"./native":179,"inherits":103}],177:[function(require,module,exports){
+},{"./native":179}],177:[function(require,module,exports){
 (function (Buffer){
 var NATIVE = require('./native')
 var ERRORS = require('./errors')
