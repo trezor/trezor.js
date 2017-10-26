@@ -2758,6 +2758,7 @@ var hdnodeUtils = _interopRequireWildcard(_hdnode);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+// TODO refactor this using string types
 function input2trezor(input) {
     var hash = input.hash,
         index = input.index,
@@ -2788,44 +2789,55 @@ function _flow_makeArray(a) {
 
 function output2trezor(output, network) {
     if (output.address == null) {
+        if (output.opReturnData != null) {
+            if (output.value !== 0) {
+                throw new Error('Wrong type.');
+            }
+            // $FlowIssue
+            var data = output.opReturnData;
+            return {
+                amount: 0,
+                op_return_data: data.toString('hex'),
+                script_type: 'PAYTOOPRETURN'
+            };
+        }
+
         if (!output.path) {
             throw new Error('Both address and path of an output cannot be null.');
         }
 
         var pathArr = _flow_makeArray(output.path);
 
-        return {
-            address_n: pathArr,
-            amount: output.value,
-            script_type: output.segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS'
-        };
+        // $FlowIssue
+        var _amount = output.value;
+        if (output.segwit) {
+            return {
+                address_n: pathArr,
+                amount: _amount,
+                script_type: 'PAYTOP2SHWITNESS'
+            };
+        } else {
+            return {
+                address_n: pathArr,
+                amount: _amount,
+                script_type: 'PAYTOADDRESS'
+            };
+        }
     }
     var address = output.address;
     if (typeof address !== 'string') {
         throw new Error('Wrong type.');
     }
 
-    if (output.opReturnData != null && output.value !== 0) {
-        throw new Error('Wrong type.');
-    }
+    // $FlowIssue
+    var amount = output.value;
 
-    if (output.opReturnData != null) {
-        // $FlowIssue
-        var data = output.opReturnData;
-        return {
-            address: address,
-            amount: 0,
-            op_return_data: data.toString('hex'),
-            script_type: 'PAYTOOPRETURN'
-        };
-    }
-
-    var scriptType = getAddressScriptType(address, network);
+    isScriptHash(address, network);
 
     return {
         address: address,
-        amount: output.value,
-        script_type: scriptType
+        amount: amount,
+        script_type: 'PAYTOADDRESS'
     };
 }
 
@@ -2894,7 +2906,7 @@ function deriveWitnessOutput(pkh) {
 }
 
 function deriveOutputScript(pathOrAddress, nodes, network, segwit) {
-    var scriptType = typeof pathOrAddress === 'string' ? getAddressScriptType(pathOrAddress, network) : segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS';
+    var scriptType = typeof pathOrAddress === 'string' ? isScriptHash(pathOrAddress, network) ? 'PAYTOSCRIPTHASH' : 'PAYTOADDRESS' : segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS';
 
     var pkh = typeof pathOrAddress === 'string' ? bitcoin.address.fromBase58Check(pathOrAddress).hash : hdnodeUtils.derivePubKeyHash(nodes, pathOrAddress[pathOrAddress.length - 2], pathOrAddress[pathOrAddress.length - 1]);
 
@@ -2939,13 +2951,13 @@ function verifyBjsTx(inputs, outputs, nodes, resTx, network) {
     });
 }
 
-function getAddressScriptType(address, network) {
+function isScriptHash(address, network) {
     var decoded = bitcoin.address.fromBase58Check(address);
     if (decoded.version === network.pubKeyHash) {
-        return 'PAYTOADDRESS';
+        return true;
     }
     if (decoded.version === network.scriptHash) {
-        return 'PAYTOSCRIPTHASH';
+        return false;
     }
     throw new Error('Unknown address type.');
 }
