@@ -2935,19 +2935,28 @@ function verifyBjsTx(inputs, outputs, nodes, resTx, network) {
     }
 
     outputs.map(function (output, i) {
-        if (output.value !== resTx.outs[i].value) {
-            throw new Error('Signed transaction has wrong output value.');
-        }
-        if (output.address == null && output.path == null) {
-            throw new Error('Both path and address cannot be null.');
-        }
-
-        var addressOrPath = _flow_getPathOrAddress(output);
-        var segwit = _flow_getSegwit(output);
-        var scriptA = deriveOutputScript(addressOrPath, nodes, network, segwit);
         var scriptB = resTx.outs[i].script;
-        if (scriptA.compare(scriptB) !== 0) {
-            throw new Error('Scripts differ');
+
+        if (output.opReturnData != null) {
+            // $FlowIssue
+            var scriptA = bitcoin.script.nullData.output.encode(output.opReturnData);
+            if (scriptA.compare(scriptB) !== 0) {
+                throw new Error('Scripts differ');
+            }
+        } else {
+            if (output.value !== resTx.outs[i].value) {
+                throw new Error('Signed transaction has wrong output value.');
+            }
+            if (output.address == null && output.path == null) {
+                throw new Error('Both path and address cannot be null.');
+            }
+
+            var addressOrPath = _flow_getPathOrAddress(output);
+            var _segwit = _flow_getSegwit(output);
+            var _scriptA = deriveOutputScript(addressOrPath, nodes, network, _segwit);
+            if (_scriptA.compare(scriptB) !== 0) {
+                throw new Error('Scripts differ');
+            }
         }
     });
 }
