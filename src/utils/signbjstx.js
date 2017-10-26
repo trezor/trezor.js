@@ -14,6 +14,7 @@ export type OutputInfo = {
 } | {
     address: string;
     value: number;
+    opReturnData?: Buffer;
 };
 
 export type InputInfo = {
@@ -71,6 +72,22 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network): trezor.Tra
     if (typeof address !== 'string') {
         throw new Error('Wrong type.');
     }
+
+    if (output.opReturnData != null && output.value !== 0) {
+        throw new Error('Wrong type.');
+    }
+
+    if (output.opReturnData != null) {
+        // $FlowIssue
+        const data: Buffer = output.opReturnData;
+        return {
+            address: address,
+            amount: 0,
+            op_return_data: data.toString('hex'),
+            script_type: 'PAYTOOPRETURN',
+        };
+    }
+
     const scriptType = getAddressScriptType(address, network);
 
     return {

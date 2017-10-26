@@ -121,7 +121,6 @@ export type TransactionOutput = {
     address_n: Array<number>;
     amount: number; // in satoshis
     script_type: OutputScriptType;
-    op_return_data?: string;
 };
 
 export type TransactionBinOutput = {
