@@ -59,9 +59,10 @@ function _flow_makeArray(a: mixed): Array<number> {
 function output2trezor(output: OutputInfo, network: bitcoin.Network): trezor.TransactionOutput {
     if (output.address == null) {
         if (output.opReturnData != null) {
-            if (output.value !== 0) {
+            if (output.value != null) {
                 throw new Error('Wrong type.');
             }
+
             // $FlowIssue
             const data: Buffer = output.opReturnData;
             return {
