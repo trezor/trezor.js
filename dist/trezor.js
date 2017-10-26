@@ -2804,6 +2804,22 @@ function output2trezor(output, network) {
     if (typeof address !== 'string') {
         throw new Error('Wrong type.');
     }
+
+    if (output.opReturnData != null && output.value !== 0) {
+        throw new Error('Wrong type.');
+    }
+
+    if (output.opReturnData != null) {
+        // $FlowIssue
+        var data = output.opReturnData;
+        return {
+            address: address,
+            amount: 0,
+            op_return_data: data.toString('hex'),
+            script_type: 'PAYTOOPRETURN'
+        };
+    }
+
     var scriptType = getAddressScriptType(address, network);
 
     return {
