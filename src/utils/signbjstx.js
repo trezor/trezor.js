@@ -7,6 +7,7 @@ import * as hdnodeUtils from './hdnode';
 
 import type Session, {MessageResponse} from '../session';
 
+// TODO refactor this using string types
 export type OutputInfo = {
     path: Array<number>;
     value: number;
@@ -14,7 +15,8 @@ export type OutputInfo = {
 } | {
     address: string;
     value: number;
-    opReturnData?: Buffer;
+} | {
+    opReturnData: Buffer;
 };
 
 export type InputInfo = {
@@ -56,44 +58,55 @@ function _flow_makeArray(a: mixed): Array<number> {
 
 function output2trezor(output: OutputInfo, network: bitcoin.Network): trezor.TransactionOutput {
     if (output.address == null) {
+        if (output.opReturnData != null) {
+            if (output.value !== 0) {
+                throw new Error('Wrong type.');
+            }
+            // $FlowIssue
+            const data: Buffer = output.opReturnData;
+            return {
+                amount: 0,
+                op_return_data: data.toString('hex'),
+                script_type: 'PAYTOOPRETURN',
+            };
+        }
+
         if (!output.path) {
             throw new Error('Both address and path of an output cannot be null.');
         }
 
         const pathArr: Array<number> = _flow_makeArray(output.path);
 
-        return {
-            address_n: pathArr,
-            amount: output.value,
-            script_type: output.segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS',
-        };
+        // $FlowIssue
+        const amount: number = output.value;
+        if (output.segwit) {
+            return {
+                address_n: pathArr,
+                amount,
+                script_type: 'PAYTOP2SHWITNESS',
+            };
+        } else {
+            return {
+                address_n: pathArr,
+                amount,
+                script_type: 'PAYTOADDRESS',
+            };
+        }
     }
     const address = output.address;
     if (typeof address !== 'string') {
         throw new Error('Wrong type.');
     }
 
-    if (output.opReturnData != null && output.value !== 0) {
-        throw new Error('Wrong type.');
-    }
+    // $FlowIssue
+    const amount: number = output.value;
 
-    if (output.opReturnData != null) {
-        // $FlowIssue
-        const data: Buffer = output.opReturnData;
-        return {
-            address: address,
-            amount: 0,
-            op_return_data: data.toString('hex'),
-            script_type: 'PAYTOOPRETURN',
-        };
-    }
-
-    const scriptType = getAddressScriptType(address, network);
+    isScriptHash(address, network);
 
     return {
         address: address,
-        amount: output.value,
-        script_type: scriptType,
+        amount: amount,
+        script_type: 'PAYTOADDRESS',
     };
 }
 
@@ -168,7 +181,7 @@ function deriveOutputScript(
     segwit: boolean
 ): Buffer {
     const scriptType = typeof pathOrAddress === 'string'
-        ? getAddressScriptType(pathOrAddress, network)
+        ? (isScriptHash(pathOrAddress, network) ? 'PAYTOSCRIPTHASH' : 'PAYTOADDRESS')
         : (segwit ? 'PAYTOP2SHWITNESS' : 'PAYTOADDRESS');
 
     const pkh: Buffer = typeof pathOrAddress === 'string'
@@ -226,13 +239,13 @@ function verifyBjsTx(
     });
 }
 
-function getAddressScriptType(address: string, network: bitcoin.Network): 'PAYTOADDRESS' | 'PAYTOSCRIPTHASH' {
+function isScriptHash(address: string, network: bitcoin.Network): boolean {
     const decoded = bitcoin.address.fromBase58Check(address);
     if (decoded.version === network.pubKeyHash) {
-        return 'PAYTOADDRESS';
+        return true;
     }
     if (decoded.version === network.scriptHash) {
-        return 'PAYTOSCRIPTHASH';
+        return false;
     }
     throw new Error('Unknown address type.');
 }

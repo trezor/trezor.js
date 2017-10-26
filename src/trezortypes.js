@@ -111,17 +111,23 @@ export type TransactionInput = {
     amount?: number; // only with segwit
 };
 
-type OutputScriptType = 'PAYTOADDRESS' | 'PAYTOSCRIPTHASH' | 'PAYTOMULTISIG' | 'PAYTOOPRETURN' | 'PAYTOWITNESS' | 'PAYTOP2SHWITNESS';
 export type TransactionOutput = {
     address: string;
     amount: number; // in satoshis
-    script_type: OutputScriptType;
-    op_return_data?: string;
+    script_type: 'PAYTOADDRESS';
 } | {
     address_n: Array<number>;
     amount: number; // in satoshis
-    script_type: OutputScriptType;
-};
+    script_type: 'PAYTOADDRESS';
+} | {
+    address_n: Array<number>;
+    amount: number; // in satoshis
+    script_type: 'PAYTOP2SHWITNESS';
+} | {
+    op_return_data: string;
+    amount: 0; // fixed
+    script_type: 'PAYTOOPRETURN';
+}
 
 export type TransactionBinOutput = {
     amount: number;
