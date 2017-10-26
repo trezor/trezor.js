@@ -2790,9 +2790,10 @@ function _flow_makeArray(a) {
 function output2trezor(output, network) {
     if (output.address == null) {
         if (output.opReturnData != null) {
-            if (output.value !== 0) {
+            if (output.value != null) {
                 throw new Error('Wrong type.');
             }
+
             // $FlowIssue
             var data = output.opReturnData;
             return {
