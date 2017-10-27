@@ -199,7 +199,7 @@ export function signTx(
         inputs_count: inputs.length,
         outputs_count: outputs.length,
         coin_name: coinNameCapitalized,
-        lock_time: locktime
+        lock_time: locktime,
     }).then((res) =>
         processTxRequest(session, res.message, serializedTx, signatures, index, inputs, outputs)
     );
