@@ -343,9 +343,10 @@ export default class Session extends EventEmitter {
         refTxs: Array<bitcoin.Transaction>,
         nodes: Array<bitcoin.HDNode>,
         coinName: string,
-        network: ?bitcoin.Network
+        network: ?bitcoin.Network,
+        locktime: ?number
     ): Promise<bitcoin.Transaction> {
-        return signBjsTxHelper.signBjsTx(this, info, refTxs, nodes, coinName, network);
+        return signBjsTxHelper.signBjsTx(this, info, refTxs, nodes, coinName, network, locktime);
     }
 
     signEthTx(
