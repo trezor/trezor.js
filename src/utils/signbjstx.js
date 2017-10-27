@@ -252,10 +252,10 @@ function verifyBjsTx(
 function isScriptHash(address: string, network: bitcoin.Network): boolean {
     const decoded = bitcoin.address.fromBase58Check(address);
     if (decoded.version === network.pubKeyHash) {
-        return true;
+        return false;
     }
     if (decoded.version === network.scriptHash) {
-        return false;
+        return true;
     }
     throw new Error('Unknown address type.');
 }
