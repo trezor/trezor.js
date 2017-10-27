@@ -2073,8 +2073,8 @@ var Session = function (_EventEmitter) {
         }
     }, {
         key: 'signTx',
-        value: function signTx(inputs, outputs, txs, coin) {
-            return signTxHelper.signTx(this, inputs, outputs, txs, coin);
+        value: function signTx(inputs, outputs, txs, coin, locktime) {
+            return signTxHelper.signTx(this, inputs, outputs, txs, coin, locktime);
         }
     }, {
         key: 'signBjsTx',
