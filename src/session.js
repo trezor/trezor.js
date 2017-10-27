@@ -333,9 +333,10 @@ export default class Session extends EventEmitter {
         inputs: Array<trezor.TransactionInput>,
         outputs: Array<trezor.TransactionOutput>,
         txs: Array<trezor.RefTransaction>,
-        coin: trezor.CoinType | string
+        coin: trezor.CoinType | string,
+        locktime: ?number
     ): Promise<MessageResponse<trezor.SignedTx>> {
-        return signTxHelper.signTx(this, inputs, outputs, txs, coin);
+        return signTxHelper.signTx(this, inputs, outputs, txs, coin, locktime);
     }
 
     signBjsTx(
