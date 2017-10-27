@@ -32,7 +32,7 @@ export type TxInfo = {
     outputs: Array<OutputInfo>;
 };
 
-function input2trezor(input: InputInfo): trezor.TransactionInput {
+function input2trezor(input: InputInfo, sequence: number): trezor.TransactionInput {
     const {hash, index, path, amount} = input;
     return {
         prev_index: index,
@@ -40,6 +40,7 @@ function input2trezor(input: InputInfo): trezor.TransactionInput {
         address_n: path,
         script_type: input.segwit ? 'SPENDP2SHWITNESS' : 'SPENDADDRESS',
         amount,
+        sequence,
     };
 }
 
@@ -284,7 +285,10 @@ export function signBjsTx(
         return Promise.reject(new Error('No network ' + coinName));
     }
 
-    const trezorInputs: Array<trezor.TransactionInput> = info.inputs.map(i => input2trezor(i));
+    // TODO rbf
+    const sequence = locktime ? (0xffffffff - 1) : 0xffffffff;
+
+    const trezorInputs: Array<trezor.TransactionInput> = info.inputs.map(i => input2trezor(i, sequence));
     const trezorOutputs: Array<trezor.TransactionOutput> =
         info.outputs.map(o => output2trezor(o, network));
     const trezorRefTxs: Array<trezor.RefTransaction> = refTxs.map(tx => bjsTx2refTx(tx));
