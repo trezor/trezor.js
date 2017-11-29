@@ -28154,307 +28154,74 @@ function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
 },{"safe-buffer":143}],155:[function(require,module,exports){
-(function (process){
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var request = exports.request = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options) {
+    var res, resText, resJson;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _context.next = 2;
+            return _fetch(options.url, {
+              method: options.method,
+              headers: {
+                'Content-Type': contentType(options.body || '')
+              },
+              body: wrapBody(options.body)
+            });
+
+          case 2:
+            res = _context.sent;
+            _context.next = 5;
+            return res.text();
+
+          case 5:
+            resText = _context.sent;
+
+            if (!res.ok) {
+              _context.next = 10;
+              break;
+            }
+
+            return _context.abrupt('return', parseResult(resText));
+
+          case 10:
+            resJson = parseResult(resText);
+
+            if (!((typeof resJson === 'undefined' ? 'undefined' : _typeof(resJson)) === 'object' && resJson != null && resJson.error != null)) {
+              _context.next = 15;
+              break;
+            }
+
+            throw new Error(resJson.error);
+
+          case 15:
+            throw new Error(resText);
+
+          case 16:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, this);
+  }));
+
+  return function request(_x) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
 exports.setFetch = setFetch;
-exports.request = request;
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 // slight hack to make Flow happy, but to allow Node to set its own fetch
 // Request, RequestOptions and Response are built-in types of Flow for fetch API
@@ -28492,41 +28259,8 @@ function parseResult(text) {
     return text;
   }
 }
-
-function request(options) {
-  return new Promise(function ($return, $error) {
-    var res, resText, resJson;
-    return _fetch(options.url, {
-      method: options.method,
-      headers: {
-        'Content-Type': contentType(options.body || '')
-      },
-      body: wrapBody(options.body)
-    }).then(function ($await_2) {
-      res = $await_2;
-      return res.text().then(function ($await_3) {
-        resText = $await_3;
-        if (res.ok) {
-          return $return(parseResult(resText));
-        } else {
-          resJson = parseResult(resText);
-          if (typeof resJson === 'object' && resJson != null && resJson.error != null) {
-            return $error(new Error(resJson.error));
-          } else {
-            return $error(new Error(resText));
-          }
-        }
-        return $return();
-      }.$asyncbind(this, $error), $error);
-    }.$asyncbind(this, $error), $error);
-  }.$asyncbind(this));
-}
-}).call(this,require('_process'))
-},{"_process":124}],156:[function(require,module,exports){
-(function (process){
+},{}],156:[function(require,module,exports){
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -28555,296 +28289,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -28896,151 +28341,366 @@ var BridgeTransport = (_class = function () {
 
   _createClass(BridgeTransport, [{
     key: '_post',
-    value: function _post(options) {
-      return new Promise(function ($return, $error) {
-        return (0, _http.request)(_extends({}, options, { method: 'POST', url: this.url + options.url })).then($return, $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(options) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return (0, _http.request)(_extends({}, options, { method: 'POST', url: this.url + options.url }));
+
+              case 2:
+                return _context.abrupt('return', _context.sent);
+
+              case 3:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function _post(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return _post;
+    }()
   }, {
     key: '_get',
-    value: function _get(options) {
-      return new Promise(function ($return, $error) {
-        return (0, _http.request)(_extends({}, options, { method: 'GET', url: this.url + options.url })).then($return, $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(options) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return (0, _http.request)(_extends({}, options, { method: 'GET', url: this.url + options.url }));
+
+              case 2:
+                return _context2.abrupt('return', _context2.sent);
+
+              case 3:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function _get(_x2) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return _get;
+    }()
   }, {
     key: 'init',
-    value: function init(debug) {
-      return new Promise(function ($return, $error) {
-        this.debug = !!debug;
-        return this._silentInit().then(function ($await_3) {
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(debug) {
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                this.debug = !!debug;
+                _context3.next = 3;
+                return this._silentInit();
+
+              case 3:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function init(_x3) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return init;
+    }()
   }, {
     key: '_silentInit',
-    value: function _silentInit() {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
         var infoS, info, newVersion;
-        return (0, _http.request)({
-          url: this.url,
-          method: 'GET'
-        }).then(function ($await_4) {
-          infoS = $await_4;
-          info = check.info(infoS);
-          this.version = info.version;
-          this.configured = info.configured;
-          return (0, _http.request)({
-            url: this.newestVersionUrl + '?' + Date.now(),
-            method: 'GET'
-          }).then(function ($await_5) {
-            newVersion = check.version($await_5);
-            this.isOutdated = (0, _semverCompare2.default)(this.version, newVersion) < 0;
-            return $return();
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return (0, _http.request)({
+                  url: this.url,
+                  method: 'GET'
+                });
+
+              case 2:
+                infoS = _context4.sent;
+                info = check.info(infoS);
+
+                this.version = info.version;
+                this.configured = info.configured;
+                _context4.t0 = check;
+                _context4.next = 9;
+                return (0, _http.request)({
+                  url: this.newestVersionUrl + '?' + Date.now(),
+                  method: 'GET'
+                });
+
+              case 9:
+                _context4.t1 = _context4.sent;
+                newVersion = _context4.t0.version.call(_context4.t0, _context4.t1);
+
+                this.isOutdated = (0, _semverCompare2.default)(this.version, newVersion) < 0;
+
+              case 12:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function _silentInit() {
+        return _ref4.apply(this, arguments);
+      }
+
+      return _silentInit;
+    }()
   }, {
     key: 'configure',
-    value: function configure(config) {
-      return new Promise(function ($return, $error) {
-        return this._post({
-          url: '/configure',
-          body: config
-        }).then(function ($await_6) {
-          return this._silentInit().then(function ($await_7) {
-            return $return();
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(config) {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this._post({
+                  url: '/configure',
+                  body: config
+                });
+
+              case 2:
+                _context5.next = 4;
+                return this._silentInit();
+
+              case 4:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function configure(_x4) {
+        return _ref5.apply(this, arguments);
+      }
+
+      return configure;
+    }()
   }, {
     key: 'listen',
-    value: function listen(old) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(old) {
         var devicesS, devices;
-        return (old == null ? this._get({ url: '/listen' }) : this._post({
-          url: '/listen',
-          body: old.map(function (device) {
-            return _extends({}, device, {
-              // hack for old trezord
-              product: 1,
-              vendor: 21324
-            });
-          })
-        })).then(function ($await_8) {
-          devicesS = $await_8;
-          devices = check.devices(devicesS);
-          return $return(devices);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return old == null ? this._get({ url: '/listen' }) : this._post({
+                  url: '/listen',
+                  body: old.map(function (device) {
+                    return _extends({}, device, {
+                      // hack for old trezord
+                      product: 1,
+                      vendor: 21324
+                    });
+                  })
+                });
+
+              case 2:
+                devicesS = _context6.sent;
+                devices = check.devices(devicesS);
+                return _context6.abrupt('return', devices);
+
+              case 5:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function listen(_x5) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return listen;
+    }()
   }, {
     key: 'enumerate',
-    value: function enumerate() {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
         var devicesS, devices;
-        return this._get({ url: '/enumerate' }).then(function ($await_9) {
-          devicesS = $await_9;
-          devices = check.devices(devicesS);
-          return $return(devices);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return this._get({ url: '/enumerate' });
+
+              case 2:
+                devicesS = _context7.sent;
+                devices = check.devices(devicesS);
+                return _context7.abrupt('return', devices);
+
+              case 5:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function enumerate() {
+        return _ref7.apply(this, arguments);
+      }
+
+      return enumerate;
+    }()
   }, {
     key: '_acquireMixed',
-    value: function _acquireMixed(input) {
-      return new Promise(function ($return, $error) {
-        var checkPrevious = input.checkPrevious && (0, _semverCompare2.default)(this.version, '1.1.3') >= 0;
-        if (checkPrevious) {
-          var previousStr = input.previous == null ? 'null' : input.previous;
-          var _url = '/acquire/' + input.path + '/' + previousStr;
-          return $return(this._post({ url: _url }));
-        } else {
-          return $return(this._post({ url: '/acquire/' + input.path }));
-        }
-        return $return();
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(input) {
+        var checkPrevious, previousStr, _url;
+
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                checkPrevious = input.checkPrevious && (0, _semverCompare2.default)(this.version, '1.1.3') >= 0;
+
+                if (!checkPrevious) {
+                  _context8.next = 7;
+                  break;
+                }
+
+                previousStr = input.previous == null ? 'null' : input.previous;
+                _url = '/acquire/' + input.path + '/' + previousStr;
+                return _context8.abrupt('return', this._post({ url: _url }));
+
+              case 7:
+                return _context8.abrupt('return', this._post({ url: '/acquire/' + input.path }));
+
+              case 8:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function _acquireMixed(_x6) {
+        return _ref8.apply(this, arguments);
+      }
+
+      return _acquireMixed;
+    }()
   }, {
     key: 'acquire',
-    value: function acquire(input) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(input) {
         var acquireS;
-        return this._acquireMixed(input).then(function ($await_10) {
-          acquireS = $await_10;
-          return $return(check.acquire(acquireS));
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                _context9.next = 2;
+                return this._acquireMixed(input);
+
+              case 2:
+                acquireS = _context9.sent;
+                return _context9.abrupt('return', check.acquire(acquireS));
+
+              case 4:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function acquire(_x7) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return acquire;
+    }()
   }, {
     key: 'release',
-    value: function release(session) {
-      return new Promise(function ($return, $error) {
-        return this._post({ url: '/release/' + session }).then(function ($await_11) {
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(session) {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                _context10.next = 2;
+                return this._post({ url: '/release/' + session });
+
+              case 2:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function release(_x8) {
+        return _ref10.apply(this, arguments);
+      }
+
+      return release;
+    }()
   }, {
     key: 'call',
-    value: function call(session, name, data) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(session, name, data) {
         var res;
-        return this._post({
-          url: '/call/' + session,
-          body: {
-            type: name,
-            message: data
+        return regeneratorRuntime.wrap(function _callee11$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                _context11.next = 2;
+                return this._post({
+                  url: '/call/' + session,
+                  body: {
+                    type: name,
+                    message: data
+                  }
+                });
+
+              case 2:
+                res = _context11.sent;
+                return _context11.abrupt('return', check.call(res));
+
+              case 4:
+              case 'end':
+                return _context11.stop();
+            }
           }
-        }).then(function ($await_12) {
-          res = $await_12;
-          return $return(check.call(res));
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        }, _callee11, this);
+      }));
+
+      function call(_x9, _x10, _x11) {
+        return _ref11.apply(this, arguments);
+      }
+
+      return call;
+    }()
   }, {
     key: 'requestDevice',
     value: function requestDevice() {
@@ -29057,8 +28717,7 @@ var BridgeTransport = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype)), _class);
 exports.default = BridgeTransport;
 module.exports = exports['default'];
-}).call(this,require('_process'))
-},{"../debug-decorator":157,"../highlevel-checks":162,"./http":155,"_process":124,"semver-compare":144}],157:[function(require,module,exports){
+},{"../debug-decorator":157,"../highlevel-checks":162,"./http":155,"semver-compare":144}],157:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -29155,10 +28814,7 @@ function rejectTimeoutPromise(delay, error) {
   });
 }
 },{}],159:[function(require,module,exports){
-(function (process){
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -29183,296 +28839,7 @@ var _debugDecorator = require('../debug-decorator');
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -29538,191 +28905,425 @@ var ChromeExtensionTransport = (_class = function () {
 
   _createClass(ChromeExtensionTransport, [{
     key: '_send',
-    value: function _send(message) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(message) {
         var res, udev;
-        return messages.send(this.id, message).then(function ($await_1) {
-          res = $await_1;
-          return messages.send(this.id, { type: 'udevStatus' }).then(function ($await_2) {
-            udev = $await_2;
-            this.showUdevError = udev === 'display';
-            return $return(res);
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return messages.send(this.id, message);
+
+              case 2:
+                res = _context.sent;
+                _context.next = 5;
+                return messages.send(this.id, { type: 'udevStatus' });
+
+              case 5:
+                udev = _context.sent;
+
+                this.showUdevError = udev === 'display';
+                return _context.abrupt('return', res);
+
+              case 8:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function _send(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return _send;
+    }()
   }, {
     key: 'ping',
-    value: function ping() {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
         var res;
-        return this._send({ type: 'ping' }).then(function ($await_3) {
-          res = $await_3;
-          if (res !== 'pong') {
-            return $error(new Error('Response to "ping" should be "pong".'));
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return this._send({ type: 'ping' });
+
+              case 2:
+                res = _context2.sent;
+
+                if (!(res !== 'pong')) {
+                  _context2.next = 5;
+                  break;
+                }
+
+                throw new Error('Response to "ping" should be "pong".');
+
+              case 5:
+              case 'end':
+                return _context2.stop();
+            }
           }
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        }, _callee2, this);
+      }));
+
+      function ping() {
+        return _ref2.apply(this, arguments);
+      }
+
+      return ping;
+    }()
   }, {
     key: 'info',
-    value: function info() {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
         var infoS;
-        return this._send({ type: 'info' }).then(function ($await_4) {
-          infoS = $await_4;
-          return $return(check.info(infoS));
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this._send({ type: 'info' });
+
+              case 2:
+                infoS = _context3.sent;
+                return _context3.abrupt('return', check.info(infoS));
+
+              case 4:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function info() {
+        return _ref3.apply(this, arguments);
+      }
+
+      return info;
+    }()
   }, {
     key: 'init',
-    value: function init(debug) {
-      return new Promise(function ($return, $error) {
-        this.debug = !!debug;
-        return this._silentInit().then(function ($await_5) {
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(debug) {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                this.debug = !!debug;
+                _context4.next = 3;
+                return this._silentInit();
+
+              case 3:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function init(_x2) {
+        return _ref4.apply(this, arguments);
+      }
+
+      return init;
+    }()
   }, {
     key: '_silentInit',
-    value: function _silentInit() {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
         var info;
-        return messages.exists().then(function ($await_6) {
-          return this.ping().then(function ($await_7) {
-            return this.info().then(function ($await_8) {
-              info = $await_8;
-              this.version = info.version;
-              this.configured = info.configured;
-              return $return();
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return messages.exists();
+
+              case 2:
+                _context5.next = 4;
+                return this.ping();
+
+              case 4:
+                _context5.next = 6;
+                return this.info();
+
+              case 6:
+                info = _context5.sent;
+
+                this.version = info.version;
+                this.configured = info.configured;
+
+              case 9:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _silentInit() {
+        return _ref5.apply(this, arguments);
+      }
+
+      return _silentInit;
+    }()
   }, {
     key: 'configure',
-    value: function configure(config) {
-      return new Promise(function ($return, $error) {
-        return this._send({
-          type: 'configure',
-          body: config
-        }).then(function ($await_9) {
-          return this._silentInit().then(function ($await_10) {
-            return $return();
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(config) {
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return this._send({
+                  type: 'configure',
+                  body: config
+                });
+
+              case 2:
+                _context6.next = 4;
+                return this._silentInit();
+
+              case 4:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function configure(_x3) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return configure;
+    }()
   }, {
     key: 'listen',
-    value: function listen(old) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(old) {
         var devicesS, devices;
-        return this._send({
-          type: 'listen',
-          body: old == null ? null : old.map(function (device) {
-            // hack for old extension
-            var session = maybeParseInt(device.session);
-            var path = maybeParseInt(device.path);
-            var res = {
-              path: path,
-              // hack for old extension
-              product: 1,
-              vendor: 21324,
-              serialNumber: 0
-            };
-            // hack for old extension
-            if (session != null) {
-              res = _extends({ session: session }, res);
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return this._send({
+                  type: 'listen',
+                  body: old == null ? null : old.map(function (device) {
+                    // hack for old extension
+                    var session = maybeParseInt(device.session);
+                    var path = maybeParseInt(device.path);
+                    var res = {
+                      path: path,
+                      // hack for old extension
+                      product: 1,
+                      vendor: 21324,
+                      serialNumber: 0
+                    };
+                    // hack for old extension
+                    if (session != null) {
+                      res = _extends({ session: session }, res);
+                    }
+                    return res;
+                  })
+                });
+
+              case 2:
+                devicesS = _context7.sent;
+                devices = check.devices(devicesS);
+                return _context7.abrupt('return', devices);
+
+              case 5:
+              case 'end':
+                return _context7.stop();
             }
-            return res;
-          })
-        }).then(function ($await_11) {
-          devicesS = $await_11;
-          devices = check.devices(devicesS);
-          return $return(devices);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+          }
+        }, _callee7, this);
+      }));
+
+      function listen(_x4) {
+        return _ref7.apply(this, arguments);
+      }
+
+      return listen;
+    }()
   }, {
     key: 'enumerate',
-    value: function enumerate() {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
         var devicesS, devices;
-        return this._send({ type: 'enumerate' }).then(function ($await_12) {
-          devicesS = $await_12;
-          devices = check.devices(devicesS);
-          return $return(devices);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                _context8.next = 2;
+                return this._send({ type: 'enumerate' });
+
+              case 2:
+                devicesS = _context8.sent;
+                devices = check.devices(devicesS);
+                return _context8.abrupt('return', devices);
+
+              case 5:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function enumerate() {
+        return _ref8.apply(this, arguments);
+      }
+
+      return enumerate;
+    }()
   }, {
     key: '_acquireMixed',
-    value: function _acquireMixed(input) {
-      return new Promise(function ($return, $error) {
-        var checkPrevious = input.checkPrevious;
-        if (checkPrevious) {
-          return $return(this._send({
-            type: 'acquire',
-            body: {
-              path: maybeParseInt(input.path),
-              previous: maybeParseInt(input.previous)
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(input) {
+        var checkPrevious;
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                checkPrevious = input.checkPrevious;
+
+                if (!checkPrevious) {
+                  _context9.next = 5;
+                  break;
+                }
+
+                return _context9.abrupt('return', this._send({
+                  type: 'acquire',
+                  body: {
+                    path: maybeParseInt(input.path),
+                    previous: maybeParseInt(input.previous)
+                  }
+                }));
+
+              case 5:
+                return _context9.abrupt('return', this._send({
+                  type: 'acquire',
+                  body: maybeParseInt(input.path)
+                }));
+
+              case 6:
+              case 'end':
+                return _context9.stop();
             }
-          }));
-        } else {
-          return $return(this._send({
-            type: 'acquire',
-            body: maybeParseInt(input.path)
-          }));
-        }
-        return $return();
-      }.$asyncbind(this));
-    }
+          }
+        }, _callee9, this);
+      }));
+
+      function _acquireMixed(_x5) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return _acquireMixed;
+    }()
   }, {
     key: 'acquire',
-    value: function acquire(input) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(input) {
         var acquireS;
-        return this._acquireMixed(input).then(function ($await_13) {
-          acquireS = $await_13;
-          return $return(check.acquire(acquireS));
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                _context10.next = 2;
+                return this._acquireMixed(input);
+
+              case 2:
+                acquireS = _context10.sent;
+                return _context10.abrupt('return', check.acquire(acquireS));
+
+              case 4:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function acquire(_x6) {
+        return _ref10.apply(this, arguments);
+      }
+
+      return acquire;
+    }()
   }, {
     key: 'release',
-    value: function release(session) {
-      return new Promise(function ($return, $error) {
-        return this._send({
-          type: 'release',
-          body: maybeParseInt(session)
-        }).then(function ($await_14) {
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(session) {
+        return regeneratorRuntime.wrap(function _callee11$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                _context11.next = 2;
+                return this._send({
+                  type: 'release',
+                  body: maybeParseInt(session)
+                });
+
+              case 2:
+              case 'end':
+                return _context11.stop();
+            }
+          }
+        }, _callee11, this);
+      }));
+
+      function release(_x7) {
+        return _ref11.apply(this, arguments);
+      }
+
+      return release;
+    }()
   }, {
     key: 'call',
-    value: function call(session, name, data) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(session, name, data) {
         var res;
-        return this._send({
-          type: 'call',
-          body: {
-            id: maybeParseInt(session),
-            type: name,
-            message: data
+        return regeneratorRuntime.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                _context12.next = 2;
+                return this._send({
+                  type: 'call',
+                  body: {
+                    id: maybeParseInt(session),
+                    type: name,
+                    message: data
+                  }
+                });
+
+              case 2:
+                res = _context12.sent;
+                return _context12.abrupt('return', check.call(res));
+
+              case 4:
+              case 'end':
+                return _context12.stop();
+            }
           }
-        }).then(function ($await_15) {
-          res = $await_15;
-          return $return(check.call(res));
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        }, _callee12, this);
+      }));
+
+      function call(_x8, _x9, _x10) {
+        return _ref12.apply(this, arguments);
+      }
+
+      return call;
+    }()
   }, {
     key: 'requestDevice',
     value: function requestDevice() {
@@ -29734,326 +29335,60 @@ var ChromeExtensionTransport = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype)), _class);
 exports.default = ChromeExtensionTransport;
 module.exports = exports['default'];
-}).call(this,require('_process'))
-},{"../debug-decorator":157,"../highlevel-checks":162,"./messages":160,"_process":124}],160:[function(require,module,exports){
-(function (process){
+},{"../debug-decorator":157,"../highlevel-checks":162,"./messages":160}],160:[function(require,module,exports){
 
 /*global chrome:false*/
 'use strict';
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.exists = exists;
+
+var exists = exports.exists = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            if (!(typeof chrome === 'undefined')) {
+              _context.next = 2;
+              break;
+            }
+
+            throw new Error('Global chrome does not exist; probably not running chrome');
+
+          case 2:
+            if (!(typeof chrome.runtime === 'undefined')) {
+              _context.next = 4;
+              break;
+            }
+
+            throw new Error('Global chrome.runtime does not exist; probably not running chrome');
+
+          case 4:
+            if (!(typeof chrome.runtime.sendMessage === 'undefined')) {
+              _context.next = 6;
+              break;
+            }
+
+            throw new Error('Global chrome.runtime.sendMessage does not exist; probably not whitelisted website in extension manifest');
+
+          case 6:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, this);
+  }));
+
+  return function exists() {
+    return _ref.apply(this, arguments);
+  };
+}();
+
 exports.send = send;
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
-
-function exists() {
-  return new Promise(function ($return, $error) {
-    if (typeof chrome === 'undefined') {
-      return $error(new Error('Global chrome does not exist; probably not running chrome'));
-    }
-    if (typeof chrome.runtime === 'undefined') {
-      return $error(new Error('Global chrome.runtime does not exist; probably not running chrome'));
-    }
-    if (typeof chrome.runtime.sendMessage === 'undefined') {
-      return $error(new Error('Global chrome.runtime.sendMessage does not exist; probably not whitelisted website in extension manifest'));
-    }
-    return $return();
-  }.$asyncbind(this));
-}
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function send(extensionId, message) {
   return new Promise(function (resolve, reject) {
@@ -30089,12 +29424,8 @@ function send(extensionId, message) {
     }
   });
 }
-}).call(this,require('_process'))
-},{"_process":124}],161:[function(require,module,exports){
-(function (process){
+},{}],161:[function(require,module,exports){
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -30107,296 +29438,7 @@ var _desc, _value, _class;
 
 var _debugDecorator = require('./debug-decorator');
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -30449,244 +29491,430 @@ var FallbackTransport = (_class = function () {
 
   _createClass(FallbackTransport, [{
     key: '_tryInitTransports',
-    value: function _tryInitTransports() {
-      return new Promise(function ($return, $error) {
-        var $Try_1_Finally = function ($Try_1_Exit) {
-          return function ($Try_1_Value) {
-            try {
-              if (!_iteratorNormalCompletion && _iterator.return) {
-                _iterator.return();
-              }
-            } catch ($exception_4) {
-              throw $exception_4;
-            } finally {
-              if (_didIteratorError) {
-                throw _iteratorError;
-              }
-            }
-
-            return $Try_1_Exit && $Try_1_Exit.call(this, $Try_1_Value);
-          }.$asyncbind(this, $error);
-        }.$asyncbind(this);
-
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
         var res, lastError, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, transport;
 
-        res = [];
-        lastError = null;
-        _iteratorNormalCompletion = true;
-        _didIteratorError = false;
-        _iteratorError = undefined;
-        var $Try_1_Post = function () {
-          if (res.length === 0) {
-            return $error(lastError || new Error('No transport could be initialized.'));
-          }
-          return $return(res);
-        }.$asyncbind(this, $error);
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                res = [];
+                lastError = null;
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context.prev = 5;
+                _iterator = this.transports[Symbol.iterator]();
 
-        var $Try_1_Catch = function (err) {
-          _didIteratorError = true;
-          _iteratorError = err;
-          return $Try_1_Finally($Try_1_Post)();
-        }.$asyncbind(this, $Try_1_Finally($error));
-        try {
-          _iterator = this.transports[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_9_exit, $Loop_9_step, $Try_1_Catch, true)($Loop_9);
+              case 7:
+                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                  _context.next = 21;
+                  break;
+                }
 
-          function $Loop_9() {
-            if (!(_iteratorNormalCompletion = (_step = _iterator.next()).done)) {
-              transport = _step.value;
-              var $Try_2_Post = function () {
-                return $Loop_9_step;
-              }.$asyncbind(this, $Try_1_Catch);var $Try_2_Catch = function (e) {
-                lastError = e;
-                return $Try_2_Post();
-              }.$asyncbind(this, $Try_1_Catch);
-              try {
-                return transport.init(this.debug).then(function ($await_13) {
-                  res.push(transport);
-                  return $Try_2_Post();
-                }.$asyncbind(this, $Try_2_Catch), $Try_2_Catch);
-              } catch (e) {
-                $Try_2_Catch(e)
-              }
-            } else return [1];
-          }
+                transport = _step.value;
+                _context.prev = 9;
+                _context.next = 12;
+                return transport.init(this.debug);
 
-          function $Loop_9_step() {
-            _iteratorNormalCompletion = true;
-            return $Loop_9;
-          }
+              case 12:
+                res.push(transport);
+                _context.next = 18;
+                break;
 
-          function $Loop_9_exit() {
-            return $Try_1_Finally($Try_1_Post)();
+              case 15:
+                _context.prev = 15;
+                _context.t0 = _context['catch'](9);
+
+                lastError = _context.t0;
+
+              case 18:
+                _iteratorNormalCompletion = true;
+                _context.next = 7;
+                break;
+
+              case 21:
+                _context.next = 27;
+                break;
+
+              case 23:
+                _context.prev = 23;
+                _context.t1 = _context['catch'](5);
+                _didIteratorError = true;
+                _iteratorError = _context.t1;
+
+              case 27:
+                _context.prev = 27;
+                _context.prev = 28;
+
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+
+              case 30:
+                _context.prev = 30;
+
+                if (!_didIteratorError) {
+                  _context.next = 33;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 33:
+                return _context.finish(30);
+
+              case 34:
+                return _context.finish(27);
+
+              case 35:
+                if (!(res.length === 0)) {
+                  _context.next = 37;
+                  break;
+                }
+
+                throw lastError || new Error('No transport could be initialized.');
+
+              case 37:
+                return _context.abrupt('return', res);
+
+              case 38:
+              case 'end':
+                return _context.stop();
+            }
           }
-        } catch (err) {
-          $Try_1_Catch(err)
-        }
-      }.$asyncbind(this));
-    }
+        }, _callee, this, [[5, 23, 27, 35], [9, 15], [28,, 30, 34]]);
+      }));
+
+      function _tryInitTransports() {
+        return _ref.apply(this, arguments);
+      }
+
+      return _tryInitTransports;
+    }()
 
     // first one that inits successfuly is the final one; others won't even start initing
 
   }, {
     key: '_tryConfigureTransports',
-    value: function _tryConfigureTransports(data) {
-      return new Promise(function ($return, $error) {
-        var $Try_5_Finally = function ($Try_5_Exit) {
-          return function ($Try_5_Value) {
-            try {
-              if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                _iterator2.return();
-              }
-            } catch ($exception_8) {
-              throw $exception_8;
-            } finally {
-              if (_didIteratorError2) {
-                throw _iteratorError2;
-              }
-            }
-
-            return $Try_5_Exit && $Try_5_Exit.call(this, $Try_5_Value);
-          }.$asyncbind(this, $error);
-        }.$asyncbind(this);
-
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(data) {
         var lastError, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, transport;
 
-        lastError = null;
-        _iteratorNormalCompletion2 = true;
-        _didIteratorError2 = false;
-        _iteratorError2 = undefined;
-        var $Try_5_Post = function () {
-          return $error(lastError || new Error('No transport could be initialized.'));
-        }.$asyncbind(this, $error);var $Try_5_Catch = function (err) {
-          _didIteratorError2 = true;
-          _iteratorError2 = err;
-          return $Try_5_Finally($Try_5_Post)();
-        }.$asyncbind(this, $Try_5_Finally($error));
-        try {
-          _iterator2 = this._availableTransports[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_11_exit, $Loop_11_step, $Try_5_Catch, true)($Loop_11);
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                lastError = null;
+                _iteratorNormalCompletion2 = true;
+                _didIteratorError2 = false;
+                _iteratorError2 = undefined;
+                _context2.prev = 4;
+                _iterator2 = this._availableTransports[Symbol.iterator]();
 
-          function $Loop_11() {
-            if (!(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done)) {
-              transport = _step2.value;
-              var $Try_6_Post = function () {
-                return $Loop_11_step;
-              }.$asyncbind(this, $Try_5_Catch);var $Try_6_Catch = function (e) {
-                lastError = e;
-                return $Try_6_Post();
-              }.$asyncbind(this, $Try_5_Catch);
-              try {
-                return transport.configure(data).then(function ($await_14) {
-                  return $Try_5_Finally($return)(transport);
-                }.$asyncbind(this, $Try_6_Catch), $Try_6_Catch);
-              } catch (e) {
-                $Try_6_Catch(e)
-              }
-            } else return [1];
-          }
+              case 6:
+                if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
+                  _context2.next = 20;
+                  break;
+                }
 
-          function $Loop_11_step() {
-            _iteratorNormalCompletion2 = true;
-            return $Loop_11;
-          }
+                transport = _step2.value;
+                _context2.prev = 8;
+                _context2.next = 11;
+                return transport.configure(data);
 
-          function $Loop_11_exit() {
-            return $Try_5_Finally($Try_5_Post)();
+              case 11:
+                return _context2.abrupt('return', transport);
+
+              case 14:
+                _context2.prev = 14;
+                _context2.t0 = _context2['catch'](8);
+
+                lastError = _context2.t0;
+
+              case 17:
+                _iteratorNormalCompletion2 = true;
+                _context2.next = 6;
+                break;
+
+              case 20:
+                _context2.next = 26;
+                break;
+
+              case 22:
+                _context2.prev = 22;
+                _context2.t1 = _context2['catch'](4);
+                _didIteratorError2 = true;
+                _iteratorError2 = _context2.t1;
+
+              case 26:
+                _context2.prev = 26;
+                _context2.prev = 27;
+
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                  _iterator2.return();
+                }
+
+              case 29:
+                _context2.prev = 29;
+
+                if (!_didIteratorError2) {
+                  _context2.next = 32;
+                  break;
+                }
+
+                throw _iteratorError2;
+
+              case 32:
+                return _context2.finish(29);
+
+              case 33:
+                return _context2.finish(26);
+
+              case 34:
+                throw lastError || new Error('No transport could be initialized.');
+
+              case 35:
+              case 'end':
+                return _context2.stop();
+            }
           }
-        } catch (err) {
-          $Try_5_Catch(err)
-        }
-      }.$asyncbind(this));
-    }
+        }, _callee2, this, [[4, 22, 26, 34], [8, 14], [27,, 29, 33]]);
+      }));
+
+      function _tryConfigureTransports(_x) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return _tryConfigureTransports;
+    }()
   }, {
     key: 'init',
-    value: function init(debug) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(debug) {
         var transports;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                this.debug = !!debug;
 
-        this.debug = !!debug;
+                // init ALL OF THEM
+                _context3.next = 3;
+                return this._tryInitTransports();
 
-        // init ALL OF THEM
-        return this._tryInitTransports().then(function ($await_15) {
-          transports = $await_15;
-          this._availableTransports = transports;
+              case 3:
+                transports = _context3.sent;
 
-          // a slight hack - configured is always false, so we force caller to call configure()
-          // to find out the actual working transport (bridge falls on configure, not on info)
-          this.version = transports[0].version;
-          this.configured = false;
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+                this._availableTransports = transports;
+
+                // a slight hack - configured is always false, so we force caller to call configure()
+                // to find out the actual working transport (bridge falls on configure, not on info)
+                this.version = transports[0].version;
+                this.configured = false;
+
+              case 7:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function init(_x2) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return init;
+    }()
   }, {
     key: 'configure',
-    value: function configure(signedData) {
-      return new Promise(function ($return, $error) {
-        return this._tryConfigureTransports(signedData).then(function ($await_16) {
-          this.activeTransport = $await_16;
-          this.configured = this.activeTransport.configured;
-          this.version = this.activeTransport.version;
-          this.activeName = this.activeTransport.name;
-          this.requestNeeded = this.activeTransport.requestNeeded;
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(signedData) {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return this._tryConfigureTransports(signedData);
+
+              case 2:
+                this.activeTransport = _context4.sent;
+
+                this.configured = this.activeTransport.configured;
+                this.version = this.activeTransport.version;
+                this.activeName = this.activeTransport.name;
+                this.requestNeeded = this.activeTransport.requestNeeded;
+
+              case 7:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function configure(_x3) {
+        return _ref4.apply(this, arguments);
+      }
+
+      return configure;
+    }()
 
     // using async so I get Promise.recect on this.activeTransport == null (or other error), not Error
 
   }, {
     key: 'enumerate',
-    value: function enumerate() {
-      return new Promise(function ($return, $error) {
-        return $return(this.activeTransport.enumerate());
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                return _context5.abrupt('return', this.activeTransport.enumerate());
+
+              case 1:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function enumerate() {
+        return _ref5.apply(this, arguments);
+      }
+
+      return enumerate;
+    }()
   }, {
     key: 'listen',
-    value: function listen(old) {
-      return new Promise(function ($return, $error) {
-        return $return(this.activeTransport.listen(old));
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(old) {
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                return _context6.abrupt('return', this.activeTransport.listen(old));
+
+              case 1:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function listen(_x4) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return listen;
+    }()
   }, {
     key: 'acquire',
-    value: function acquire(input) {
-      return new Promise(function ($return, $error) {
-        return $return(this.activeTransport.acquire(input));
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(input) {
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                return _context7.abrupt('return', this.activeTransport.acquire(input));
+
+              case 1:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function acquire(_x5) {
+        return _ref7.apply(this, arguments);
+      }
+
+      return acquire;
+    }()
   }, {
     key: 'release',
-    value: function release(session) {
-      return new Promise(function ($return, $error) {
-        return $return(this.activeTransport.release(session));
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(session) {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                return _context8.abrupt('return', this.activeTransport.release(session));
+
+              case 1:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function release(_x6) {
+        return _ref8.apply(this, arguments);
+      }
+
+      return release;
+    }()
   }, {
     key: 'call',
-    value: function call(session, name, data) {
-      return new Promise(function ($return, $error) {
-        return $return(this.activeTransport.call(session, name, data));
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(session, name, data) {
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                return _context9.abrupt('return', this.activeTransport.call(session, name, data));
+
+              case 1:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function call(_x7, _x8, _x9) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return call;
+    }()
   }, {
     key: 'requestDevice',
-    value: function requestDevice() {
-      return new Promise(function ($return, $error) {
-        return $return(this.activeTransport.requestDevice());
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                return _context10.abrupt('return', this.activeTransport.requestDevice());
+
+              case 1:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function requestDevice() {
+        return _ref10.apply(this, arguments);
+      }
+
+      return requestDevice;
+    }()
   }]);
 
   return FallbackTransport;
 }(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype)), _class);
 exports.default = FallbackTransport;
 module.exports = exports['default'];
-}).call(this,require('_process'))
-},{"./debug-decorator":157,"_process":124}],162:[function(require,module,exports){
+},{"./debug-decorator":157}],162:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -32071,316 +31299,142 @@ function fieldToJSON(field) {
   return res;
 }
 },{"object.values":119}],170:[function(require,module,exports){
-(function (process){
 "use strict";
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.receiveAndParse = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 // Logic of recieving data from trezor
 // Logic of "call" is broken to two parts - sending and recieving
 
-exports.receiveAndParse = receiveAndParse;
+// If the whole message wasn't loaded in the first input, loads more inputs until everything is loaded.
+// note: the return value is not at all important since it's still the same parsedinput
+var receiveRest = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(parsedInput, receiver) {
+    var data;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            if (!parsedInput.isDone()) {
+              _context.next = 2;
+              break;
+            }
+
+            return _context.abrupt("return");
+
+          case 2:
+            _context.next = 4;
+            return receiver();
+
+          case 4:
+            data = _context.sent;
+
+            if (!(data == null)) {
+              _context.next = 7;
+              break;
+            }
+
+            throw new Error("Received no data.");
+
+          case 7:
+
+            parsedInput.append(data);
+            return _context.abrupt("return", receiveRest(parsedInput, receiver));
+
+          case 9:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, this);
+  }));
+
+  return function receiveRest(_x, _x2) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+// Receives the whole message as a raw data buffer (but without headers or type info)
+
+
+var receiveBuffer = function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(receiver) {
+    var data, partialInput;
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            _context2.next = 2;
+            return receiver();
+
+          case 2:
+            data = _context2.sent;
+            partialInput = parseFirstInput(data);
+            _context2.next = 6;
+            return receiveRest(partialInput, receiver);
+
+          case 6:
+            return _context2.abrupt("return", partialInput);
+
+          case 7:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2, this);
+  }));
+
+  return function receiveBuffer(_x3) {
+    return _ref2.apply(this, arguments);
+  };
+}();
+
+// Reads data from device and returns decoded message, that can be sent back to trezor.js
+
+
+var receiveAndParse = exports.receiveAndParse = function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(messages, receiver) {
+    var received, typeId, buffer, decoder;
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.next = 2;
+            return receiveBuffer(receiver);
+
+          case 2:
+            received = _context3.sent;
+            typeId = received.typeNumber;
+            buffer = received.arrayBuffer();
+            decoder = new _message_decoder.MessageDecoder(messages, typeId, buffer);
+            return _context3.abrupt("return", {
+              message: decoder.decodedJSON(),
+              type: decoder.messageName()
+            });
+
+          case 7:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3, this);
+  }));
+
+  return function receiveAndParse(_x4, _x5) {
+    return _ref3.apply(this, arguments);
+  };
+}();
 
 var _message_decoder = require("./protobuf/message_decoder.js");
 
 var _protobufjsOldFixedWebpack = require("protobufjs-old-fixed-webpack");
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === "undefined" ? "undefined" : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === "undefined" ? "undefined" : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -32448,79 +31502,121 @@ function parseFirstInput(bytes) {
   res.append(byteBuffer);
   return res;
 }
-
-// If the whole message wasn't loaded in the first input, loads more inputs until everything is loaded.
-// note: the return value is not at all important since it's still the same parsedinput
-function receiveRest(parsedInput, receiver) {
-  return new Promise(function ($return, $error) {
-    var data;
-
-    if (parsedInput.isDone()) {
-      return $return();
-    }
-    return receiver().then(function ($await_1) {
-      data = $await_1;
-
-      // sanity check
-      if (data == null) {
-        return $error(new Error("Received no data."));
-      }
-
-      parsedInput.append(data);
-      return $return(receiveRest(parsedInput, receiver));
-    }.$asyncbind(this, $error), $error);
-  }.$asyncbind(this));
-}
-
-// Receives the whole message as a raw data buffer (but without headers or type info)
-function receiveBuffer(receiver) {
-  return new Promise(function ($return, $error) {
-    var data, partialInput;
-    return receiver().then(function ($await_2) {
-      data = $await_2;
-      partialInput = parseFirstInput(data);
-
-      return receiveRest(partialInput, receiver).then(function ($await_3) {
-        return $return(partialInput);
-      }.$asyncbind(this, $error), $error);
-    }.$asyncbind(this, $error), $error);
-  }.$asyncbind(this));
-}
-
-// Reads data from device and returns decoded message, that can be sent back to trezor.js
-function receiveAndParse(messages, receiver) {
-  return new Promise(function ($return, $error) {
-    var received, typeId, buffer, decoder;
-    return receiveBuffer(receiver).then(function ($await_4) {
-      received = $await_4;
-      typeId = received.typeNumber;
-      buffer = received.arrayBuffer();
-      decoder = new _message_decoder.MessageDecoder(messages, typeId, buffer);
-      return $return({
-        message: decoder.decodedJSON(),
-        type: decoder.messageName()
-      });
-    }.$asyncbind(this, $error), $error);
-  }.$asyncbind(this));
-}
-}).call(this,require('_process'))
-},{"./protobuf/message_decoder.js":165,"_process":124,"protobufjs-old-fixed-webpack":126}],171:[function(require,module,exports){
-(function (process){
+},{"./protobuf/message_decoder.js":165,"protobufjs-old-fixed-webpack":126}],171:[function(require,module,exports){
 "use strict";
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.buildAndSend = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-// Logic of sending data to trezor
-//
-// Logic of "call" is broken to two parts - sending and recieving
+// Sends more buffers to device.
+var sendBuffers = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(sender, buffers) {
+    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, buffer;
 
-exports.buildAndSend = buildAndSend;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            // eslint-disable-next-line prefer-const
+            _iteratorNormalCompletion = true;
+            _didIteratorError = false;
+            _iteratorError = undefined;
+            _context.prev = 3;
+            _iterator = buffers[Symbol.iterator]();
+
+          case 5:
+            if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+              _context.next = 12;
+              break;
+            }
+
+            buffer = _step.value;
+            _context.next = 9;
+            return sender(buffer);
+
+          case 9:
+            _iteratorNormalCompletion = true;
+            _context.next = 5;
+            break;
+
+          case 12:
+            _context.next = 18;
+            break;
+
+          case 14:
+            _context.prev = 14;
+            _context.t0 = _context["catch"](3);
+            _didIteratorError = true;
+            _iteratorError = _context.t0;
+
+          case 18:
+            _context.prev = 18;
+            _context.prev = 19;
+
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+
+          case 21:
+            _context.prev = 21;
+
+            if (!_didIteratorError) {
+              _context.next = 24;
+              break;
+            }
+
+            throw _iteratorError;
+
+          case 24:
+            return _context.finish(21);
+
+          case 25:
+            return _context.finish(18);
+
+          case 26:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, this, [[3, 14, 18, 26], [19,, 21, 25]]);
+  }));
+
+  return function sendBuffers(_x, _x2) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+// already built PB message
+
+
+// Sends message to device.
+// Resolves iff everything gets sent
+var buildAndSend = exports.buildAndSend = function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(messages, sender, name, data) {
+    var buffers;
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            buffers = buildBuffers(messages, name, data);
+            return _context2.abrupt("return", sendBuffers(sender, buffers));
+
+          case 2:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2, this);
+  }));
+
+  return function buildAndSend(_x3, _x4, _x5, _x6) {
+    return _ref2.apply(this, arguments);
+  };
+}();
 
 var _protobufjsOldFixedWebpack = require("protobufjs-old-fixed-webpack");
 
@@ -32528,365 +31624,17 @@ var ProtoBuf = _interopRequireWildcard(_protobufjsOldFixedWebpack);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === "undefined" ? "undefined" : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === "undefined" ? "undefined" : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+// Logic of sending data to trezor
+//
+// Logic of "call" is broken to two parts - sending and recieving
 
 var HEADER_SIZE = 1 + 1 + 4 + 2;
 var MESSAGE_HEADER_BYTE = 0x23;
 var BUFFER_SIZE = 63;
-
-// Sends more buffers to device.
-function sendBuffers(sender, buffers) {
-  return new Promise(function ($return, $error) {
-    var $Try_1_Finally = function ($Try_1_Exit) {
-      return function ($Try_1_Value) {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } catch ($exception_3) {
-          throw $exception_3;
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-
-        return $Try_1_Exit && $Try_1_Exit.call(this, $Try_1_Value);
-      }.$asyncbind(this, $error);
-    }.$asyncbind(this);
-
-    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, buffer;
-
-    _iteratorNormalCompletion = true;
-    _didIteratorError = false;
-    _iteratorError = undefined;
-    var $Try_1_Post = function () {
-      return $return();
-    }.$asyncbind(this, $error);var $Try_1_Catch = function (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-      return $Try_1_Finally($Try_1_Post)();
-    }.$asyncbind(this, $Try_1_Finally($error));
-    try {
-      _iterator = buffers[Symbol.iterator]();
-      return Function.$asyncbind.trampoline(this, $Loop_4_exit, $Loop_4_step, $Try_1_Catch, true)($Loop_4);
-
-      function $Loop_4() {
-        if (!(_iteratorNormalCompletion = (_step = _iterator.next()).done)) {
-          buffer = _step.value;
-          return sender(buffer).then(function ($await_6) {
-            return $Loop_4_step;
-          }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
-        } else return [1];
-      }
-
-      function $Loop_4_step() {
-        _iteratorNormalCompletion = true;
-        return $Loop_4;
-      }
-
-      function $Loop_4_exit() {
-        return $Try_1_Finally($Try_1_Post)();
-      }
-    } catch (err) {
-      $Try_1_Catch(err)
-    }
-  }.$asyncbind(this));
-}
-
-// already built PB message
-
 var BuiltMessage = function () {
   function BuiltMessage(messages, // Builders, generated by reading config
   name, // Name of the message
@@ -33009,17 +31757,7 @@ function buildBuffers(messages, name, data) {
   var encoded = message.encode();
   return encoded;
 }
-
-// Sends message to device.
-// Resolves iff everything gets sent
-function buildAndSend(messages, sender, name, data) {
-  return new Promise(function ($return, $error) {
-    var buffers = buildBuffers(messages, name, data);
-    return $return(sendBuffers(sender, buffers));
-  }.$asyncbind(this));
-}
-}).call(this,require('_process'))
-},{"_process":124,"protobufjs-old-fixed-webpack":126}],172:[function(require,module,exports){
+},{"protobufjs-old-fixed-webpack":126}],172:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -33080,7 +31818,6 @@ function verifyHexBin(data) {
 }
 }).call(this,require("buffer").Buffer)
 },{"bigi":22,"bitcoinjs-lib-zcash":35,"buffer":68}],173:[function(require,module,exports){
-(function (process){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -33096,296 +31833,7 @@ var _desc, _value, _class;
 
 var _debugDecorator = require('../debug-decorator');
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -33426,275 +31874,491 @@ var TREZOR_DESCS = [{
   productId: 0x53c1
 }];
 
+var CONFIGURATION_ID = 1;
+var INTERFACE_ID = 0;
+var ENDPOINT_ID = 1;
+
 var WebUsbPlugin = (_class = function () {
   function WebUsbPlugin() {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.105";
+    this.version = "0.2.106";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
+    this.configurationId = CONFIGURATION_ID;
+    this.interfaceId = INTERFACE_ID;
+    this.endpointId = ENDPOINT_ID;
     this._lastDevices = [];
     this.requestNeeded = true;
   }
 
   _createClass(WebUsbPlugin, [{
     key: 'init',
-    value: function init(debug) {
-      return new Promise(function ($return, $error) {
-        this.debug = !!debug;
-        // $FlowIssue
-        var usb = navigator.usb;
-        if (usb == null) {
-          return $error(new Error('WebUSB is not available on this browser.'));
-        } else {
-          this.usb = usb;
-        }
-        return $return();
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(debug) {
+        var usb;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                this.debug = !!debug;
+                // $FlowIssue
+                usb = navigator.usb;
+
+                if (!(usb == null)) {
+                  _context.next = 6;
+                  break;
+                }
+
+                throw new Error('WebUSB is not available on this browser.');
+
+              case 6:
+                this.usb = usb;
+
+              case 7:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return init;
+    }()
   }, {
     key: '_listDevices',
-    value: function _listDevices() {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
         var bootloaderId, devices;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                bootloaderId = 0;
+                _context2.next = 3;
+                return this.usb.getDevices();
 
-        bootloaderId = 0;
-        return this.usb.getDevices().then(function ($await_8) {
-          devices = $await_8;
-          this._lastDevices = devices.filter(function (dev) {
-            var isTrezor = TREZOR_DESCS.some(function (desc) {
-              return dev.vendorId === desc.vendorId && dev.productId === desc.productId;
-            });
-            return isTrezor;
-          }).map(function (device) {
-            // path is just serial number
-            // more bootloaders => number them, hope for the best
-            var serialNumber = device.serialNumber;
-            var path = serialNumber == null || serialNumber === '' ? 'bootloader' : serialNumber;
-            if (path === 'bootloader') {
-              bootloaderId++;
-              path = path + bootloaderId;
+              case 3:
+                devices = _context2.sent;
+
+                this._lastDevices = devices.filter(function (dev) {
+                  var isTrezor = TREZOR_DESCS.some(function (desc) {
+                    return dev.vendorId === desc.vendorId && dev.productId === desc.productId;
+                  });
+                  return isTrezor;
+                }).map(function (device) {
+                  // path is just serial number
+                  // more bootloaders => number them, hope for the best
+                  var serialNumber = device.serialNumber;
+                  var path = serialNumber == null || serialNumber === '' ? 'bootloader' : serialNumber;
+                  if (path === 'bootloader') {
+                    bootloaderId++;
+                    path = path + bootloaderId;
+                  }
+                  return { path: path, device: device };
+                });
+                return _context2.abrupt('return', this._lastDevices);
+
+              case 6:
+              case 'end':
+                return _context2.stop();
             }
-            return { path: path, device: device };
-          });
-          return $return(this._lastDevices);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+          }
+        }, _callee2, this);
+      }));
+
+      function _listDevices() {
+        return _ref2.apply(this, arguments);
+      }
+
+      return _listDevices;
+    }()
   }, {
     key: 'enumerate',
-    value: function enumerate() {
-      return new Promise(function ($return, $error) {
-        return this._listDevices().then(function ($await_9) {
-          return $return($await_9.map(function (info) {
-            return { path: info.path };
-          }));
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this._listDevices();
+
+              case 2:
+                _context3.t0 = function (info) {
+                  return { path: info.path };
+                };
+
+                return _context3.abrupt('return', _context3.sent.map(_context3.t0));
+
+              case 4:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function enumerate() {
+        return _ref3.apply(this, arguments);
+      }
+
+      return enumerate;
+    }()
   }, {
     key: '_findDevice',
-    value: function _findDevice(path) {
-      return new Promise(function ($return, $error) {
-        var deviceO = this._lastDevices.find(function (d) {
-          return d.path === path;
-        });
-        if (deviceO == null) {
-          return $error(new Error('Action was interrupted.'));
-        }
-        return $return(deviceO.device);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(path) {
+        var deviceO;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                deviceO = this._lastDevices.find(function (d) {
+                  return d.path === path;
+                });
+
+                if (!(deviceO == null)) {
+                  _context4.next = 3;
+                  break;
+                }
+
+                throw new Error('Action was interrupted.');
+
+              case 3:
+                return _context4.abrupt('return', deviceO.device);
+
+              case 4:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function _findDevice(_x2) {
+        return _ref4.apply(this, arguments);
+      }
+
+      return _findDevice;
+    }()
   }, {
     key: 'send',
-    value: function send(path, data) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(path, data) {
         var device, newArray;
-        return this._findDevice(path).then(function ($await_10) {
-          device = $await_10;
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this._findDevice(path);
 
-          newArray = new Uint8Array(64);
-          newArray[0] = 63;
-          newArray.set(new Uint8Array(data), 1);
+              case 2:
+                device = _context5.sent;
+                newArray = new Uint8Array(64);
 
-          if (!device.opened) {
-            return this.connect(path).then(function ($await_11) {
-              return $If_3.call(this);
-            }.$asyncbind(this, $error), $error);
+                newArray[0] = 63;
+                newArray.set(new Uint8Array(data), 1);
+
+                if (device.opened) {
+                  _context5.next = 9;
+                  break;
+                }
+
+                _context5.next = 9;
+                return this.connect(path);
+
+              case 9:
+                return _context5.abrupt('return', device.transferOut(this.endpointId, newArray).then(function () {}));
+
+              case 10:
+              case 'end':
+                return _context5.stop();
+            }
           }
+        }, _callee5, this);
+      }));
 
-          function $If_3() {
-            return $return(device.transferOut(2, newArray).then(function () {}));
-          }
+      function send(_x3, _x4) {
+        return _ref5.apply(this, arguments);
+      }
 
-          return $If_3.call(this);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+      return send;
+    }()
   }, {
     key: 'receive',
-    value: function receive(path) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(path) {
         var device, res;
-        return this._findDevice(path).then(function ($await_12) {
-          device = $await_12;
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return this._findDevice(path);
 
-          var $Try_1_Post = function () {
-            return $return();
-          }.$asyncbind(this, $error);
+              case 2:
+                device = _context6.sent;
+                _context6.prev = 3;
 
-          var $Try_1_Catch = function (e) {
-            if (e.message === 'Device unavailable.') {
-              throw new Error('Action was interrupted.');
-            } else {
-              throw e;
+                if (device.opened) {
+                  _context6.next = 7;
+                  break;
+                }
+
+                _context6.next = 7;
+                return this.connect(path);
+
+              case 7:
+                _context6.next = 9;
+                return device.transferIn(this.endpointId, 64);
+
+              case 9:
+                res = _context6.sent;
+                return _context6.abrupt('return', res.data.buffer.slice(1));
+
+              case 13:
+                _context6.prev = 13;
+                _context6.t0 = _context6['catch'](3);
+
+                if (!(_context6.t0.message === 'Device unavailable.')) {
+                  _context6.next = 19;
+                  break;
+                }
+
+                throw new Error('Action was interrupted.');
+
+              case 19:
+                throw _context6.t0;
+
+              case 20:
+              case 'end':
+                return _context6.stop();
             }
-            return $Try_1_Post();
-          }.$asyncbind(this, $error);try {
-            if (!device.opened) {
-              return this.connect(path).then(function ($await_13) {
-                return $If_4.call(this);
-              }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
-            }
-
-            function $If_4() {
-              return device.transferIn(2, 64).then(function ($await_14) {
-                res = $await_14;
-                return $return(res.data.buffer.slice(1));
-              }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
-            }
-
-            return $If_4.call(this);
-          } catch (e) {
-            $Try_1_Catch(e)
           }
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        }, _callee6, this, [[3, 13]]);
+      }));
+
+      function receive(_x5) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return receive;
+    }()
   }, {
     key: 'connect',
-    value: function connect(path) {
-      return new Promise(function ($return, $error) {
-        var _this, _loop, i, _ret;
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(path) {
+        var _this = this;
 
-        _this = this;
+        var _loop, i, _ret;
 
-        _loop = function _loop(i) {
-          return new Promise(function ($return, $error) {
-            if (i > 0) {
-              return new Promise(function (resolve) {
-                return setTimeout(function () {
-                  return resolve();
-                }, i * 200);
-              }).then(function ($await_15) {
-                return $If_5.call(this);
-              }.$asyncbind(this, $error), $error);
-            }
+        return regeneratorRuntime.wrap(function _callee7$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                _loop = /*#__PURE__*/regeneratorRuntime.mark(function _loop(i) {
+                  return regeneratorRuntime.wrap(function _loop$(_context7) {
+                    while (1) {
+                      switch (_context7.prev = _context7.next) {
+                        case 0:
+                          if (!(i > 0)) {
+                            _context7.next = 3;
+                            break;
+                          }
 
-            function $If_5() {
-              var $Try_2_Post = function () {
-                return $return();
-              }.$asyncbind(this, $error);var $Try_2_Catch = function (e) {
-                // ignore
-                if (i === 4) {
-                  throw e;
+                          _context7.next = 3;
+                          return new Promise(function (resolve) {
+                            return setTimeout(function () {
+                              return resolve();
+                            }, i * 200);
+                          });
+
+                        case 3:
+                          _context7.prev = 3;
+                          _context7.next = 6;
+                          return _this._connectIn(path);
+
+                        case 6:
+                          _context7.t0 = _context7.sent;
+                          return _context7.abrupt('return', {
+                            v: _context7.t0
+                          });
+
+                        case 10:
+                          _context7.prev = 10;
+                          _context7.t1 = _context7['catch'](3);
+
+                          if (!(i === 4)) {
+                            _context7.next = 14;
+                            break;
+                          }
+
+                          throw _context7.t1;
+
+                        case 14:
+                        case 'end':
+                          return _context7.stop();
+                      }
+                    }
+                  }, _loop, _this, [[3, 10]]);
+                });
+                i = 0;
+
+              case 2:
+                if (!(i < 5)) {
+                  _context8.next = 10;
+                  break;
                 }
-                return $Try_2_Post();
-              }.$asyncbind(this, $error);try {
-                return _this._connectIn(path).then(function ($await_16) {
-                  return $return({
-                    v: $await_16
-                  });
-                }.$asyncbind(this, $Try_2_Catch), $Try_2_Catch);
-              } catch (e) {
-                $Try_2_Catch(e)
-              }
+
+                return _context8.delegateYield(_loop(i), 't0', 4);
+
+              case 4:
+                _ret = _context8.t0;
+
+                if (!((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object")) {
+                  _context8.next = 7;
+                  break;
+                }
+
+                return _context8.abrupt('return', _ret.v);
+
+              case 7:
+                i++;
+                _context8.next = 2;
+                break;
+
+              case 10:
+              case 'end':
+                return _context8.stop();
             }
+          }
+        }, _callee7, this);
+      }));
 
-            return $If_5.call(this);
-          }.$asyncbind(this));
-        };
+      function connect(_x6) {
+        return _ref7.apply(this, arguments);
+      }
 
-        i = 0;
-        return Function.$asyncbind.trampoline(this, $Loop_6_exit, $Loop_6_step, $error, true)($Loop_6);
-
-        function $Loop_6() {
-          if (i < 5) {
-            return _loop(i).then(function ($await_17) {
-              _ret = $await_17;
-              if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return $return(_ret.v);
-              return $Loop_6_step;
-            }.$asyncbind(this, $error), $error);
-          } else return [1];
-        }
-
-        function $Loop_6_step() {
-          i++;
-          return $Loop_6;
-        }
-
-        function $Loop_6_exit() {
-          return $return();
-        }
-      }.$asyncbind(this));
-    }
+      return connect;
+    }()
   }, {
     key: '_connectIn',
-    value: function _connectIn(path) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(path) {
         var device;
-        return this._findDevice(path).then(function ($await_18) {
-          device = $await_18;
-          return device.open().then(function ($await_19) {
-            return device.selectConfiguration(1).then(function ($await_20) {
-              return device.reset().then(function ($await_21) {
-                return device.claimInterface(2).then(function ($await_22) {
-                  return $return();
-                }.$asyncbind(this, $error), $error);
-              }.$asyncbind(this, $error), $error);
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        return regeneratorRuntime.wrap(function _callee8$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                _context9.next = 2;
+                return this._findDevice(path);
+
+              case 2:
+                device = _context9.sent;
+                _context9.next = 5;
+                return device.open();
+
+              case 5:
+                _context9.next = 7;
+                return device.selectConfiguration(this.configurationId);
+
+              case 7:
+                _context9.next = 9;
+                return device.reset();
+
+              case 9:
+                _context9.next = 11;
+                return device.claimInterface(this.interfaceId);
+
+              case 11:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function _connectIn(_x7) {
+        return _ref8.apply(this, arguments);
+      }
+
+      return _connectIn;
+    }()
   }, {
     key: 'disconnect',
-    value: function disconnect(path) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(path) {
         var device;
-        return this._findDevice(path).then(function ($await_23) {
-          device = $await_23;
+        return regeneratorRuntime.wrap(function _callee9$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                _context10.next = 2;
+                return this._findDevice(path);
 
-          return device.releaseInterface(2).then(function ($await_24) {
-            return device.close().then(function ($await_25) {
-              return $return();
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+              case 2:
+                device = _context10.sent;
+                _context10.next = 5;
+                return device.releaseInterface(this.interfaceId);
+
+              case 5:
+                _context10.next = 7;
+                return device.close();
+
+              case 7:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function disconnect(_x8) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return disconnect;
+    }()
   }, {
     key: 'requestDevice',
-    value: function requestDevice() {
-      return new Promise(function ($return, $error) {
-        return this.usb.requestDevice({ filters: TREZOR_DESCS }).then(function ($await_26) {
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
+        return regeneratorRuntime.wrap(function _callee10$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                _context11.next = 2;
+                return this.usb.requestDevice({ filters: TREZOR_DESCS });
+
+              case 2:
+              case 'end':
+                return _context11.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function requestDevice() {
+        return _ref10.apply(this, arguments);
+      }
+
+      return requestDevice;
+    }()
   }]);
 
   return WebUsbPlugin;
 }(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'connect', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'connect'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'disconnect', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'disconnect'), _class.prototype)), _class);
 exports.default = WebUsbPlugin;
 module.exports = exports['default'];
-}).call(this,require('_process'))
-},{"../debug-decorator":157,"_process":124}],174:[function(require,module,exports){
-(function (process){
+},{"../debug-decorator":157}],174:[function(require,module,exports){
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -33721,296 +32385,7 @@ var _receive = require('./receive');
 
 var _debugDecorator = require('../debug-decorator');
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -34104,32 +32479,59 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     }
   }, {
     key: '_silentEnumerate',
-    value: function _silentEnumerate() {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
         var devices, sessionsM, sessions, devicesWithSessions;
-        return this.plugin.enumerate().then(function ($await_3) {
-          devices = $await_3;
-          return this.sendToWorker({ type: 'get-sessions-and-disconnect', devices: devices }).then(function ($await_4) {
-            sessionsM = $await_4;
-            if (sessionsM.type !== 'sessions') {
-              return $error(new Error('Wrong reply'));
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.plugin.enumerate();
+
+              case 2:
+                devices = _context.sent;
+                _context.next = 5;
+                return this.sendToWorker({ type: 'get-sessions-and-disconnect', devices: devices });
+
+              case 5:
+                sessionsM = _context.sent;
+
+                if (!(sessionsM.type !== 'sessions')) {
+                  _context.next = 8;
+                  break;
+                }
+
+                throw new Error('Wrong reply');
+
+              case 8:
+                sessions = sessionsM.sessions;
+                devicesWithSessions = devices.map(function (device) {
+                  var session = sessions[device.path];
+                  return {
+                    path: device.path,
+                    session: session
+                  };
+                });
+
+
+                this._releaseDisconnected(devicesWithSessions);
+                return _context.abrupt('return', devicesWithSessions.sort(compare));
+
+              case 12:
+              case 'end':
+                return _context.stop();
             }
-            sessions = sessionsM.sessions;
+          }
+        }, _callee, this);
+      }));
 
-            devicesWithSessions = devices.map(function (device) {
-              var session = sessions[device.path];
-              return {
-                path: device.path,
-                session: session
-              };
-            });
+      function _silentEnumerate() {
+        return _ref.apply(this, arguments);
+      }
 
-            this._releaseDisconnected(devicesWithSessions);
-            return $return(devicesWithSessions.sort(compare));
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+      return _silentEnumerate;
+    }()
   }, {
     key: '_releaseDisconnected',
     value: function _releaseDisconnected(devices) {
@@ -34149,105 +32551,216 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     }
   }, {
     key: 'listen',
-    value: function listen(old) {
-      return new Promise(function ($return, $error) {
-        var oldStringified = stableStringify(old);
-        var last = old == null ? this._lastStringified : oldStringified;
-        return $return(this._runIter(0, last));
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(old) {
+        var oldStringified, last;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                oldStringified = stableStringify(old);
+                last = old == null ? this._lastStringified : oldStringified;
+                return _context2.abrupt('return', this._runIter(0, last));
+
+              case 3:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function listen(_x) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return listen;
+    }()
   }, {
     key: '_runIter',
-    value: function _runIter(iteration, oldStringified) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(iteration, oldStringified) {
         var devices, stringified;
-        return this._silentEnumerate().then(function ($await_5) {
-          devices = $await_5;
-          stringified = stableStringify(devices);
-          if (stringified !== oldStringified || iteration === ITER_MAX) {
-            this._lastStringified = stringified;
-            return $return(devices);
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this._silentEnumerate();
+
+              case 2:
+                devices = _context3.sent;
+                stringified = stableStringify(devices);
+
+                if (!(stringified !== oldStringified || iteration === ITER_MAX)) {
+                  _context3.next = 7;
+                  break;
+                }
+
+                this._lastStringified = stringified;
+                return _context3.abrupt('return', devices);
+
+              case 7:
+                _context3.next = 9;
+                return (0, _defered.resolveTimeoutPromise)(ITER_DELAY, null);
+
+              case 9:
+                return _context3.abrupt('return', this._runIter(iteration + 1, stringified));
+
+              case 10:
+              case 'end':
+                return _context3.stop();
+            }
           }
-          return (0, _defered.resolveTimeoutPromise)(ITER_DELAY, null).then(function ($await_6) {
-            return $return(this._runIter(iteration + 1, stringified));
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        }, _callee3, this);
+      }));
+
+      function _runIter(_x2, _x3) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return _runIter;
+    }()
   }, {
     key: 'acquire',
-    value: function acquire(input) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(input) {
         var messBack, messBack2, session;
-        return this.sendToWorker(_extends({ type: 'acquire-intent' }, input)).then(function ($await_7) {
-          messBack = $await_7;
-          if (messBack.type === 'wrong-previous-session') {
-            return $error(new Error('wrong previous session'));
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return this.sendToWorker(_extends({ type: 'acquire-intent' }, input));
+
+              case 2:
+                messBack = _context4.sent;
+
+                if (!(messBack.type === 'wrong-previous-session')) {
+                  _context4.next = 5;
+                  break;
+                }
+
+                throw new Error('wrong previous session');
+
+              case 5:
+                _context4.prev = 5;
+                _context4.next = 8;
+                return this.plugin.connect(input.path);
+
+              case 8:
+                _context4.next = 15;
+                break;
+
+              case 10:
+                _context4.prev = 10;
+                _context4.t0 = _context4['catch'](5);
+                _context4.next = 14;
+                return this.sendToWorker({ type: 'acquire-failed' });
+
+              case 14:
+                throw _context4.t0;
+
+              case 15:
+                _context4.next = 17;
+                return this.sendToWorker({ type: 'acquire-done' });
+
+              case 17:
+                messBack2 = _context4.sent;
+
+                if (!(messBack2.type !== 'session-number')) {
+                  _context4.next = 20;
+                  break;
+                }
+
+                throw new Error('Strange reply.');
+
+              case 20:
+                session = messBack2.number;
+
+
+                this.deferedOnRelease[session] = (0, _defered.create)();
+                return _context4.abrupt('return', session);
+
+              case 23:
+              case 'end':
+                return _context4.stop();
+            }
           }
+        }, _callee4, this, [[5, 10]]);
+      }));
 
-          var $Try_1_Post = function () {
-            return this.sendToWorker({ type: 'acquire-done' }).then(function ($await_8) {
+      function acquire(_x4) {
+        return _ref4.apply(this, arguments);
+      }
 
-              messBack2 = $await_8;
-              if (messBack2.type !== 'session-number') {
-                return $error(new Error('Strange reply.'));
-              }
-
-              session = messBack2.number;
-
-              this.deferedOnRelease[session] = (0, _defered.create)();
-              return $return(session);
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this, $error);
-
-          var $Try_1_Catch = function (e) {
-            return this.sendToWorker({ type: 'acquire-failed' }).then(function ($await_9) {
-              throw e;
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this, $error);try {
-            return this.plugin.connect(input.path).then(function ($await_10) {
-              return $Try_1_Post();
-            }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
-          } catch (e) {
-            $Try_1_Catch(e)
-          }
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+      return acquire;
+    }()
   }, {
     key: 'release',
-    value: function release(session) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(session) {
         var messback, path;
-        return this.sendToWorker({ type: 'release-intent', session: session }).then(function ($await_11) {
-          messback = $await_11;
-          if (messback.type === 'double-release') {
-            return $error(new Error('Trying to double release.'));
-          }
-          if (messback.type !== 'path') {
-            return $error(new Error('Strange reply.'));
-          }
-          path = messback.path;
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this.sendToWorker({ type: 'release-intent', session: session });
 
-          this._releaseCleanup(session);
-          var $Try_2_Post = function () {
-            return this.sendToWorker({ type: 'release-done' }).then(function ($await_12) {
-              return $return();
-            }.$asyncbind(this, $error), $error);
-          }.$asyncbind(this, $error);var $Try_2_Catch = function (e) {
-            // ignore release errors, it's not important that much
+              case 2:
+                messback = _context5.sent;
 
-            return $Try_2_Post();
-          }.$asyncbind(this, $error);try {
-            return this.plugin.disconnect(path).then(function ($await_13) {
-              return $Try_2_Post();
-            }.$asyncbind(this, $Try_2_Catch), $Try_2_Catch);
-          } catch (e) {
-            $Try_2_Catch(e)
+                if (!(messback.type === 'double-release')) {
+                  _context5.next = 5;
+                  break;
+                }
+
+                throw new Error('Trying to double release.');
+
+              case 5:
+                if (!(messback.type !== 'path')) {
+                  _context5.next = 7;
+                  break;
+                }
+
+                throw new Error('Strange reply.');
+
+              case 7:
+                path = messback.path;
+
+
+                this._releaseCleanup(session);
+                _context5.prev = 9;
+                _context5.next = 12;
+                return this.plugin.disconnect(path);
+
+              case 12:
+                _context5.next = 16;
+                break;
+
+              case 14:
+                _context5.prev = 14;
+                _context5.t0 = _context5['catch'](9);
+
+              case 16:
+                _context5.next = 18;
+                return this.sendToWorker({ type: 'release-done' });
+
+              case 18:
+              case 'end':
+                return _context5.stop();
+            }
           }
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+        }, _callee5, this, [[9, 14]]);
+      }));
+
+      function release(_x5) {
+        return _ref5.apply(this, arguments);
+      }
+
+      return release;
+    }()
   }, {
     key: '_releaseCleanup',
     value: function _releaseCleanup(session) {
@@ -34258,15 +32771,33 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     }
   }, {
     key: 'configure',
-    value: function configure(signedData) {
-      return new Promise(function ($return, $error) {
-        var buffer = (0, _verify.verifyHexBin)(signedData);
-        var messages = (0, _parse_protocol.parseConfigure)(buffer);
-        this._messages = messages;
-        this.configured = true;
-        return $return();
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(signedData) {
+        var buffer, messages;
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                buffer = (0, _verify.verifyHexBin)(signedData);
+                messages = (0, _parse_protocol.parseConfigure)(buffer);
+
+                this._messages = messages;
+                this.configured = true;
+
+              case 4:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function configure(_x6) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return configure;
+    }()
   }, {
     key: '_sendLowlevel',
     value: function _sendLowlevel(path) {
@@ -34287,79 +32818,157 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
     }
   }, {
     key: 'call',
-    value: function call(session, name, data) {
-      return new Promise(function ($return, $error) {
-        var _this4, sessionsM, messages, path_, path, resPromise;
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(session, name, data) {
+        var _this4 = this;
 
-        _this4 = this;
-        return this.sendToWorker({ type: 'get-sessions' }).then(function ($await_14) {
-          sessionsM = $await_14;
+        var sessionsM, messages, path_, path, resPromise;
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                _context8.next = 2;
+                return this.sendToWorker({ type: 'get-sessions' });
 
-          if (this._messages == null) {
-            return $error(new Error('Transport not configured.'));
-          }
-          messages = this._messages;
+              case 2:
+                sessionsM = _context8.sent;
 
-          if (sessionsM.type !== 'sessions') {
-            return $error(new Error('Wrong reply'));
-          }
+                if (!(this._messages == null)) {
+                  _context8.next = 5;
+                  break;
+                }
 
-          path_ = null;
-          Object.keys(sessionsM.sessions).forEach(function (kpath) {
-            if (sessionsM.sessions[kpath] === session) {
-              path_ = kpath;
+                throw new Error('Transport not configured.');
+
+              case 5:
+                messages = this._messages;
+
+                if (!(sessionsM.type !== 'sessions')) {
+                  _context8.next = 8;
+                  break;
+                }
+
+                throw new Error('Wrong reply');
+
+              case 8:
+                path_ = null;
+
+                Object.keys(sessionsM.sessions).forEach(function (kpath) {
+                  if (sessionsM.sessions[kpath] === session) {
+                    path_ = kpath;
+                  }
+                });
+
+                if (!(path_ == null)) {
+                  _context8.next = 12;
+                  break;
+                }
+
+                throw new Error('Session not available.');
+
+              case 12:
+                path = path_;
+                resPromise = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+                  var message;
+                  return regeneratorRuntime.wrap(function _callee7$(_context7) {
+                    while (1) {
+                      switch (_context7.prev = _context7.next) {
+                        case 0:
+                          _context7.next = 2;
+                          return (0, _send.buildAndSend)(messages, _this4._sendLowlevel(path), name, data);
+
+                        case 2:
+                          _context7.next = 4;
+                          return (0, _receive.receiveAndParse)(messages, _this4._receiveLowlevel(path));
+
+                        case 4:
+                          message = _context7.sent;
+                          return _context7.abrupt('return', message);
+
+                        case 6:
+                        case 'end':
+                          return _context7.stop();
+                      }
+                    }
+                  }, _callee7, _this4);
+                }))();
+                return _context8.abrupt('return', Promise.race([this.deferedOnRelease[session].rejectingPromise, resPromise]));
+
+              case 15:
+              case 'end':
+                return _context8.stop();
             }
-          });
-
-          if (path_ == null) {
-            return $error(new Error('Session not available.'));
           }
-          path = path_;
+        }, _callee8, this);
+      }));
 
-          resPromise = function () {
-            return new Promise(function ($return, $error) {
-              var message;
-              return (0, _send.buildAndSend)(messages, _this4._sendLowlevel(path), name, data).then(function ($await_15) {
-                return (0, _receive.receiveAndParse)(messages, _this4._receiveLowlevel(path)).then(function ($await_16) {
-                  message = $await_16;
-                  return $return(message);
-                }.$asyncbind(this, $error), $error);
-              }.$asyncbind(this, $error), $error);
-            }.$asyncbind(this));
-          }();
+      function call(_x7, _x8, _x9) {
+        return _ref7.apply(this, arguments);
+      }
 
-          return $return(Promise.race([this.deferedOnRelease[session].rejectingPromise, resPromise]));
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+      return call;
+    }()
   }, {
     key: 'init',
-    value: function init(debug) {
-      return new Promise(function ($return, $error) {
-        var _this5;
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(debug) {
+        var _this5 = this;
 
-        _this5 = this;
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                this.debug = !!debug;
+                this.requestNeeded = this.plugin.requestNeeded;
+                _context9.next = 4;
+                return this.plugin.init(debug);
 
-        this.debug = !!debug;
-        this.requestNeeded = this.plugin.requestNeeded;
-        return this.plugin.init(debug).then(function ($await_17) {
-          // create the worker ONLY when the plugin is successfully inited
-          this.sharedWorker = this._sharedWorkerFactory();
-          this.sharedWorker.port.onmessage = function (e) {
-            // $FlowIssue
-            _this5.receiveFromWorker(e.data);
-          };
-          return $return();
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+              case 4:
+                // create the worker ONLY when the plugin is successfully inited
+                this.sharedWorker = this._sharedWorkerFactory();
+                this.sharedWorker.port.onmessage = function (e) {
+                  // $FlowIssue
+                  _this5.receiveFromWorker(e.data);
+                };
+
+              case 6:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function init(_x10) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return init;
+    }()
   }, {
     key: 'requestDevice',
-    value: function requestDevice() {
-      return new Promise(function ($return, $error) {
-        return $return(this.plugin.requestDevice());
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                return _context10.abrupt('return', this.plugin.requestDevice());
+
+              case 1:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function requestDevice() {
+        return _ref10.apply(this, arguments);
+      }
+
+      return requestDevice;
+    }()
   }, {
     key: 'sendToWorker',
     value: function sendToWorker(message) {
@@ -34381,12 +32990,8 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype)), _class);
 exports.default = LowlevelTransportWithSharedConnections;
 module.exports = exports['default'];
-}).call(this,require('_process'))
-},{"../debug-decorator":157,"../defered":158,"./protobuf/monkey_patch":167,"./protobuf/parse_protocol":168,"./receive":170,"./send":171,"./verify":172,"_process":124,"json-stable-stringify":110}],175:[function(require,module,exports){
-(function (process){
+},{"../debug-decorator":157,"../defered":158,"./protobuf/monkey_patch":167,"./protobuf/parse_protocol":168,"./receive":170,"./send":171,"./verify":172,"json-stable-stringify":110}],175:[function(require,module,exports){
 'use strict';
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -34401,300 +33006,11 @@ var _desc, _value, _class;
 
 var _debugDecorator = require('./debug-decorator');
 
-Function.prototype.$asyncbind = function $asyncbind(self, catcher) {
-  "use strict";
-
-  if (!Function.prototype.$asyncbind) {
-    Object.defineProperty(Function.prototype, "$asyncbind", {
-      value: $asyncbind,
-      enumerable: false,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  if (!$asyncbind.trampoline) {
-    $asyncbind.trampoline = function trampoline(t, x, s, e, u) {
-      return function b(q) {
-        while (q) {
-          if (q.then) {
-            q = q.then(b, e);
-            return u ? undefined : q;
-          }
-
-          try {
-            if (q.pop) {
-              if (q.length) return q.pop() ? x.call(t) : q;
-              q = s;
-            } else q = q.call(t);
-          } catch (r) {
-            return e(r);
-          }
-        }
-      };
-    };
-  }
-
-  if (!$asyncbind.LazyThenable) {
-    $asyncbind.LazyThenable = function () {
-      function isThenable(obj) {
-        return obj && obj instanceof Object && typeof obj.then === "function";
-      }
-
-      function resolution(p, r, how) {
-        try {
-          var x = how ? how(r) : r;
-          if (p === x) return p.reject(new TypeError("Promise resolution loop"));
-
-          if (isThenable(x)) {
-            x.then(function (y) {
-              resolution(p, y);
-            }, function (e) {
-              p.reject(e);
-            });
-          } else {
-            p.resolve(x);
-          }
-        } catch (ex) {
-          p.reject(ex);
-        }
-      }
-
-      function Chained() {}
-
-      ;
-      Chained.prototype = {
-        resolve: _unchained,
-        reject: _unchained,
-        then: thenChain
-      };
-
-      function _unchained(v) {}
-
-      function thenChain(res, rej) {
-        this.resolve = res;
-        this.reject = rej;
-      }
-
-      function then(res, rej) {
-        var chain = new Chained();
-
-        try {
-          this._resolver(function (value) {
-            return isThenable(value) ? value.then(res, rej) : resolution(chain, value, res);
-          }, function (ex) {
-            resolution(chain, ex, rej);
-          });
-        } catch (ex) {
-          resolution(chain, ex, rej);
-        }
-
-        return chain;
-      }
-
-      function Thenable(resolver) {
-        this._resolver = resolver;
-        this.then = then;
-      }
-
-      ;
-
-      Thenable.resolve = function (v) {
-        return Thenable.isThenable(v) ? v : {
-          then: function then(resolve) {
-            return resolve(v);
-          }
-        };
-      };
-
-      Thenable.isThenable = isThenable;
-      return Thenable;
-    }();
-
-    $asyncbind.EagerThenable = $asyncbind.Thenable = ($asyncbind.EagerThenableFactory = function (tick) {
-      tick = tick || (typeof process === 'undefined' ? 'undefined' : _typeof(process)) === "object" && process.nextTick || typeof setImmediate === "function" && setImmediate || function (f) {
-        setTimeout(f, 0);
-      };
-
-      var soon = function () {
-        var fq = [],
-            fqStart = 0,
-            bufferSize = 1024;
-
-        function callQueue() {
-          while (fq.length - fqStart) {
-            try {
-              fq[fqStart]();
-            } catch (ex) {}
-
-            fq[fqStart++] = undefined;
-
-            if (fqStart === bufferSize) {
-              fq.splice(0, bufferSize);
-              fqStart = 0;
-            }
-          }
-        }
-
-        return function (fn) {
-          fq.push(fn);
-          if (fq.length - fqStart === 1) tick(callQueue);
-        };
-      }();
-
-      function Zousan(func) {
-        if (func) {
-          var me = this;
-          func(function (arg) {
-            me.resolve(arg);
-          }, function (arg) {
-            me.reject(arg);
-          });
-        }
-      }
-
-      Zousan.prototype = {
-        resolve: function resolve(value) {
-          if (this.state !== undefined) return;
-          if (value === this) return this.reject(new TypeError("Attempt to resolve promise with self"));
-          var me = this;
-
-          if (value && (typeof value === "function" || (typeof value === 'undefined' ? 'undefined' : _typeof(value)) === "object")) {
-            try {
-              var first = 0;
-              var then = value.then;
-
-              if (typeof then === "function") {
-                then.call(value, function (ra) {
-                  if (!first++) {
-                    me.resolve(ra);
-                  }
-                }, function (rr) {
-                  if (!first++) {
-                    me.reject(rr);
-                  }
-                });
-                return;
-              }
-            } catch (e) {
-              if (!first) this.reject(e);
-              return;
-            }
-          }
-
-          this.state = STATE_FULFILLED;
-          this.v = value;
-          if (me.c) soon(function () {
-            for (var n = 0, l = me.c.length; n < l; n++) {
-              STATE_FULFILLED(me.c[n], value);
-            }
-          });
-        },
-        reject: function reject(reason) {
-          if (this.state !== undefined) return;
-          this.state = STATE_REJECTED;
-          this.v = reason;
-          var clients = this.c;
-          if (clients) soon(function () {
-            for (var n = 0, l = clients.length; n < l; n++) {
-              STATE_REJECTED(clients[n], reason);
-            }
-          });
-        },
-        then: function then(onF, onR) {
-          var p = new Zousan();
-          var client = {
-            y: onF,
-            n: onR,
-            p: p
-          };
-
-          if (this.state === undefined) {
-            if (this.c) this.c.push(client);else this.c = [client];
-          } else {
-            var s = this.state,
-                a = this.v;
-            soon(function () {
-              s(client, a);
-            });
-          }
-
-          return p;
-        }
-      };
-
-      function STATE_FULFILLED(c, arg) {
-        if (typeof c.y === "function") {
-          try {
-            var yret = c.y.call(undefined, arg);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.resolve(arg);
-      }
-
-      function STATE_REJECTED(c, reason) {
-        if (typeof c.n === "function") {
-          try {
-            var yret = c.n.call(undefined, reason);
-            c.p.resolve(yret);
-          } catch (err) {
-            c.p.reject(err);
-          }
-        } else c.p.reject(reason);
-      }
-
-      Zousan.resolve = function (val) {
-        if (val && val instanceof Zousan) return val;
-        var z = new Zousan();
-        z.resolve(val);
-        return z;
-      };
-
-      Zousan.reject = function (err) {
-        if (err && err instanceof Zousan) return err;
-        var z = new Zousan();
-        z.reject(err);
-        return z;
-      };
-
-      Zousan.version = "2.3.3-nodent";
-      return Zousan;
-    })();
-  }
-
-  var resolver = this;
-
-  switch (catcher) {
-    case true:
-      return new $asyncbind.Thenable(boundThen);
-
-    case 0:
-      return new $asyncbind.LazyThenable(boundThen);
-
-    case undefined:
-      boundThen.then = boundThen;
-      return boundThen;
-
-    default:
-      return function () {
-        try {
-          return resolver.apply(self, arguments);
-        } catch (ex) {
-          return catcher(ex);
-        }
-      };
-  }
-
-  function boundThen() {
-    return resolver.apply(self, arguments);
-  }
-};
-
 function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -34781,107 +33097,176 @@ var ParallelTransport = (_class = function () {
     }
   }, {
     key: 'enumerate',
-    value: function enumerate() {
-      return new Promise(function ($return, $error) {
-        var $Try_1_Finally = function ($Try_1_Exit) {
-          return function ($Try_1_Value) {
-            try {
-              if (!_iteratorNormalCompletion && _iterator.return) {
-                _iterator.return();
-              }
-            } catch ($exception_3) {
-              throw $exception_3;
-            } finally {
-              if (_didIteratorError) {
-                throw _iteratorError;
-              }
-            }
-
-            return $Try_1_Exit && $Try_1_Exit.call(this, $Try_1_Value);
-          }.$asyncbind(this, $error);
-        }.$asyncbind(this);
-
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
         var res, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, name, devices;
 
-        res = [];
-        _iteratorNormalCompletion = true;
-        _didIteratorError = false;
-        _iteratorError = undefined;
-        var $Try_1_Post = function () {
-          return $return(res.sort(compare));
-        }.$asyncbind(this, $error);
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                res = [];
+                // eslint-disable-next-line prefer-const
 
-        var $Try_1_Catch = function (err) {
-          _didIteratorError = true;
-          _iteratorError = err;
-          return $Try_1_Finally($Try_1_Post)();
-        }.$asyncbind(this, $Try_1_Finally($error));
-        try {
-          _iterator = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_16_exit, $Loop_16_step, $Try_1_Catch, true)($Loop_16);
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context.prev = 4;
+                _iterator = Object.keys(this.transports)[Symbol.iterator]();
 
-          function $Loop_16() {
-            if (!(_iteratorNormalCompletion = (_step = _iterator.next()).done)) {
-              name = _step.value;
-              return this.transports[name].enumerate().then(function ($await_23) {
-                devices = $await_23;
+              case 6:
+                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                  _context.next = 15;
+                  break;
+                }
+
+                name = _step.value;
+                _context.next = 10;
+                return this.transports[name].enumerate();
+
+              case 10:
+                devices = _context.sent;
+
                 res.push.apply(res, _toConsumableArray(this._prepend(name, devices)));
-                return $Loop_16_step;
-              }.$asyncbind(this, $Try_1_Catch), $Try_1_Catch);
-            } else return [1];
-          }
 
-          function $Loop_16_step() {
-            _iteratorNormalCompletion = true;
-            return $Loop_16;
-          }
+              case 12:
+                _iteratorNormalCompletion = true;
+                _context.next = 6;
+                break;
 
-          function $Loop_16_exit() {
-            return $Try_1_Finally($Try_1_Post)();
+              case 15:
+                _context.next = 21;
+                break;
+
+              case 17:
+                _context.prev = 17;
+                _context.t0 = _context['catch'](4);
+                _didIteratorError = true;
+                _iteratorError = _context.t0;
+
+              case 21:
+                _context.prev = 21;
+                _context.prev = 22;
+
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+
+              case 24:
+                _context.prev = 24;
+
+                if (!_didIteratorError) {
+                  _context.next = 27;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 27:
+                return _context.finish(24);
+
+              case 28:
+                return _context.finish(21);
+
+              case 29:
+                return _context.abrupt('return', res.sort(compare));
+
+              case 30:
+              case 'end':
+                return _context.stop();
+            }
           }
-        } catch (err) {
-          $Try_1_Catch(err)
-        }
-      }.$asyncbind(this));
-    }
+        }, _callee, this, [[4, 17, 21, 29], [22,, 24, 28]]);
+      }));
+
+      function enumerate() {
+        return _ref.apply(this, arguments);
+      }
+
+      return enumerate;
+    }()
   }, {
     key: 'listen',
-    value: function listen(old) {
-      return new Promise(function ($return, $error) {
-        var _this3, actualOld, promises, _ref, name, devices, antiFiltered, prepended;
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(old) {
+        var _this3 = this;
 
-        _this3 = this;
-        return new Promise(function ($return, $error) {
-          if (old == null) {
-            return this.enumerate().then($return, $error);
-          }return $return(old);
-        }.$asyncbind(this)).then(function ($await_25) {
-          actualOld = $await_25;
+        var actualOld, promises, _ref4, name, devices, antiFiltered, prepended;
 
-          promises = Object.keys(this.transports).map(function (name) {
-            return new Promise(function ($return, $error) {
-              var oldFiltered, devices;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (!(old == null)) {
+                  _context3.next = 6;
+                  break;
+                }
 
-              oldFiltered = _this3._filter(name, actualOld);
-              return _this3.transports[name].listen(oldFiltered).then(function ($await_26) {
-                devices = $await_26;
-                return $return({ name: name, devices: devices });
-              }.$asyncbind(this, $error), $error);
-            }.$asyncbind(this));
-          });
+                _context3.next = 3;
+                return this.enumerate();
 
-          return Promise.race(promises).then(function ($await_27) {
-            _ref = $await_27, name = _ref.name, devices = _ref.devices;
+              case 3:
+                _context3.t0 = _context3.sent;
+                _context3.next = 7;
+                break;
 
+              case 6:
+                _context3.t0 = old;
 
-            antiFiltered = this._antiFilter(name, actualOld);
-            prepended = this._prepend(name, devices);
+              case 7:
+                actualOld = _context3.t0;
+                promises = Object.keys(this.transports).map(function () {
+                  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(name) {
+                    var oldFiltered, devices;
+                    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                      while (1) {
+                        switch (_context2.prev = _context2.next) {
+                          case 0:
+                            oldFiltered = _this3._filter(name, actualOld);
+                            _context2.next = 3;
+                            return _this3.transports[name].listen(oldFiltered);
 
-            return $return(antiFiltered.concat(prepended).sort(compare));
-          }.$asyncbind(this, $error), $error);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+                          case 3:
+                            devices = _context2.sent;
+                            return _context2.abrupt('return', { name: name, devices: devices });
+
+                          case 5:
+                          case 'end':
+                            return _context2.stop();
+                        }
+                      }
+                    }, _callee2, _this3);
+                  }));
+
+                  return function (_x2) {
+                    return _ref3.apply(this, arguments);
+                  };
+                }());
+                _context3.next = 11;
+                return Promise.race(promises);
+
+              case 11:
+                _ref4 = _context3.sent;
+                name = _ref4.name;
+                devices = _ref4.devices;
+                antiFiltered = this._antiFilter(name, actualOld);
+                prepended = this._prepend(name, devices);
+                return _context3.abrupt('return', antiFiltered.concat(prepended).sort(compare));
+
+              case 17:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function listen(_x) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return listen;
+    }()
   }, {
     key: '_parseName',
     value: function _parseName(input) {
@@ -34911,34 +33296,76 @@ var ParallelTransport = (_class = function () {
     }
   }, {
     key: 'acquire',
-    value: function acquire(input) {
-      return new Promise(function ($return, $error) {
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(input) {
         var path, previous, newInput, res;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                path = this._parseName(input.path);
+                previous = input.previous == null ? null : this._parseName(input.previous);
 
-        path = this._parseName(input.path);
-        previous = input.previous == null ? null : this._parseName(input.previous);
-        if (previous != null && path.name !== previous.name) {
-          return $error(new Error('Session transport has to equal path transport.'));
-        }
-        newInput = {
-          path: path.rest,
-          previous: previous == null ? null : previous.rest,
-          checkPrevious: input.checkPrevious
-        };
-        return path.transport.acquire(newInput).then(function ($await_28) {
-          res = $await_28;
-          return $return(path.name + '-' + res);
-        }.$asyncbind(this, $error), $error);
-      }.$asyncbind(this));
-    }
+                if (!(previous != null && path.name !== previous.name)) {
+                  _context4.next = 4;
+                  break;
+                }
+
+                throw new Error('Session transport has to equal path transport.');
+
+              case 4:
+                newInput = {
+                  path: path.rest,
+                  previous: previous == null ? null : previous.rest,
+                  checkPrevious: input.checkPrevious
+                };
+                _context4.next = 7;
+                return path.transport.acquire(newInput);
+
+              case 7:
+                res = _context4.sent;
+                return _context4.abrupt('return', path.name + '-' + res);
+
+              case 9:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function acquire(_x3) {
+        return _ref5.apply(this, arguments);
+      }
+
+      return acquire;
+    }()
   }, {
     key: 'release',
-    value: function release(session) {
-      return new Promise(function ($return, $error) {
-        var sessionP = this._parseName(session);
-        return $return(sessionP.transport.release(sessionP.rest));
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(session) {
+        var sessionP;
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                sessionP = this._parseName(session);
+                return _context5.abrupt('return', sessionP.transport.release(sessionP.rest));
+
+              case 2:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function release(_x4) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return release;
+    }()
   }, {
     key: '_checkConfigured',
     value: function _checkConfigured() {
@@ -34975,203 +33402,306 @@ var ParallelTransport = (_class = function () {
     }
   }, {
     key: 'configure',
-    value: function configure(signedData) {
-      return new Promise(function ($return, $error) {
-        var $Try_6_Finally = function ($Try_6_Exit) {
-          return function ($Try_6_Value) {
-            try {
-              if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                _iterator3.return();
-              }
-            } catch ($exception_8) {
-              throw $exception_8;
-            } finally {
-              if (_didIteratorError3) {
-                throw _iteratorError3;
-              }
-            }
-
-            return $Try_6_Exit && $Try_6_Exit.call(this, $Try_6_Value);
-          }.$asyncbind(this, $error);
-        }.$asyncbind(this);
-
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(signedData) {
         var _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, name, transport;
 
-        _iteratorNormalCompletion3 = true;
-        _didIteratorError3 = false;
-        _iteratorError3 = undefined;
-        var $Try_6_Post = function () {
-          this.configured = this._checkConfigured();
-          return $return();
-        }.$asyncbind(this, $error);var $Try_6_Catch = function (err) {
-          _didIteratorError3 = true;
-          _iteratorError3 = err;
-          return $Try_6_Finally($Try_6_Post)();
-        }.$asyncbind(this, $Try_6_Finally($error));
-        try {
-          _iterator3 = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_19_exit, $Loop_19_step, $Try_6_Catch, true)($Loop_19);
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                // eslint-disable-next-line prefer-const
+                _iteratorNormalCompletion3 = true;
+                _didIteratorError3 = false;
+                _iteratorError3 = undefined;
+                _context6.prev = 3;
+                _iterator3 = Object.keys(this.transports)[Symbol.iterator]();
 
-          function $Loop_19() {
-            if (!(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done)) {
-              name = _step3.value;
+              case 5:
+                if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
+                  _context6.next = 13;
+                  break;
+                }
 
-              transport = this.transports[name];
-              return transport.configure(signedData).then(function ($await_29) {
-                return $Loop_19_step;
-              }.$asyncbind(this, $Try_6_Catch), $Try_6_Catch);
-            } else return [1];
+                name = _step3.value;
+                transport = this.transports[name];
+                _context6.next = 10;
+                return transport.configure(signedData);
+
+              case 10:
+                _iteratorNormalCompletion3 = true;
+                _context6.next = 5;
+                break;
+
+              case 13:
+                _context6.next = 19;
+                break;
+
+              case 15:
+                _context6.prev = 15;
+                _context6.t0 = _context6['catch'](3);
+                _didIteratorError3 = true;
+                _iteratorError3 = _context6.t0;
+
+              case 19:
+                _context6.prev = 19;
+                _context6.prev = 20;
+
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                  _iterator3.return();
+                }
+
+              case 22:
+                _context6.prev = 22;
+
+                if (!_didIteratorError3) {
+                  _context6.next = 25;
+                  break;
+                }
+
+                throw _iteratorError3;
+
+              case 25:
+                return _context6.finish(22);
+
+              case 26:
+                return _context6.finish(19);
+
+              case 27:
+                this.configured = this._checkConfigured();
+
+              case 28:
+              case 'end':
+                return _context6.stop();
+            }
           }
+        }, _callee6, this, [[3, 15, 19, 27], [20,, 22, 26]]);
+      }));
 
-          function $Loop_19_step() {
-            _iteratorNormalCompletion3 = true;
-            return $Loop_19;
-          }
+      function configure(_x5) {
+        return _ref7.apply(this, arguments);
+      }
 
-          function $Loop_19_exit() {
-            return $Try_6_Finally($Try_6_Post)();
-          }
-        } catch (err) {
-          $Try_6_Catch(err)
-        }
-      }.$asyncbind(this));
-    }
+      return configure;
+    }()
   }, {
     key: 'call',
-    value: function call(session, name, data) {
-      return new Promise(function ($return, $error) {
-        var sessionP = this._parseName(session);
-        return $return(sessionP.transport.call(sessionP.rest, name, data));
-      }.$asyncbind(this));
-    }
+    value: function () {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(session, name, data) {
+        var sessionP;
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                sessionP = this._parseName(session);
+                return _context7.abrupt('return', sessionP.transport.call(sessionP.rest, name, data));
+
+              case 2:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function call(_x6, _x7, _x8) {
+        return _ref8.apply(this, arguments);
+      }
+
+      return call;
+    }()
 
     // resolves when the transport can be used; rejects when it cannot
 
   }, {
     key: 'init',
-    value: function init(debug) {
-      return new Promise(function ($return, $error) {
-        var $Try_9_Finally = function ($Try_9_Exit) {
-          return function ($Try_9_Value) {
-            try {
-              if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                _iterator4.return();
-              }
-            } catch ($exception_11) {
-              throw $exception_11;
-            } finally {
-              if (_didIteratorError4) {
-                throw _iteratorError4;
-              }
-            }
-
-            return $Try_9_Exit && $Try_9_Exit.call(this, $Try_9_Value);
-          }.$asyncbind(this, $error);
-        }.$asyncbind(this);
-
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(debug) {
         var version, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, name, transport;
 
-        this.debug = !!debug;
-        version = '';
-        _iteratorNormalCompletion4 = true;
-        _didIteratorError4 = false;
-        _iteratorError4 = undefined;
-        var $Try_9_Post = function () {
-          this.version = version;
-          this.configured = this._checkConfigured();
-          return $return();
-        }.$asyncbind(this, $error);var $Try_9_Catch = function (err) {
-          _didIteratorError4 = true;
-          _iteratorError4 = err;
-          return $Try_9_Finally($Try_9_Post)();
-        }.$asyncbind(this, $Try_9_Finally($error));
-        try {
-          _iterator4 = Object.keys(this.transports)[Symbol.iterator]();
-          return Function.$asyncbind.trampoline(this, $Loop_21_exit, $Loop_21_step, $Try_9_Catch, true)($Loop_21);
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                this.debug = !!debug;
+                version = '';
+                // eslint-disable-next-line prefer-const
 
-          function $Loop_21() {
-            if (!(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done)) {
-              name = _step4.value;
+                _iteratorNormalCompletion4 = true;
+                _didIteratorError4 = false;
+                _iteratorError4 = undefined;
+                _context8.prev = 5;
+                _iterator4 = Object.keys(this.transports)[Symbol.iterator]();
 
-              transport = this.transports[name];
-              return transport.init(debug).then(function ($await_30) {
+              case 7:
+                if (_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done) {
+                  _context8.next = 17;
+                  break;
+                }
+
+                name = _step4.value;
+                transport = this.transports[name];
+                _context8.next = 12;
+                return transport.init(debug);
+
+              case 12:
                 version = version + (name + ':' + transport.version + ';');
                 if (transport.requestNeeded) {
                   this.requestNeeded = transport.requestNeeded;
                 }
-                return $Loop_21_step;
-              }.$asyncbind(this, $Try_9_Catch), $Try_9_Catch);
-            } else return [1];
-          }
 
-          function $Loop_21_step() {
-            _iteratorNormalCompletion4 = true;
-            return $Loop_21;
-          }
+              case 14:
+                _iteratorNormalCompletion4 = true;
+                _context8.next = 7;
+                break;
 
-          function $Loop_21_exit() {
-            return $Try_9_Finally($Try_9_Post)();
+              case 17:
+                _context8.next = 23;
+                break;
+
+              case 19:
+                _context8.prev = 19;
+                _context8.t0 = _context8['catch'](5);
+                _didIteratorError4 = true;
+                _iteratorError4 = _context8.t0;
+
+              case 23:
+                _context8.prev = 23;
+                _context8.prev = 24;
+
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                  _iterator4.return();
+                }
+
+              case 26:
+                _context8.prev = 26;
+
+                if (!_didIteratorError4) {
+                  _context8.next = 29;
+                  break;
+                }
+
+                throw _iteratorError4;
+
+              case 29:
+                return _context8.finish(26);
+
+              case 30:
+                return _context8.finish(23);
+
+              case 31:
+                this.version = version;
+                this.configured = this._checkConfigured();
+
+              case 33:
+              case 'end':
+                return _context8.stop();
+            }
           }
-        } catch (err) {
-          $Try_9_Catch(err)
-        }
-      }.$asyncbind(this));
-    }
+        }, _callee8, this, [[5, 19, 23, 31], [24,, 26, 30]]);
+      }));
+
+      function init(_x9) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return init;
+    }()
   }, {
     key: 'requestDevice',
-    value: function requestDevice() {
-      return new Promise(function ($return, $error) {
-        var $Try_12_Finally = function ($Try_12_Exit) {
-          return function ($Try_12_Value) {
-            try {
-              if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                _iterator5.return();
-              }
-            } catch ($exception_14) {
-              throw $exception_14;
-            } finally {
-              if (_didIteratorError5) {
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
+        var _iteratorNormalCompletion5, _didIteratorError5, _iteratorError5, _iterator5, _step5, name, transport;
+
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                _iteratorNormalCompletion5 = true;
+                _didIteratorError5 = false;
+                _iteratorError5 = undefined;
+                _context9.prev = 3;
+                _iterator5 = Object.keys(this.transports)[Symbol.iterator]();
+
+              case 5:
+                if (_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done) {
+                  _context9.next = 13;
+                  break;
+                }
+
+                name = _step5.value;
+                transport = this.transports[name];
+
+                if (!transport.requestNeeded) {
+                  _context9.next = 10;
+                  break;
+                }
+
+                return _context9.abrupt('return', transport.requestDevice());
+
+              case 10:
+                _iteratorNormalCompletion5 = true;
+                _context9.next = 5;
+                break;
+
+              case 13:
+                _context9.next = 19;
+                break;
+
+              case 15:
+                _context9.prev = 15;
+                _context9.t0 = _context9['catch'](3);
+                _didIteratorError5 = true;
+                _iteratorError5 = _context9.t0;
+
+              case 19:
+                _context9.prev = 19;
+                _context9.prev = 20;
+
+                if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                  _iterator5.return();
+                }
+
+              case 22:
+                _context9.prev = 22;
+
+                if (!_didIteratorError5) {
+                  _context9.next = 25;
+                  break;
+                }
+
                 throw _iteratorError5;
-              }
+
+              case 25:
+                return _context9.finish(22);
+
+              case 26:
+                return _context9.finish(19);
+
+              case 27:
+                return _context9.abrupt('return', Promise.reject());
+
+              case 28:
+              case 'end':
+                return _context9.stop();
             }
+          }
+        }, _callee9, this, [[3, 15, 19, 27], [20,, 22, 26]]);
+      }));
 
-            return $Try_12_Exit && $Try_12_Exit.call(this, $Try_12_Value);
-          }.$asyncbind(this, $error);
-        }.$asyncbind(this);
+      function requestDevice() {
+        return _ref10.apply(this, arguments);
+      }
 
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
-        var $Try_12_Post = function () {
-
-          return $return(Promise.reject());
-        }.$asyncbind(this, $error);var $Try_12_Catch = function (err) {
-          _didIteratorError5 = true;
-          _iteratorError5 = err;
-          return $Try_12_Finally($Try_12_Post)();
-        }.$asyncbind(this, $Try_12_Finally($error));
-        try {
-          for (var _iterator5 = Object.keys(this.transports)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var name = _step5.value;
-
-            var transport = this.transports[name];
-            if (transport.requestNeeded) {
-              return $Try_12_Finally($return)(transport.requestDevice());
-            }
-          }return $Try_12_Finally($Try_12_Post)();
-        } catch (err) {
-          $Try_12_Catch(err)
-        }
-      }.$asyncbind(this));
-    }
+      return requestDevice;
+    }()
   }]);
 
   return ParallelTransport;
 }(), (_applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype)), _class);
 exports.default = ParallelTransport;
 module.exports = exports['default'];
-}).call(this,require('_process'))
-},{"./debug-decorator":157,"_process":124}],176:[function(require,module,exports){
+},{"./debug-decorator":157}],176:[function(require,module,exports){
 var native = require('./native')
 
 function getTypeName (fn) {
