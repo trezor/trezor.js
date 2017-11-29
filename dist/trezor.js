@@ -214,6 +214,8 @@ var CONFIG_URL = 'https://wallet.trezor.io/data/config_signed.bin';
 // in both bridge and extension
 var WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 
+var WEBUSB_ERROR_TOSTRING = 'NetworkError: Unable to claim interface.';
+
 //
 // Events:
 //
@@ -426,7 +428,7 @@ var DeviceList = function (_EventEmitter) {
             var devRes = _device2.default.fromDescriptor(transport, descriptor, this).then(function (device) {
                 return device;
             }).catch(function (error) {
-                if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE) {
+                if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE || error.toString() === WEBUSB_ERROR_TOSTRING) {
                     if (previous == null) {
                         return _this4._createUnacquiredDevice(transport, descriptor, stream);
                     } else {
