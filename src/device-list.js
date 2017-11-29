@@ -36,6 +36,8 @@ export type DeviceListOptions = {
 // in both bridge and extension
 const WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 
+const WEBUSB_ERROR_TOSTRING = 'NetworkError: Unable to claim interface.';
+
 //
 // Events:
 //
@@ -239,7 +241,7 @@ export default class DeviceList extends EventEmitter {
             .then((device: Device) => {
                 return device;
             }).catch(error => {
-                if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE) {
+                if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE || error.toString() === WEBUSB_ERROR_TOSTRING) {
                     if (previous == null) {
                         return this._createUnacquiredDevice(transport, descriptor, stream);
                     } else {
