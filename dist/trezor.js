@@ -1580,21 +1580,29 @@ var Bridge = _trezorLink2.default.Bridge,
 
 
 var sharedWorkerFactory = function sharedWorkerFactory() {
-    throw new Error('Shared worker not set.');
+    return null;
 };
 function setSharedWorkerFactory(swf) {
     sharedWorkerFactory = swf;
 }
 
+function sharedWorkerFactoryWrapper() {
+    if (sharedWorkerFactory == null) {
+        return null;
+    } else {
+        return sharedWorkerFactory();
+    }
+}
+
 _deviceList2.default._setTransport(function () {
     return new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb(), function () {
-        return sharedWorkerFactory();
+        return sharedWorkerFactoryWrapper();
     })]);
 });
 
 _deviceList2.default._setFetch(window.fetch);
 (0, _installers.setFetch)(window.fetch);
-},{"./descriptor-stream":1,"./device":3,"./device-list":2,"./installers":7,"./session":8,"./unacquired-device":10,"trezor-link":163,"unorm":180,"whatwg-fetch":186}],7:[function(require,module,exports){
+},{"./descriptor-stream":1,"./device":3,"./device-list":2,"./installers":7,"./session":8,"./unacquired-device":10,"trezor-link":163,"unorm":181,"whatwg-fetch":187}],7:[function(require,module,exports){
 'use strict';
 
 // slight hack to make Flow happy, but to allow Node to set its own fetch
@@ -3768,7 +3776,7 @@ var objectKeys = Object.keys || function (obj) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"util/":184}],18:[function(require,module,exports){
+},{"util/":185}],18:[function(require,module,exports){
 // base-x encoding
 // Forked from https://github.com/cryptocoinjs/bs58
 // Originally written by Mike Hearn for BitcoinJ
@@ -6002,7 +6010,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./networks":36,"./script":37,"./types":63,"bs58check":67,"buffer":68,"typeforce":178}],28:[function(require,module,exports){
+},{"./networks":36,"./script":37,"./types":63,"bs58check":67,"buffer":68,"typeforce":179}],28:[function(require,module,exports){
 (function (Buffer){
 var bufferutils = require('./bufferutils')
 var bcrypto = require('./crypto')
@@ -6171,7 +6179,7 @@ Block.prototype.checkProofOfWork = function () {
 module.exports = Block
 
 }).call(this,require("buffer").Buffer)
-},{"./bufferutils":29,"./crypto":30,"./transaction":61,"./types":63,"buffer":68,"merkle-lib/fastRoot":115,"typeforce":178}],29:[function(require,module,exports){
+},{"./bufferutils":29,"./crypto":30,"./transaction":61,"./types":63,"buffer":68,"merkle-lib/fastRoot":115,"typeforce":179}],29:[function(require,module,exports){
 var pushdata = require('pushdata-bitcoin')
 var varuint = require('varuint-bitcoin')
 
@@ -6229,7 +6237,7 @@ module.exports = {
   writeVarInt: writeVarInt
 }
 
-},{"pushdata-bitcoin":127,"varuint-bitcoin":185}],30:[function(require,module,exports){
+},{"pushdata-bitcoin":127,"varuint-bitcoin":186}],30:[function(require,module,exports){
 var createHash = require('create-hash')
 
 function ripemd160 (buffer) {
@@ -6428,7 +6436,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./ecsignature":33,"./types":63,"bigi":22,"buffer":68,"create-hmac":75,"ecurve":80,"typeforce":178}],32:[function(require,module,exports){
+},{"./ecsignature":33,"./types":63,"bigi":22,"buffer":68,"create-hmac":75,"ecurve":80,"typeforce":179}],32:[function(require,module,exports){
 var baddress = require('./address')
 var bcrypto = require('./crypto')
 var ecdsa = require('./ecdsa')
@@ -6561,7 +6569,7 @@ ECPair.prototype.verify = function (hash, signature) {
 
 module.exports = ECPair
 
-},{"./address":27,"./crypto":30,"./ecdsa":31,"./networks":36,"./types":63,"bigi":22,"ecurve":80,"randombytes":128,"typeforce":178,"wif":187}],33:[function(require,module,exports){
+},{"./address":27,"./crypto":30,"./ecdsa":31,"./networks":36,"./types":63,"bigi":22,"ecurve":80,"randombytes":128,"typeforce":179,"wif":188}],33:[function(require,module,exports){
 (function (Buffer){
 var bip66 = require('bip66')
 var typeforce = require('typeforce')
@@ -6652,7 +6660,7 @@ ECSignature.prototype.toScriptSignature = function (hashType) {
 module.exports = ECSignature
 
 }).call(this,require("buffer").Buffer)
-},{"./types":63,"bigi":22,"bip66":24,"buffer":68,"typeforce":178}],34:[function(require,module,exports){
+},{"./types":63,"bigi":22,"bip66":24,"buffer":68,"typeforce":179}],34:[function(require,module,exports){
 (function (Buffer){
 var base58check = require('bs58check')
 var bcrypto = require('./crypto')
@@ -6974,7 +6982,7 @@ HDNode.prototype.derivePath = function (path) {
 module.exports = HDNode
 
 }).call(this,require("buffer").Buffer)
-},{"./crypto":30,"./ecpair":32,"./networks":36,"./types":63,"bigi":22,"bs58check":67,"buffer":68,"create-hmac":75,"ecurve":80,"typeforce":178}],35:[function(require,module,exports){
+},{"./crypto":30,"./ecpair":32,"./networks":36,"./types":63,"bigi":22,"bs58check":67,"buffer":68,"create-hmac":75,"ecurve":80,"typeforce":179}],35:[function(require,module,exports){
 module.exports = {
   Block: require('./block'),
   ECPair: require('./ecpair'),
@@ -7240,7 +7248,7 @@ for (var key in templates) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./script_number":38,"./templates":39,"./types":63,"bip66":24,"bitcoin-ops":25,"bitcoin-ops/map":26,"buffer":68,"pushdata-bitcoin":127,"typeforce":178}],38:[function(require,module,exports){
+},{"./script_number":38,"./templates":39,"./types":63,"bip66":24,"bitcoin-ops":25,"bitcoin-ops/map":26,"buffer":68,"pushdata-bitcoin":127,"typeforce":179}],38:[function(require,module,exports){
 (function (Buffer){
 function decode (buffer, maxLength, minimal) {
   maxLength = maxLength || 4
@@ -7458,7 +7466,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"../../script":37,"bitcoin-ops":25,"buffer":68,"typeforce":178}],42:[function(require,module,exports){
+},{"../../script":37,"bitcoin-ops":25,"buffer":68,"typeforce":179}],42:[function(require,module,exports){
 // m [pubKeys ...] n OP_CHECKMULTISIG
 
 var bscript = require('../../script')
@@ -7524,7 +7532,7 @@ module.exports = {
   encode: encode
 }
 
-},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":178}],43:[function(require,module,exports){
+},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":179}],43:[function(require,module,exports){
 // OP_RETURN {data}
 
 var bscript = require('../script')
@@ -7560,7 +7568,7 @@ module.exports = {
   }
 }
 
-},{"../script":37,"../types":63,"bitcoin-ops":25,"typeforce":178}],44:[function(require,module,exports){
+},{"../script":37,"../types":63,"bitcoin-ops":25,"typeforce":179}],44:[function(require,module,exports){
 arguments[4][40][0].apply(exports,arguments)
 },{"./input":45,"./output":46,"dup":40}],45:[function(require,module,exports){
 // {signature}
@@ -7604,7 +7612,7 @@ module.exports = {
   encodeStack: encodeStack
 }
 
-},{"../../script":37,"../../types":63,"typeforce":178}],46:[function(require,module,exports){
+},{"../../script":37,"../../types":63,"typeforce":179}],46:[function(require,module,exports){
 // {pubKey} OP_CHECKSIG
 
 var bscript = require('../../script')
@@ -7639,7 +7647,7 @@ module.exports = {
   encode: encode
 }
 
-},{"../../script":37,"bitcoin-ops":25,"typeforce":178}],47:[function(require,module,exports){
+},{"../../script":37,"bitcoin-ops":25,"typeforce":179}],47:[function(require,module,exports){
 arguments[4][40][0].apply(exports,arguments)
 },{"./input":48,"./output":49,"dup":40}],48:[function(require,module,exports){
 // {signature} {pubKey}
@@ -7693,7 +7701,7 @@ module.exports = {
   encodeStack: encodeStack
 }
 
-},{"../../script":37,"../../types":63,"typeforce":178}],49:[function(require,module,exports){
+},{"../../script":37,"../../types":63,"typeforce":179}],49:[function(require,module,exports){
 // OP_DUP OP_HASH160 {pubKeyHash} OP_EQUALVERIFY OP_CHECKSIG
 
 var bscript = require('../../script')
@@ -7737,7 +7745,7 @@ module.exports = {
   encode: encode
 }
 
-},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":178}],50:[function(require,module,exports){
+},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":179}],50:[function(require,module,exports){
 arguments[4][40][0].apply(exports,arguments)
 },{"./input":51,"./output":52,"dup":40}],51:[function(require,module,exports){
 (function (Buffer){
@@ -7809,7 +7817,7 @@ module.exports = {
 }
 
 }).call(this,{"isBuffer":require("../../../../is-buffer/index.js")})
-},{"../../../../is-buffer/index.js":104,"../../script":37,"typeforce":178}],52:[function(require,module,exports){
+},{"../../../../is-buffer/index.js":104,"../../script":37,"typeforce":179}],52:[function(require,module,exports){
 // OP_HASH160 {scriptHash} OP_EQUAL
 
 var bscript = require('../../script')
@@ -7845,7 +7853,7 @@ module.exports = {
   encode: encode
 }
 
-},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":178}],53:[function(require,module,exports){
+},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":179}],53:[function(require,module,exports){
 module.exports = {
   output: require('./output')
 }
@@ -7891,7 +7899,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"../../script":37,"../../types":63,"bitcoin-ops":25,"buffer":68,"typeforce":178}],55:[function(require,module,exports){
+},{"../../script":37,"../../types":63,"bitcoin-ops":25,"buffer":68,"typeforce":179}],55:[function(require,module,exports){
 arguments[4][40][0].apply(exports,arguments)
 },{"./input":56,"./output":57,"dup":40}],56:[function(require,module,exports){
 // {signature} {pubKey}
@@ -7939,7 +7947,7 @@ module.exports = {
   encode: encode
 }
 
-},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":178}],58:[function(require,module,exports){
+},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":179}],58:[function(require,module,exports){
 arguments[4][40][0].apply(exports,arguments)
 },{"./input":59,"./output":60,"dup":40}],59:[function(require,module,exports){
 // {signature} {pubKey}
@@ -7987,7 +7995,7 @@ module.exports = {
   encode: encode
 }
 
-},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":178}],61:[function(require,module,exports){
+},{"../../script":37,"../../types":63,"bitcoin-ops":25,"typeforce":179}],61:[function(require,module,exports){
 (function (Buffer){
 var bcrypto = require('./crypto')
 var bscript = require('./script')
@@ -8631,7 +8639,7 @@ Transaction.prototype.setWitness = function (index, witness) {
 module.exports = Transaction
 
 }).call(this,require("buffer").Buffer)
-},{"./bufferutils":29,"./crypto":30,"./script":37,"./types":63,"bitcoin-ops":25,"buffer":68,"typeforce":178}],62:[function(require,module,exports){
+},{"./bufferutils":29,"./crypto":30,"./script":37,"./types":63,"bitcoin-ops":25,"buffer":68,"typeforce":179}],62:[function(require,module,exports){
 (function (Buffer){
 var baddress = require('./address')
 var bcrypto = require('./crypto')
@@ -9376,7 +9384,7 @@ TransactionBuilder.prototype.__overMaximumFees = function (bytes) {
 module.exports = TransactionBuilder
 
 }).call(this,require("buffer").Buffer)
-},{"./address":27,"./crypto":30,"./ecpair":32,"./ecsignature":33,"./networks":36,"./script":37,"./transaction":61,"./types":63,"bitcoin-ops":25,"buffer":68,"typeforce":178}],63:[function(require,module,exports){
+},{"./address":27,"./crypto":30,"./ecpair":32,"./ecsignature":33,"./networks":36,"./script":37,"./transaction":61,"./types":63,"bitcoin-ops":25,"buffer":68,"typeforce":179}],63:[function(require,module,exports){
 var typeforce = require('typeforce')
 
 var UINT31_MAX = Math.pow(2, 31) - 1
@@ -9431,7 +9439,7 @@ for (var typeName in typeforce) {
 
 module.exports = types
 
-},{"typeforce":178}],64:[function(require,module,exports){
+},{"typeforce":179}],64:[function(require,module,exports){
 
 },{}],65:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
@@ -26400,7 +26408,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":130,"./internal/streams/destroy":136,"./internal/streams/stream":137,"_process":124,"core-util-is":71,"inherits":103,"process-nextick-args":123,"safe-buffer":143,"util-deprecate":181}],135:[function(require,module,exports){
+},{"./_stream_duplex":130,"./internal/streams/destroy":136,"./internal/streams/stream":137,"_process":124,"core-util-is":71,"inherits":103,"process-nextick-args":123,"safe-buffer":143,"util-deprecate":182}],135:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -30055,7 +30063,7 @@ exports.default = {
   WebUsb: _webusb2.default
 };
 module.exports = exports['default'];
-},{"./bridge":156,"./extension":159,"./fallback":161,"./lowlevel/webusb":173,"./lowlevel/withSharedConnections":174,"./parallel":175,"whatwg-fetch":186}],164:[function(require,module,exports){
+},{"./bridge":156,"./extension":159,"./fallback":161,"./lowlevel/webusb":174,"./lowlevel/withSharedConnections":175,"./parallel":176,"whatwg-fetch":187}],164:[function(require,module,exports){
 "use strict";
 
 /*
@@ -31760,6 +31768,210 @@ function buildBuffers(messages, name, data) {
   return encoded;
 }
 },{"protobufjs-old-fixed-webpack":126}],172:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.postModuleMessage = postModuleMessage;
+
+var _defered = require('../defered');
+
+// To ensure that two website don't read from/to Trezor at the same time, I need a sharedworker
+// to synchronize them.
+// However, sharedWorker cannot directly use webusb API... so I need to send messages
+// about intent to acquire/release and then send another message when that is done.
+// Other windows then can acquire/release
+
+// eslint-disable-next-line no-undef
+// $FlowIssue
+if (typeof onconnect !== 'undefined') {
+  // eslint-disable-next-line no-undef
+  onconnect = function onconnect(e) {
+    var port = e.ports[0];
+    port.onmessage = function (e) {
+      handleMessage(e.data, port);
+    };
+  };
+}
+
+// path => session
+var state = {};
+
+var lock = null;
+var waitPromise = Promise.resolve();
+
+function startLock() {
+  var newLock = (0, _defered.create)();
+  lock = newLock;
+  setTimeout(function () {
+    return newLock.reject(new Error('Timed out'));
+  }, 10 * 1000);
+}
+
+function releaseLock(obj) {
+  if (lock == null) {
+    // TODO: ???
+    return;
+  }
+  lock.resolve(obj);
+}
+
+function waitForLock() {
+  if (lock == null) {
+    // TODO: ???
+    return Promise.reject(new Error('???'));
+  }
+  return lock.promise;
+}
+
+function waitInQueue(fn) {
+  var res = waitPromise.then(function () {
+    return fn();
+  });
+  waitPromise = res.catch(function () {});
+}
+
+function handleMessage(_ref, port) {
+  var id = _ref.id,
+      message = _ref.message;
+
+  if (message.type === 'acquire-intent') {
+    var _path = message.path;
+    var checkPrevious = message.checkPrevious;
+    var previous = message.previous;
+    waitInQueue(function () {
+      return handleAcquireIntent(_path, checkPrevious, previous, id, port);
+    });
+  }
+  if (message.type === 'acquire-done') {
+    handleAcquireDone(id); // port is the same as original
+  }
+  if (message.type === 'acquire-failed') {
+    handleAcquireFailed(id); // port is the same as original
+  }
+  if (message.type === 'get-sessions') {
+    waitInQueue(function () {
+      return handleGetSessions(id, port);
+    });
+  }
+
+  if (message.type === 'get-sessions-and-disconnect') {
+    var devices = message.devices;
+    waitInQueue(function () {
+      return handleGetSessions(id, port, devices);
+    });
+  }
+
+  if (message.type === 'release-intent') {
+    var session = message.session;
+    waitInQueue(function () {
+      return handleReleaseIntent(session, id, port);
+    });
+  }
+  if (message.type === 'release-done') {
+    handleReleaseDone(id); // port is the same as original
+  }
+}
+
+function handleReleaseDone(id) {
+  releaseLock({ id: id });
+}
+
+function handleReleaseIntent(session, id, port) {
+  var path_ = null;
+  Object.keys(state).forEach(function (kpath) {
+    if (state[kpath] === session) {
+      path_ = kpath;
+    }
+  });
+  if (path_ == null) {
+    sendBack({ type: 'double-release' }, id, port);
+    return Promise.resolve();
+  }
+
+  var path = path_;
+
+  startLock();
+  sendBack({ type: 'path', path: path }, id, port);
+
+  // if lock times out, promise rejects and queue goes on
+  return waitForLock().then(function (obj) {
+    // failure => nothing happens, but still has to reply "ok"
+    delete state[path];
+    sendBack({ type: 'ok' }, obj.id, port);
+  });
+}
+
+function handleGetSessions(id, port, devices) {
+  if (devices != null) {
+    var connected = {};
+    devices.forEach(function (d) {
+      connected[d.path] = true;
+    });
+    Object.keys(state).forEach(function (path) {
+      if (!connected[path]) {
+        delete state[path];
+      }
+    });
+  }
+  sendBack({ type: 'sessions', sessions: state }, id, port);
+  return Promise.resolve();
+}
+
+var lastSession = 0;
+function handleAcquireDone(id) {
+  releaseLock({ good: true, id: id });
+}
+
+function handleAcquireFailed(id) {
+  releaseLock({ good: false, id: id });
+}
+
+function handleAcquireIntent(path, checkPrevious, previous, id, port) {
+  var error = false;
+  if (checkPrevious) {
+    var realPrevious = state[path];
+
+    if (realPrevious == null) {
+      error = previous != null;
+    } else {
+      error = previous !== realPrevious;
+    }
+  }
+  if (error) {
+    sendBack({ type: 'wrong-previous-session' }, id, port);
+    return Promise.resolve();
+  } else {
+    startLock();
+    sendBack({ type: 'ok' }, id, port);
+    // if lock times out, promise rejects and queue goes on
+    return waitForLock().then(function (obj) {
+      if (obj.good) {
+        lastSession++;
+        var session = lastSession.toString();
+        state[path] = session;
+        sendBack({ type: 'session-number', number: session }, obj.id, port);
+      } else {
+        // failure => nothing happens, but still has to reply "ok"
+        sendBack({ type: 'ok' }, obj.id, port);
+      }
+    });
+  }
+}
+
+function sendBack(message, id, port) {
+  port.postMessage({ id: id, message: message });
+}
+
+// when shared worker is not loaded as a shared loader, use it as a module instead
+function postModuleMessage(_ref2, fn) {
+  var id = _ref2.id,
+      message = _ref2.message;
+
+  handleMessage({ id: id, message: message }, { postMessage: fn });
+}
+},{"../defered":158}],173:[function(require,module,exports){
 (function (Buffer){
 "use strict";
 
@@ -31819,7 +32031,7 @@ function verifyHexBin(data) {
   }
 }
 }).call(this,require("buffer").Buffer)
-},{"bigi":22,"bitcoinjs-lib-zcash":35,"buffer":68}],173:[function(require,module,exports){
+},{"bigi":22,"bitcoinjs-lib-zcash":35,"buffer":68}],174:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -31885,7 +32097,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.106";
+    this.version = "0.2.108";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.configurationId = CONFIGURATION_ID;
@@ -32359,7 +32571,7 @@ var WebUsbPlugin = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'connect', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'connect'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'disconnect', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'disconnect'), _class.prototype)), _class);
 exports.default = WebUsbPlugin;
 module.exports = exports['default'];
-},{"../debug-decorator":157}],174:[function(require,module,exports){
+},{"../debug-decorator":157}],175:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -32386,6 +32598,8 @@ var _send = require('./send');
 var _receive = require('./receive');
 
 var _debugDecorator = require('../debug-decorator');
+
+var _sharedConnectionWorker = require('./sharedConnectionWorker');
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
@@ -32927,13 +33141,17 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
 
               case 4:
                 // create the worker ONLY when the plugin is successfully inited
-                this.sharedWorker = this._sharedWorkerFactory();
-                this.sharedWorker.port.onmessage = function (e) {
-                  // $FlowIssue
-                  _this5.receiveFromWorker(e.data);
-                };
+                if (this._sharedWorkerFactory != null) {
+                  this.sharedWorker = this._sharedWorkerFactory();
+                  if (this.sharedWorker != null) {
+                    this.sharedWorker.port.onmessage = function (e) {
+                      // $FlowIssue
+                      _this5.receiveFromWorker(e.data);
+                    };
+                  }
+                }
 
-              case 6:
+              case 5:
               case 'end':
                 return _context9.stop();
             }
@@ -32974,10 +33192,21 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
   }, {
     key: 'sendToWorker',
     value: function sendToWorker(message) {
+      var _this6 = this;
+
       this.latestId++;
       var id = this.latestId;
       this.defereds[id] = (0, _defered.create)();
-      this.sharedWorker.port.postMessage({ id: id, message: message });
+
+      // when shared worker is not loaded as a shared loader, use it as a module instead
+      if (this.sharedWorker != null) {
+        this.sharedWorker.port.postMessage({ id: id, message: message });
+      } else {
+        (0, _sharedConnectionWorker.postModuleMessage)({ id: id, message: message }, function (m) {
+          return _this6.receiveFromWorker(m);
+        });
+      }
+
       return this.defereds[id].promise;
     }
   }, {
@@ -32992,7 +33221,7 @@ var LowlevelTransportWithSharedConnections = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype)), _class);
 exports.default = LowlevelTransportWithSharedConnections;
 module.exports = exports['default'];
-},{"../debug-decorator":157,"../defered":158,"./protobuf/monkey_patch":167,"./protobuf/parse_protocol":168,"./receive":170,"./send":171,"./verify":172,"json-stable-stringify":110}],175:[function(require,module,exports){
+},{"../debug-decorator":157,"../defered":158,"./protobuf/monkey_patch":167,"./protobuf/parse_protocol":168,"./receive":170,"./send":171,"./sharedConnectionWorker":172,"./verify":173,"json-stable-stringify":110}],176:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -33703,7 +33932,7 @@ var ParallelTransport = (_class = function () {
 }(), (_applyDecoratedDescriptor(_class.prototype, 'enumerate', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'enumerate'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'listen', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'listen'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'acquire', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'acquire'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'release', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'release'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'configure', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'configure'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'call', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'call'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'init', [_debugDecorator.debugInOut], Object.getOwnPropertyDescriptor(_class.prototype, 'init'), _class.prototype)), _class);
 exports.default = ParallelTransport;
 module.exports = exports['default'];
-},{"./debug-decorator":157}],176:[function(require,module,exports){
+},{"./debug-decorator":157}],177:[function(require,module,exports){
 var native = require('./native')
 
 function getTypeName (fn) {
@@ -33809,7 +34038,7 @@ module.exports = {
   getValueTypeName: getValueTypeName
 }
 
-},{"./native":179}],177:[function(require,module,exports){
+},{"./native":180}],178:[function(require,module,exports){
 (function (Buffer){
 var NATIVE = require('./native')
 var ERRORS = require('./errors')
@@ -33883,7 +34112,7 @@ for (var typeName in types) {
 module.exports = types
 
 }).call(this,{"isBuffer":require("../is-buffer/index.js")})
-},{"../is-buffer/index.js":104,"./errors":176,"./native":179}],178:[function(require,module,exports){
+},{"../is-buffer/index.js":104,"./errors":177,"./native":180}],179:[function(require,module,exports){
 var ERRORS = require('./errors')
 var NATIVE = require('./native')
 
@@ -34118,7 +34347,7 @@ typeforce.TfPropertyTypeError = TfPropertyTypeError
 
 module.exports = typeforce
 
-},{"./errors":176,"./extra":177,"./native":179}],179:[function(require,module,exports){
+},{"./errors":177,"./extra":178,"./native":180}],180:[function(require,module,exports){
 var types = {
   Array: function (value) { return value !== null && value !== undefined && value.constructor === Array },
   Boolean: function (value) { return typeof value === 'boolean' },
@@ -34141,7 +34370,7 @@ for (var typeName in types) {
 
 module.exports = types
 
-},{}],180:[function(require,module,exports){
+},{}],181:[function(require,module,exports){
 (function (root) {
    "use strict";
 
@@ -34585,7 +34814,7 @@ UChar.udata={
    }
 }(this));
 
-},{}],181:[function(require,module,exports){
+},{}],182:[function(require,module,exports){
 (function (global){
 
 /**
@@ -34656,16 +34885,16 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],182:[function(require,module,exports){
+},{}],183:[function(require,module,exports){
 arguments[4][103][0].apply(exports,arguments)
-},{"dup":103}],183:[function(require,module,exports){
+},{"dup":103}],184:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],184:[function(require,module,exports){
+},{}],185:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -35255,7 +35484,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":183,"_process":124,"inherits":182}],185:[function(require,module,exports){
+},{"./support/isBuffer":184,"_process":124,"inherits":183}],186:[function(require,module,exports){
 (function (Buffer){
 'use strict'
 
@@ -35348,7 +35577,7 @@ function encodingLength (number) {
 module.exports = { encode: encode, decode: decode, encodingLength: encodingLength }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":68}],186:[function(require,module,exports){
+},{"buffer":68}],187:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -35739,7 +35968,7 @@ module.exports = { encode: encode, decode: decode, encodingLength: encodingLengt
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],187:[function(require,module,exports){
+},{}],188:[function(require,module,exports){
 (function (Buffer){
 var bs58check = require('bs58check')
 
