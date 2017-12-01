@@ -1580,7 +1580,7 @@ var Bridge = _trezorLink2.default.Bridge,
 
 
 var sharedWorkerFactory = function sharedWorkerFactory() {
-    return null;
+    throw new Error('WebUsb is not yet enabled.');
 };
 function setSharedWorkerFactory(swf) {
     sharedWorkerFactory = swf;
