@@ -71,6 +71,9 @@ versions-minor: .versions
 versions-major: TYPE = major
 versions-major: .versions
 
+versions-prerelease: TYPE = prerelease
+versions-prerelease: .versions
+
 git-clean:
 	test ! -n "$$(git status --porcelain)"
 
