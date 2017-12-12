@@ -22952,7 +22952,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.111";
+    this.version = "0.2.112";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.configurationId = CONFIGURATION_ID;
