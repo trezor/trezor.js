@@ -22513,18 +22513,20 @@ var BuiltMessage = function () {
 
   _createClass(BuiltMessage, [{
     key: "_encodeLong",
-    value: function _encodeLong() {
+    value: function _encodeLong(addTrezorHeaders) {
       var headerSize = HEADER_SIZE; // should be 8
       var bytes = new Uint8Array(this.message.encodeAB());
-      var fullSize = headerSize + bytes.length;
+      var fullSize = (addTrezorHeaders ? headerSize : headerSize - 2) + bytes.length;
 
       var encodedByteBuffer = new _protobufjsOldFixedWebpack.ByteBuffer(fullSize);
 
       // first encode header
 
-      // 2*1 byte
-      encodedByteBuffer.writeByte(MESSAGE_HEADER_BYTE);
-      encodedByteBuffer.writeByte(MESSAGE_HEADER_BYTE);
+      if (addTrezorHeaders) {
+        // 2*1 byte
+        encodedByteBuffer.writeByte(MESSAGE_HEADER_BYTE);
+        encodedByteBuffer.writeByte(MESSAGE_HEADER_BYTE);
+      }
 
       // 2 bytes
       encodedByteBuffer.writeUint16(this.type);
@@ -22547,7 +22549,7 @@ var BuiltMessage = function () {
   }, {
     key: "encode",
     value: function encode() {
-      var bytes = this._encodeLong();
+      var bytes = this._encodeLong(true);
 
       var result = [];
       var size = BUFFER_SIZE;
@@ -22571,7 +22573,7 @@ var BuiltMessage = function () {
   }, {
     key: "encodeOne",
     value: function encodeOne() {
-      var bytes = this._encodeLong();
+      var bytes = this._encodeLong(false);
       return new Buffer([].concat(_toConsumableArray(bytes)));
     }
   }]);
@@ -22952,7 +22954,7 @@ var WebUsbPlugin = (_class = function () {
     _classCallCheck(this, WebUsbPlugin);
 
     this.name = 'WebUsbPlugin';
-    this.version = "0.2.112";
+    this.version = "0.2.113";
     this.debug = false;
     this.allowsWriteAndEnumerate = true;
     this.configurationId = CONFIGURATION_ID;
