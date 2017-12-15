@@ -25,8 +25,9 @@
       "es2017"
     ],
     "plugins": [
-      "transform-object-rest-spread",
       "transform-flow-strip-types",
+      "transform-decorators-legacy",
+      "transform-object-rest-spread",
       "transform-class-properties",
       "add-module-exports"
     ]
