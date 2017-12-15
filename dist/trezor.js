@@ -4,6 +4,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.default = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -180,8 +181,11 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.default = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _class, _temp;
 
 var _events = require('./events');
 
@@ -224,8 +228,7 @@ var WEBUSB_ERROR_TOSTRING = 'NetworkError: Unable to claim interface.';
 //  transport: Transport
 //  stream: DescriptorStream
 //
-
-var DeviceList = function (_EventEmitter) {
+var DeviceList = (_temp = _class = function (_EventEmitter) {
     _inherits(DeviceList, _EventEmitter);
 
     _createClass(DeviceList, null, [{
@@ -678,12 +681,9 @@ var DeviceList = function (_EventEmitter) {
     }]);
 
     return DeviceList;
-}(_events.EventEmitter);
-
-DeviceList._fetch = function () {
+}(_events.EventEmitter), _class._fetch = function () {
     return Promise.reject(new Error('No fetch defined'));
-};
-
+}, _temp);
 exports.default = DeviceList;
 
 
@@ -699,6 +699,7 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.default = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -718,7 +719,21 @@ var _session2 = _interopRequireDefault(_session);
 
 var _connectionLock = require('./utils/connectionLock');
 
+var _hdnode = require('./utils/hdnode');
+
+var _trezortypes = require('./trezortypes');
+
+var trezor = _interopRequireWildcard(_trezortypes);
+
+var _bitcoinjsLibZcash = require('bitcoinjs-lib-zcash');
+
+var bitcoin = _interopRequireWildcard(_bitcoinjsLibZcash);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -749,6 +764,8 @@ var Device = function (_EventEmitter) {
         _this.clearSessionFuture = 0;
         _this.rememberPlaintextPassphrase = false;
         _this.rememberedPlaintextPasshprase = null;
+        _this.integrityCheckingXpubPath = [(0, _hdnode.harden)(49), (0, _hdnode.harden)(0), (0, _hdnode.harden)(0)];
+        _this.integrityCheckingXpubNetwork = 'bitcoin';
         _this.disconnectEvent = new _flowEvents.Event0('disconnect', _this);
         _this.buttonEvent = new _flowEvents.Event1('button', _this);
         _this.errorEvent = new _flowEvents.Event1('error', _this);
@@ -903,7 +920,7 @@ var Device = function (_EventEmitter) {
                     } else {
                         return Promise.resolve();
                     }
-                });
+                }, _this2);
 
                 return promiseFinally(Promise.all([promiseFinally(res, function (ok, err) {
                     e.emit('done');
@@ -927,6 +944,73 @@ var Device = function (_EventEmitter) {
                 });
             });
         }
+    }, {
+        key: 'setCheckingXpub',
+        value: function setCheckingXpub(integrityCheckingXpubPath, integrityCheckingXpub, integrityCheckingXpubNetwork) {
+            this.integrityCheckingXpubPath = integrityCheckingXpubPath;
+            this.integrityCheckingXpub = integrityCheckingXpub;
+            this.integrityCheckingXpubNetwork = integrityCheckingXpubNetwork;
+        }
+    }, {
+        key: 'canSayXpub',
+        value: function canSayXpub() {
+            if (!this.features.bootloader_mode) {
+                return false;
+            }
+            if (!this.features.initialized) {
+                return false;
+            }
+            var noPassphrase = this.features.passphrase_protection ? this.features.passphrase_cached : true;
+            var noPin = this.features.pin_protection ? this.features.pin_cached : true;
+            return noPassphrase && noPin;
+        }
+    }, {
+        key: 'xpubIntegrityCheck',
+        value: function () {
+            var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(session) {
+                var hdnode, xpub;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                _context.next = 2;
+                                return session._getHDNodeInternal(this.integrityCheckingXpubPath, this.integrityCheckingXpubNetwork);
+
+                            case 2:
+                                hdnode = _context.sent;
+                                xpub = hdnode.toBase58();
+
+                                if (!(this.integrityCheckingXpub == null)) {
+                                    _context.next = 8;
+                                    break;
+                                }
+
+                                this.integrityCheckingXpub = xpub;
+                                _context.next = 10;
+                                break;
+
+                            case 8:
+                                if (!(xpub !== this.integrityCheckingXpub)) {
+                                    _context.next = 10;
+                                    break;
+                                }
+
+                                throw new Error('Inconsistent state. Please disconnect and reconnect the device.');
+
+                            case 10:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function xpubIntegrityCheck(_x) {
+                return _ref.apply(this, arguments);
+            }
+
+            return xpubIntegrityCheck;
+        }()
     }, {
         key: '_reloadFeaturesOrInitialize',
         value: function _reloadFeaturesOrInitialize(session) {
@@ -1001,60 +1085,95 @@ var Device = function (_EventEmitter) {
         }
     }, {
         key: '_runInside',
-        value: function _runInside(fn, activeSession, features, skipFinalReload) {
-            var _this6 = this;
+        value: function () {
+            var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(fn, activeSession, features, skipFinalReload) {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                this.features = features;
 
-            this.features = features;
+                                forward2(activeSession.sendEvent, this.sendEvent);
+                                forward2(activeSession.receiveEvent, this.receiveEvent);
+                                forwardError(activeSession.errorEvent, this.errorEvent);
 
-            forward2(activeSession.sendEvent, this.sendEvent);
-            forward2(activeSession.receiveEvent, this.receiveEvent);
-            forwardError(activeSession.errorEvent, this.errorEvent);
+                                forward1(activeSession.buttonEvent, this.buttonEvent);
+                                forwardCallback2(activeSession.pinEvent, this.pinEvent);
+                                forwardCallback1(activeSession.wordEvent, this.wordEvent);
+                                this.forwardPassphrase(activeSession.passphraseEvent);
 
-            forward1(activeSession.buttonEvent, this.buttonEvent);
-            forwardCallback2(activeSession.pinEvent, this.pinEvent);
-            forwardCallback1(activeSession.wordEvent, this.wordEvent);
-            this.forwardPassphrase(activeSession.passphraseEvent);
+                                _context2.prev = 8;
+                                _context2.next = 11;
+                                return fn(activeSession);
 
-            var runFinal = function runFinal() {
-                activeSession.deactivateEvents();
+                            case 11:
+                                return _context2.abrupt('return', _context2.sent);
 
-                if (skipFinalReload) {
-                    return Promise.resolve();
-                } else {
-                    return _this6._reloadFeaturesOrInitialize(activeSession);
-                }
-            };
+                            case 12:
+                                _context2.prev = 12;
 
-            return promiseFinally(Promise.resolve(fn(activeSession)), function () {
-                return runFinal();
-            });
-        }
+                                activeSession.deactivateEvents();
+
+                                if (skipFinalReload) {
+                                    _context2.next = 20;
+                                    break;
+                                }
+
+                                _context2.next = 17;
+                                return this._reloadFeaturesOrInitialize(activeSession);
+
+                            case 17:
+                                if (!this.canSayXpub()) {
+                                    _context2.next = 20;
+                                    break;
+                                }
+
+                                _context2.next = 20;
+                                return this.xpubIntegrityCheck(activeSession);
+
+                            case 20:
+                                return _context2.finish(12);
+
+                            case 21:
+                            case 'end':
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this, [[8,, 12, 21]]);
+            }));
+
+            function _runInside(_x2, _x3, _x4, _x5) {
+                return _ref2.apply(this, arguments);
+            }
+
+            return _runInside;
+        }()
     }, {
         key: '_waitForNullSession',
         value: function _waitForNullSession() {
-            var _this7 = this;
+            var _this6 = this;
 
             return new Promise(function (resolve, reject) {
                 var _onDisconnect = function onDisconnect() {};
                 var onUpdate = function onUpdate() {
-                    var updatedSession = _this7.deviceList.getSession(_this7.originalDescriptor.path);
-                    var device = _this7.deviceList.devices[_this7.originalDescriptor.path.toString()];
+                    var updatedSession = _this6.deviceList.getSession(_this6.originalDescriptor.path);
+                    var device = _this6.deviceList.devices[_this6.originalDescriptor.path.toString()];
                     if (updatedSession == null && device != null) {
-                        _this7.deviceList.disconnectEvent.removeListener(_onDisconnect);
-                        _this7.deviceList.updateEvent.removeListener(onUpdate);
+                        _this6.deviceList.disconnectEvent.removeListener(_onDisconnect);
+                        _this6.deviceList.updateEvent.removeListener(onUpdate);
                         resolve(updatedSession);
                     }
                 };
                 _onDisconnect = function onDisconnect(device) {
-                    if (device === _this7) {
-                        _this7.deviceList.disconnectEvent.removeListener(_onDisconnect);
-                        _this7.deviceList.updateEvent.removeListener(onUpdate);
+                    if (device === _this6) {
+                        _this6.deviceList.disconnectEvent.removeListener(_onDisconnect);
+                        _this6.deviceList.updateEvent.removeListener(onUpdate);
                         reject(new Error('Device disconnected'));
                     }
                 };
                 onUpdate();
-                _this7.deviceList.updateEvent.on(onUpdate);
-                _this7.deviceList.onDisconnect(_this7, _onDisconnect);
+                _this6.deviceList.updateEvent.on(onUpdate);
+                _this6.deviceList.onDisconnect(_this6, _onDisconnect);
             });
         }
     }, {
@@ -1112,24 +1231,24 @@ var Device = function (_EventEmitter) {
     }, {
         key: '_watch',
         value: function _watch() {
-            var _this8 = this;
+            var _this7 = this;
 
             var onChangedSessions = function onChangedSessions(device) {
-                if (device === _this8) {
-                    _this8.changedSessionsEvent.emit(_this8.isUsed(), _this8.isUsedHere());
-                    if (_this8.isStolen() && _this8.currentSessionObject != null) {
-                        _this8._stolenEvent.emit();
+                if (device === _this7) {
+                    _this7.changedSessionsEvent.emit(_this7.isUsed(), _this7.isUsedHere());
+                    if (_this7.isStolen() && _this7.currentSessionObject != null) {
+                        _this7._stolenEvent.emit();
                     }
                 }
             };
             var onDisconnect = function onDisconnect(device) {
-                if (device === _this8) {
-                    _this8.disconnectEvent.emit();
-                    _this8.deviceList.disconnectEvent.removeListener(onDisconnect);
-                    _this8.deviceList.changedSessionsEvent.removeListener(onChangedSessions);
-                    _this8.connected = false;
+                if (device === _this7) {
+                    _this7.disconnectEvent.emit();
+                    _this7.deviceList.disconnectEvent.removeListener(onDisconnect);
+                    _this7.deviceList.changedSessionsEvent.removeListener(onChangedSessions);
+                    _this7.connected = false;
 
-                    var events = [_this8.changedSessionsEvent, _this8.sendEvent, _this8.receiveEvent, _this8.errorEvent, _this8.buttonEvent, _this8.pinEvent, _this8.wordEvent];
+                    var events = [_this7.changedSessionsEvent, _this7.sendEvent, _this7.receiveEvent, _this7.errorEvent, _this7.buttonEvent, _this7.pinEvent, _this7.wordEvent];
                     events.forEach(function (ev) {
                         return ev.removeAllListeners();
                     });
@@ -1194,15 +1313,53 @@ var Device = function (_EventEmitter) {
         }
     }], [{
         key: '_run',
-        value: function _run(fn, transport, descriptor, deviceList, onAcquire, onRelease) {
-            return Device._acquire(transport, descriptor, deviceList, onAcquire).then(function (session) {
-                return promiseFinally(session.initialize().then(function (res) {
-                    return fn(session, res.message);
-                }), function () {
-                    return Device._release(descriptor, session, deviceList, onRelease);
-                });
-            });
-        }
+        value: function () {
+            var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3(fn, transport, descriptor, deviceList, onAcquire, onRelease, device) {
+                var session, _features;
+
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                _context3.next = 2;
+                                return Device._acquire(transport, descriptor, deviceList, onAcquire, device);
+
+                            case 2:
+                                session = _context3.sent;
+                                _context3.prev = 3;
+                                _context3.next = 6;
+                                return session.initialize();
+
+                            case 6:
+                                _features = _context3.sent;
+                                _context3.next = 9;
+                                return fn(session, _features.message);
+
+                            case 9:
+                                return _context3.abrupt('return', _context3.sent);
+
+                            case 10:
+                                _context3.prev = 10;
+                                _context3.next = 13;
+                                return Device._release(descriptor, session, deviceList, onRelease);
+
+                            case 13:
+                                return _context3.finish(10);
+
+                            case 14:
+                            case 'end':
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this, [[3,, 10, 14]]);
+            }));
+
+            function _run(_x6, _x7, _x8, _x9, _x10, _x11, _x12) {
+                return _ref3.apply(this, arguments);
+            }
+
+            return _run;
+        }()
 
         // Release and acquire are quite complex,
         // because we have to deal with various race conditions
@@ -1310,7 +1467,7 @@ function promiseFinally(p, fun) {
     });
 }
 module.exports = exports['default'];
-},{"./events":4,"./flow-events":5,"./session":8,"./utils/connectionLock":12,"semver-compare":144}],4:[function(require,module,exports){
+},{"./events":4,"./flow-events":5,"./session":8,"./trezortypes":9,"./utils/connectionLock":12,"./utils/hdnode":13,"bitcoinjs-lib-zcash":35,"semver-compare":144}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1764,10 +1921,13 @@ function preferredPlatform() {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.default = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _desc, _value, _class, _class2, _temp;
 
 exports.coinName = coinName;
 exports.coinNetwork = coinNetwork;
@@ -1810,6 +1970,35 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+        desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+        desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+        return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+        desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+        desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+        Object['define' + 'Property'](target, property, desc);
+        desc = null;
+    }
+
+    return desc;
+}
+
 //
 // Trezor device session handle. Acts as a event emitter.
 //
@@ -1824,10 +2013,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 //  word: callback(error, word)
 //  passphrase: callback(error, passphrase)
 //
-var Session = function (_EventEmitter) {
+var Session = (_class = (_temp = _class2 = function (_EventEmitter) {
     _inherits(Session, _EventEmitter);
 
-    function Session(transport, sessionId, descriptor, debug) {
+    function Session(transport, sessionId, descriptor, debug, device) {
         _classCallCheck(this, Session);
 
         var _this = _possibleConstructorReturn(this, (Session.__proto__ || Object.getPrototypeOf(Session)).call(this));
@@ -1843,6 +2032,7 @@ var Session = function (_EventEmitter) {
         _this._transport = transport;
         _this._sessionId = sessionId;
         _this._descriptor = descriptor;
+        _this.device = device;
         _this.callHelper = new _call.CallHelper(transport, sessionId, _this);
         _this.debug = debug;
         return _this;
@@ -2150,9 +2340,14 @@ var Session = function (_EventEmitter) {
             });
         }
     }, {
+        key: '_getHDNodeInternal',
+        value: function _getHDNodeInternal(path, network) {
+            return hdnodeUtils.getHDNode(this, path, coinNetwork(network));
+        }
+    }, {
         key: 'getHDNode',
         value: function getHDNode(path, network) {
-            return hdnodeUtils.getHDNode(this, path, coinNetwork(network));
+            return this._getHDNodeInternal(path, network);
         }
     }, {
         key: 'setU2FCounter',
@@ -2183,9 +2378,7 @@ var Session = function (_EventEmitter) {
     }]);
 
     return Session;
-}(_events.EventEmitter);
-
-Session.LABEL_MAX_LENGTH = 16;
+}(_events.EventEmitter), _class2.LABEL_MAX_LENGTH = 16, _temp), (_applyDecoratedDescriptor(_class.prototype, 'getAddress', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'getAddress'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'ethereumGetAddress', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'ethereumGetAddress'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getPublicKey', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'getPublicKey'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'signTx', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'signTx'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'signBjsTx', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'signBjsTx'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'signEthTx', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'signEthTx'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'verifyAddress', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'verifyAddress'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'getHDNode', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'getHDNode'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'nemSignTx', [integrityCheck], Object.getOwnPropertyDescriptor(_class.prototype, 'nemSignTx'), _class.prototype)), _class);
 exports.default = Session;
 function coinName(coin) {
     if (typeof coin === 'string') {
@@ -2227,6 +2420,25 @@ function wrapLoadDevice(settings, network_) {
     }
     return settings;
 }
+
+function integrityCheck(target, name, descriptor) {
+    var original = descriptor.value;
+    descriptor.value = function () {
+        var _this4 = this,
+            _arguments = arguments;
+
+        var checkPromise = Promise.resolve();
+        if (this.device != null) {
+            checkPromise = this.device.xpubIntegrityCheck(this);
+        }
+
+        return checkPromise.then(function () {
+            return original.apply(_this4, _arguments);
+        });
+    };
+
+    return descriptor;
+}
 }).call(this,require("buffer").Buffer)
 },{"./events":4,"./flow-events":5,"./trezortypes":9,"./utils/call":11,"./utils/hdnode":13,"./utils/signbjstx":14,"./utils/signethtx":15,"./utils/signtx":16,"bitcoinjs-lib-zcash":35,"buffer":67}],9:[function(require,module,exports){
 'use strict';
@@ -2238,6 +2450,7 @@ function wrapLoadDevice(settings, network_) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.default = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -2633,6 +2846,7 @@ exports.pubKey2bjsNode = pubKey2bjsNode;
 exports.checkDerivation = checkDerivation;
 exports.derivePubKeyHash = derivePubKeyHash;
 exports.getHDNode = getHDNode;
+exports.harden = harden;
 
 var _bitcoinjsLibZcash = require('bitcoinjs-lib-zcash');
 
@@ -2743,6 +2957,12 @@ function getHDNode(session, path) {
             return resNode;
         });
     });
+}
+
+var HARDENING = 0x80000000;
+
+function harden(number) {
+    return (number | HARDENING) >>> 0;
 }
 }).call(this,require("buffer").Buffer)
 },{"../trezortypes":9,"bitcoinjs-lib-zcash":35,"buffer":67,"ecurve":79}],14:[function(require,module,exports){
