@@ -396,7 +396,7 @@ export default class Device extends EventEmitter {
             const id = this.features.device_id;
             const secret = 'TREZOR#' + id + '#' + passphrase;
             const hashed = sha256x2(secret);
-            return (JSON.stringify(hashed) === JSON.stringify(websiteHash));
+            return (JSON.stringify([...hashed]) === JSON.stringify([...websiteHash]));
         }
         return true;
     }
