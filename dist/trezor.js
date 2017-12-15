@@ -694,6 +694,7 @@ function objectValues(object) {
 }
 module.exports = exports['default'];
 },{"./descriptor-stream":1,"./device":3,"./events":4,"./flow-events":5,"./unacquired-device":10}],3:[function(require,module,exports){
+(function (Buffer){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1063,6 +1064,21 @@ var Device = function (_EventEmitter) {
             }
         }
     }, {
+        key: 'checkPassphraseHash',
+        value: function checkPassphraseHash(passphrase) {
+            if (this.deviceList.options.getPassphraseHash != null) {
+                var websiteHash = this.deviceList.options.getPassphraseHash(this);
+                if (websiteHash == null) {
+                    return true;
+                }
+                var id = this.features.device_id;
+                var secret = 'TREZOR#' + id + '#' + passphrase;
+                var hashed = sha256x2(secret);
+                return JSON.stringify(hashed) === JSON.stringify(websiteHash);
+            }
+            return true;
+        }
+    }, {
         key: 'forwardPassphrase',
         value: function forwardPassphrase(source) {
             var _this5 = this;
@@ -1070,12 +1086,26 @@ var Device = function (_EventEmitter) {
             source.on(function (arg) {
                 if (_this5.rememberedPlaintextPasshprase != null) {
                     var p = _this5.rememberedPlaintextPasshprase;
-                    arg(null, p);
+
+                    var checkPasshprase = _this5.checkPassphraseHash(p);
+                    if (checkPasshprase) {
+                        arg(null, p);
+                    } else {
+                        arg(new Error('Inconsistent state. Please reconnect the device.'));
+                    }
                     return;
                 }
 
                 var argAndRemember = function argAndRemember(e, passphrase) {
                     if (_this5.rememberPlaintextPassphrase) {
+                        if (passphrase != null) {
+                            var _checkPasshprase = _this5.checkPassphraseHash(passphrase);
+                            if (!_checkPasshprase) {
+                                arg(new Error('Inconsistent state. Please reconnect the device.'));
+                                return;
+                            }
+                        }
+
                         _this5.rememberedPlaintextPasshprase = passphrase;
                     }
                     arg(e, passphrase);
@@ -1466,8 +1496,14 @@ function promiseFinally(p, fun) {
         });
     });
 }
+
+function sha256x2(value) {
+    var realBuffer = typeof value === 'string' ? new Buffer(value, 'binary') : value;
+    return bitcoin.crypto.hash256(realBuffer);
+}
 module.exports = exports['default'];
-},{"./events":4,"./flow-events":5,"./session":8,"./trezortypes":9,"./utils/connectionLock":12,"./utils/hdnode":13,"bitcoinjs-lib-zcash":35,"semver-compare":144}],4:[function(require,module,exports){
+}).call(this,require("buffer").Buffer)
+},{"./events":4,"./flow-events":5,"./session":8,"./trezortypes":9,"./utils/connectionLock":12,"./utils/hdnode":13,"bitcoinjs-lib-zcash":35,"buffer":67,"semver-compare":144}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
