@@ -7,6 +7,9 @@ import {EventEmitter} from './events';
 import {Event0, Event1, Event2} from './flow-events';
 import Session from './session';
 import {lock} from './utils/connectionLock';
+import {harden} from './utils/hdnode';
+import * as trezor from './trezortypes';
+import * as bitcoin from 'bitcoinjs-lib-zcash';
 
 import type DeviceList from './device-list';
 import type {Features} from './trezortypes';
@@ -47,6 +50,10 @@ export default class Device extends EventEmitter {
 
     rememberPlaintextPassphrase: boolean = false;
     rememberedPlaintextPasshprase: ?string = null;
+
+    integrityCheckingXpubPath: Array<number> = [harden(49), harden(0), harden(0)];
+    integrityCheckingXpub: ?string;
+    integrityCheckingXpubNetwork: trezor.CoinType | string | bitcoin.Network = 'bitcoin';
 
     disconnectEvent: Event0 = new Event0('disconnect', this);
     buttonEvent: Event1<string> = new Event1('button', this);
@@ -91,27 +98,28 @@ export default class Device extends EventEmitter {
     // First parameter is a function that has two parameters
     // - first the session and second the fresh device features.
     // Note - when descriptor.path != null, this will steal the device from someone else
-    static _run<X>(
+    static async _run<X>(
         fn: (session: Session, features: Features) => (X|Promise<X>),
         transport: Transport,
         descriptor: DeviceDescriptor,
         deviceList: DeviceList,
         onAcquire?: ?((session: Session) => void),
-        onRelease?: ?((error: ?Error) => Promise<any>)
+        onRelease?: ?((error: ?Error) => Promise<any>),
+        device: ?Device
     ): Promise<X> {
-        return Device._acquire(
+        const session = await Device._acquire(
             transport,
             descriptor,
             deviceList,
-            onAcquire
-        ).then((session: Session): Promise<X> => {
-            return promiseFinally(
-                session.initialize().then((res: {message: Features}): X | Promise<X> => {
-                    return fn(session, res.message);
-                }),
-                () => Device._release(descriptor, session, deviceList, onRelease)
-            );
-        });
+            onAcquire,
+            device
+        );
+        try {
+            const features = await session.initialize();
+            return await fn(session, features.message);
+        } finally {
+            await Device._release(descriptor, session, deviceList, onRelease);
+        }
     }
 
     // Release and acquire are quite complex,
@@ -278,7 +286,8 @@ export default class Device extends EventEmitter {
                     } else {
                         return Promise.resolve();
                     }
-                }
+                },
+                this
             );
 
             return promiseFinally(
@@ -304,6 +313,36 @@ export default class Device extends EventEmitter {
                 }
             });
         });
+    }
+
+    setCheckingXpub(integrityCheckingXpubPath: Array<number>, integrityCheckingXpub: string, integrityCheckingXpubNetwork: (trezor.CoinType | string | bitcoin.Network)) {
+        this.integrityCheckingXpubPath = integrityCheckingXpubPath;
+        this.integrityCheckingXpub = integrityCheckingXpub;
+        this.integrityCheckingXpubNetwork = integrityCheckingXpubNetwork;
+    }
+
+    canSayXpub(): boolean {
+        if (!this.features.bootloader_mode) {
+            return false;
+        }
+        if (!this.features.initialized) {
+            return false;
+        }
+        const noPassphrase = this.features.passphrase_protection ? this.features.passphrase_cached : true;
+        const noPin = this.features.pin_protection ? this.features.pin_cached : true;
+        return noPassphrase && noPin;
+    }
+
+    async xpubIntegrityCheck(session: Session): Promise<void> {
+        const hdnode = await session._getHDNodeInternal(this.integrityCheckingXpubPath, this.integrityCheckingXpubNetwork);
+        const xpub = hdnode.toBase58();
+        if (this.integrityCheckingXpub == null) {
+            this.integrityCheckingXpub = xpub;
+        } else {
+            if (xpub !== this.integrityCheckingXpub) {
+                throw new Error('Inconsistent state. Please disconnect and reconnect the device.');
+            }
+        }
     }
 
     _reloadFeaturesOrInitialize(session: Session): Promise<void> {
@@ -365,7 +404,7 @@ export default class Device extends EventEmitter {
         });
     }
 
-    _runInside<X>(
+    async _runInside<X>(
         fn: (session: Session) => (X|Promise<X>),
         activeSession: Session,
         features: Features,
@@ -382,17 +421,17 @@ export default class Device extends EventEmitter {
         forwardCallback1(activeSession.wordEvent, this.wordEvent);
         this.forwardPassphrase(activeSession.passphraseEvent);
 
-        const runFinal = () => {
+        try {
+            return await fn(activeSession);
+        } finally {
             activeSession.deactivateEvents();
-
-            if (skipFinalReload) {
-                return Promise.resolve();
-            } else {
-                return this._reloadFeaturesOrInitialize(activeSession);
+            if (!skipFinalReload) {
+                await this._reloadFeaturesOrInitialize(activeSession);
+                if (this.canSayXpub()) {
+                    await this.xpubIntegrityCheck(activeSession);
+                }
             }
-        };
-
-        return promiseFinally(Promise.resolve(fn(activeSession)), () => runFinal());
+        }
     }
 
     _waitForNullSession(): Promise<?string> {
@@ -423,7 +462,7 @@ export default class Device extends EventEmitter {
     static fromDescriptor(
         transport: Transport,
         originalDescriptor: DeviceDescriptor,
-        deviceList: DeviceList
+        deviceList: DeviceList,
     ): Promise<Device> {
         // at this point I am assuming nobody else has the device
         const descriptor = { ...originalDescriptor, session: null };

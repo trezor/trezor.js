@@ -15,6 +15,7 @@ import * as trezor from './trezortypes';
 import type {TxInfo} from './utils/signbjstx';
 import type {EthereumSignature} from './utils/signethtx';
 import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
+import type Device from './device';
 
 export type MessageResponse<T> = {
     type: string;
@@ -44,6 +45,8 @@ export default class Session extends EventEmitter {
     callHelper: CallHelper;
     debug: boolean;
 
+    device: ?Device;
+
     sendEvent: Event2<string, Object> = new Event2('send', this);
     receiveEvent: Event2<string, Object> = new Event2('receive', this);
     errorEvent: Event1<Error> = new Event1('error', this);
@@ -54,11 +57,12 @@ export default class Session extends EventEmitter {
 
     static LABEL_MAX_LENGTH: number = 16;
 
-    constructor(transport: Transport, sessionId: string, descriptor: DeviceDescriptor, debug: boolean) {
+    constructor(transport: Transport, sessionId: string, descriptor: DeviceDescriptor, debug: boolean, device: ?Device) {
         super();
         this._transport = transport;
         this._sessionId = sessionId;
         this._descriptor = descriptor;
+        this.device = device;
         this.callHelper = new CallHelper(transport, sessionId, this);
         this.debug = debug;
     }
@@ -109,6 +113,7 @@ export default class Session extends EventEmitter {
         });
     }
 
+    @integrityCheck
     getAddress(
         address_n: Array<number>,
         coin: trezor.CoinType | string,
@@ -130,6 +135,7 @@ export default class Session extends EventEmitter {
         });
     }
 
+    @integrityCheck
     ethereumGetAddress(
         address_n: Array<number>,
         show_display: ?boolean
@@ -146,6 +152,7 @@ export default class Session extends EventEmitter {
         });
     }
 
+    @integrityCheck
     getPublicKey(
         address_n: Array<number>,
         coin: ?(trezor.CoinType | string),
@@ -329,6 +336,7 @@ export default class Session extends EventEmitter {
         });
     }
 
+    @integrityCheck
     signTx(
         inputs: Array<trezor.TransactionInput>,
         outputs: Array<trezor.TransactionOutput>,
@@ -339,6 +347,7 @@ export default class Session extends EventEmitter {
         return signTxHelper.signTx(this, inputs, outputs, txs, coin, locktime);
     }
 
+    @integrityCheck
     signBjsTx(
         info: TxInfo,
         refTxs: Array<bitcoin.Transaction>,
@@ -350,6 +359,7 @@ export default class Session extends EventEmitter {
         return signBjsTxHelper.signBjsTx(this, info, refTxs, nodes, coinName, network, locktime);
     }
 
+    @integrityCheck
     signEthTx(
         address_n: Array<number>,
         nonce: string,
@@ -367,6 +377,7 @@ export default class Session extends EventEmitter {
         return this.callHelper.typedCall(type, resType, msg);
     }
 
+    @integrityCheck
     verifyAddress(path: Array<number>, address: string, coin: string | trezor.CoinType, segwit: boolean): Promise<boolean> {
         return this.getAddress(path, coin, true, segwit).then((res) => {
             const verified = res.message.address === address;
@@ -407,11 +418,19 @@ export default class Session extends EventEmitter {
         });
     }
 
-    getHDNode(
+    _getHDNodeInternal(
         path: Array<number>,
         network: trezor.CoinType | string | bitcoin.Network
     ): Promise<bitcoin.HDNode> {
         return hdnodeUtils.getHDNode(this, path, coinNetwork(network));
+    }
+
+    @integrityCheck
+    getHDNode(
+        path: Array<number>,
+        network: trezor.CoinType | string | bitcoin.Network
+    ): Promise<bitcoin.HDNode> {
+        return this._getHDNodeInternal(path, network);
     }
 
     setU2FCounter(
@@ -440,6 +459,7 @@ export default class Session extends EventEmitter {
         });
     }
 
+    @integrityCheck
     nemSignTx(
         transaction: Object
     ): Promise<MessageResponse<{
@@ -492,4 +512,18 @@ function wrapLoadDevice(
         delete settings.payload;
     }
     return settings;
+}
+
+function integrityCheck(target, name, descriptor) {
+    const original = descriptor.value;
+    descriptor.value = function () {
+        let checkPromise = Promise.resolve();
+        if (this.device != null) {
+            checkPromise = this.device.xpubIntegrityCheck(this);
+        }
+
+        return checkPromise.then(() => original.apply(this, arguments));
+    };
+
+    return descriptor;
 }

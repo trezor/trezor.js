@@ -125,3 +125,9 @@ export function getHDNode(
         });
     });
 }
+
+const HARDENING = 0x80000000;
+
+export function harden(number: number): number {
+    return (number | HARDENING) >>> 0;
+}
