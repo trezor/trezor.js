@@ -87,6 +87,7 @@ export type RecoverDeviceSettings = {
     enforce_wordlist?: boolean;
     type?: number;
     u2f_counter?: number;
+    dry_run?: boolean;
 };
 
 export type ApplySettings = {
