@@ -2114,6 +2114,11 @@ var Session = (_class = (_temp = _class2 = function (_EventEmitter) {
     }, {
         key: 'getPublicKey',
         value: function getPublicKey(address_n, coin) {
+            return this._getPublicKeyInternal(address_n, coin);
+        }
+    }, {
+        key: '_getPublicKeyInternal',
+        value: function _getPublicKeyInternal(address_n, coin) {
             var coin_name = coin ? coinName(coin) : 'Bitcoin';
             return this.typedCall('GetPublicKey', 'PublicKey', {
                 address_n: address_n,
@@ -2947,10 +2952,10 @@ function getHDNode(session, path) {
     var suffix = 0;
     var childPath = path.concat([suffix]);
 
-    return session.getPublicKey(path).then(function (resKey) {
+    return session._getPublicKeyInternal(path).then(function (resKey) {
         var resNode = pubKey2bjsNode(resKey, network);
 
-        return session.getPublicKey(childPath).then(function (childKey) {
+        return session._getPublicKeyInternal(childPath).then(function (childKey) {
             var childNode = pubKey2bjsNode(childKey, network);
 
             checkDerivation(resNode, childNode, suffix);
