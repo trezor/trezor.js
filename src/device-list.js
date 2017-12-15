@@ -29,6 +29,12 @@ export type DeviceListOptions = {
     clearSession?: boolean;
     clearSessionTime?: number;
     rememberDevicePasshprase?: boolean;
+
+    // Second of two "advanced" integrity checks
+    // In *the app itself*, we store the hash of the passphrase in localstorage
+    // but we also want to periodically check whether it is saved correctly
+    // This function needs to be set from app above.
+    // It can be set later, not during creation of the list.
     getPassphraseHash?: ((device: Device) => ?Array<number>);
 };
 

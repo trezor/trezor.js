@@ -51,8 +51,16 @@ export default class Device extends EventEmitter {
     rememberPlaintextPassphrase: boolean = false;
     rememberedPlaintextPasshprase: ?string = null;
 
-    integrityCheckingXpubPath: Array<number> = [harden(49), harden(0), harden(0)];
+    // First of two "advanced" integrity checks
+    // We check whether the xpub that we get from the trezor is
+    // the same that *the application* remembers.
+    // *The application* sets this based on what it remembers.
+    // Then, before some actions (see @integrityCheck in session.js)
+    // we first look for xpub with this path and compare.
+    // If the application doesn't set this, we are still at least
+    // comparing different calls with each other, since this is set on first call.
     integrityCheckingXpub: ?string;
+    integrityCheckingXpubPath: Array<number> = [harden(49), harden(0), harden(0)];
     integrityCheckingXpubNetwork: trezor.CoinType | string | bitcoin.Network = 'bitcoin';
 
     disconnectEvent: Event0 = new Event0('disconnect', this);
@@ -316,12 +324,16 @@ export default class Device extends EventEmitter {
         });
     }
 
+    // See the comment on top on integrityCheckingXpub.
+    // This sets the xpub that we will re-check when possible (before important actions, and
+    // after all action when it makes sense)
     setCheckingXpub(integrityCheckingXpubPath: Array<number>, integrityCheckingXpub: string, integrityCheckingXpubNetwork: (trezor.CoinType | string | bitcoin.Network)) {
         this.integrityCheckingXpubPath = integrityCheckingXpubPath;
         this.integrityCheckingXpub = integrityCheckingXpub;
         this.integrityCheckingXpubNetwork = integrityCheckingXpubNetwork;
     }
 
+    // When we are doing integrity checking AFTER functions, we do it only when we can
     canSayXpub(): boolean {
         if (!this.features.bootloader_mode) {
             return false;
@@ -334,6 +346,7 @@ export default class Device extends EventEmitter {
         return noPassphrase && noPin;
     }
 
+    // See the comment on top on integrityCheckingXpub.
     async xpubIntegrityCheck(session: Session): Promise<void> {
         const hdnode = await session._getHDNodeInternal(this.integrityCheckingXpubPath, this.integrityCheckingXpubNetwork);
         const xpub = hdnode.toBase58();
@@ -387,6 +400,7 @@ export default class Device extends EventEmitter {
         }
     }
 
+    // See comment on device-list option getPassphraseHash
     checkPassphraseHash(passphrase: string): boolean {
         if (this.deviceList.options.getPassphraseHash != null) {
             const websiteHash = this.deviceList.options.getPassphraseHash(this);
@@ -401,6 +415,7 @@ export default class Device extends EventEmitter {
         return true;
     }
 
+    // See comment on device-list option getPassphraseHash
     forwardPassphrase(source: Event1<(e: ?Error, passphrase?: ?string) => void>) {
         source.on((arg: (e: ?Error, passphrase?: ?string) => void) => {
             if (this.rememberedPlaintextPasshprase != null) {

@@ -521,6 +521,9 @@ function wrapLoadDevice(
     return settings;
 }
 
+// See the comment in device.js on integrityCheckingXpub.
+// The check is not done here but on device.js, since Session object
+// disappears and doesn't remember the xpubs
 function integrityCheck(target, name, descriptor) {
     const original = descriptor.value;
     descriptor.value = function () {
