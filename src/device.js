@@ -157,7 +157,8 @@ export default class Device extends EventEmitter {
         transport: Transport,
         descriptor: DeviceDescriptor,
         deviceList: DeviceList,
-        onAcquire?: ?((session: Session) => void)
+        onAcquire?: ?((session: Session) => void),
+        device: ?Device
     ): Promise<Session> {
         return lock(() =>
             transport.acquire({
@@ -169,7 +170,7 @@ export default class Device extends EventEmitter {
                 return res;
             })
         ).then(result => {
-            const session = new Session(transport, result, descriptor, !!deviceList.options.debugInfo);
+            const session = new Session(transport, result, descriptor, !!deviceList.options.debugInfo, device);
             if (onAcquire != null) {
                 onAcquire(session);
             }
