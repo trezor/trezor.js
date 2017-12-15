@@ -752,6 +752,14 @@ var WRONG_PREVIOUS_SESSION_ERROR_MESSAGE = 'wrong previous session';
 var Device = function (_EventEmitter) {
     _inherits(Device, _EventEmitter);
 
+    // First of two "advanced" integrity checks
+    // We check whether the xpub that we get from the trezor is
+    // the same that *the application* remembers.
+    // *The application* sets this based on what it remembers.
+    // Then, before some actions (see @integrityCheck in session.js)
+    // we first look for xpub with this path and compare.
+    // If the application doesn't set this, we are still at least
+    // comparing different calls with each other, since this is set on first call.
     // in miliseconds
     function Device(transport, descriptor, features, deviceList) {
         _classCallCheck(this, Device);
@@ -947,6 +955,11 @@ var Device = function (_EventEmitter) {
                 });
             });
         }
+
+        // See the comment on top on integrityCheckingXpub.
+        // This sets the xpub that we will re-check when possible (before important actions, and
+        // after all action when it makes sense)
+
     }, {
         key: 'setCheckingXpub',
         value: function setCheckingXpub(integrityCheckingXpubPath, integrityCheckingXpub, integrityCheckingXpubNetwork) {
@@ -954,6 +967,9 @@ var Device = function (_EventEmitter) {
             this.integrityCheckingXpub = integrityCheckingXpub;
             this.integrityCheckingXpubNetwork = integrityCheckingXpubNetwork;
         }
+
+        // When we are doing integrity checking AFTER functions, we do it only when we can
+
     }, {
         key: 'canSayXpub',
         value: function canSayXpub() {
@@ -967,6 +983,9 @@ var Device = function (_EventEmitter) {
             var noPin = this.features.pin_protection ? this.features.pin_cached : true;
             return noPassphrase && noPin;
         }
+
+        // See the comment on top on integrityCheckingXpub.
+
     }, {
         key: 'xpubIntegrityCheck',
         value: function () {
@@ -1065,6 +1084,9 @@ var Device = function (_EventEmitter) {
                 this.clearSessionTimeout = null;
             }
         }
+
+        // See comment on device-list option getPassphraseHash
+
     }, {
         key: 'checkPassphraseHash',
         value: function checkPassphraseHash(passphrase) {
@@ -1080,6 +1102,9 @@ var Device = function (_EventEmitter) {
             }
             return true;
         }
+
+        // See comment on device-list option getPassphraseHash
+
     }, {
         key: 'forwardPassphrase',
         value: function forwardPassphrase(source) {
@@ -2464,6 +2489,9 @@ function wrapLoadDevice(settings, network_) {
     return settings;
 }
 
+// See the comment in device.js on integrityCheckingXpub.
+// The check is not done here but on device.js, since Session object
+// disappears and doesn't remember the xpubs
 function integrityCheck(target, name, descriptor) {
     var original = descriptor.value;
     descriptor.value = function () {
