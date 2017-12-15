@@ -1385,7 +1385,7 @@ var Device = function (_EventEmitter) {
         }
     }, {
         key: '_acquire',
-        value: function _acquire(transport, descriptor, deviceList, onAcquire) {
+        value: function _acquire(transport, descriptor, deviceList, onAcquire, device) {
             return (0, _connectionLock.lock)(function () {
                 return transport.acquire({
                     path: descriptor.path,
@@ -1396,7 +1396,7 @@ var Device = function (_EventEmitter) {
                     return res;
                 });
             }).then(function (result) {
-                var session = new _session2.default(transport, result, descriptor, !!deviceList.options.debugInfo);
+                var session = new _session2.default(transport, result, descriptor, !!deviceList.options.debugInfo, device);
                 if (onAcquire != null) {
                     onAcquire(session);
                 }
