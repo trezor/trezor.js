@@ -114,10 +114,10 @@ export function getHDNode(
     const suffix = 0;
     const childPath = path.concat([suffix]);
 
-    return session.getPublicKey(path).then((resKey: MessageResponse<trezor.PublicKey>) => {
+    return session._getPublicKeyInternal(path).then((resKey: MessageResponse<trezor.PublicKey>) => {
         const resNode = pubKey2bjsNode(resKey, network);
 
-        return session.getPublicKey(childPath).then((childKey: MessageResponse<trezor.PublicKey>) => {
+        return session._getPublicKeyInternal(childPath).then((childKey: MessageResponse<trezor.PublicKey>) => {
             const childNode = pubKey2bjsNode(childKey, network);
 
             checkDerivation(resNode, childNode, suffix);
