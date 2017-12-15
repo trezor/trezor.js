@@ -387,16 +387,44 @@ export default class Device extends EventEmitter {
         }
     }
 
+    checkPassphraseHash(passphrase: string): boolean {
+        if (this.deviceList.options.getPassphraseHash != null) {
+            const websiteHash = this.deviceList.options.getPassphraseHash(this);
+            if (websiteHash == null) {
+                return true;
+            }
+            const id = this.features.device_id;
+            const secret = 'TREZOR#' + id + '#' + passphrase;
+            const hashed = sha256x2(secret);
+            return (JSON.stringify(hashed) === JSON.stringify(websiteHash));
+        }
+        return true;
+    }
+
     forwardPassphrase(source: Event1<(e: ?Error, passphrase?: ?string) => void>) {
         source.on((arg: (e: ?Error, passphrase?: ?string) => void) => {
             if (this.rememberedPlaintextPasshprase != null) {
                 const p: string = this.rememberedPlaintextPasshprase;
-                arg(null, p);
+
+                const checkPasshprase = this.checkPassphraseHash(p);
+                if (checkPasshprase) {
+                    arg(null, p);
+                } else {
+                    arg(new Error('Inconsistent state. Please reconnect the device.'));
+                }
                 return;
             }
 
             const argAndRemember = (e: ?Error, passphrase: ?string) => {
                 if (this.rememberPlaintextPassphrase) {
+                    if (passphrase != null) {
+                        const checkPasshprase = this.checkPassphraseHash(passphrase);
+                        if (!checkPasshprase) {
+                            arg(new Error('Inconsistent state. Please reconnect the device.'));
+                            return;
+                        }
+                    }
+
                     this.rememberedPlaintextPasshprase = passphrase;
                 }
                 arg(e, passphrase);
@@ -651,5 +679,10 @@ function promiseFinally<X>(p: Promise<X>, fun: (res: ?X, error: ?Error) => Promi
             throw err;
         })
     );
+}
+
+function sha256x2(value: Buffer | string): Buffer {
+    const realBuffer = typeof value === 'string' ? new Buffer(value, 'binary') : value;
+    return bitcoin.crypto.hash256(realBuffer);
 }
 

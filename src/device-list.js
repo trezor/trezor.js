@@ -29,6 +29,7 @@ export type DeviceListOptions = {
     clearSession?: boolean;
     clearSessionTime?: number;
     rememberDevicePasshprase?: boolean;
+    getPassphraseHash?: ((device: Device) => ?Array<number>);
 };
 
 // a slight hack
