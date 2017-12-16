@@ -475,6 +475,22 @@ export default class Session extends EventEmitter {
     }>> {
         return this.typedCall('NEMSignTx', 'NEMSignedTx', transaction);
     }
+
+    nemDecryptMessage(
+        address_n: Array<number>,
+        network: number,
+        public_key: string,
+        payload: string
+    ): Promise<MessageResponse<{
+    }>> {
+        return this.typedCall('NEMDecryptMessage', 'NEMDecryptedMessage', {
+            address_n: address_n,
+            network: network,
+            public_key: public_key,
+            payload: payload,
+        });
+    }
+
 }
 
 export function coinName(coin: trezor.CoinType | string): string {
