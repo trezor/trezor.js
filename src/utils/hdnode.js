@@ -78,7 +78,7 @@ export function pubKey2bjsNode(
     return bjsNode;
 }
 
-export function checkDerivation(
+/* export function checkDerivation(
     parBjsNode: bitcoin.HDNode,
     childBjsNode: bitcoin.HDNode,
     suffix: number
@@ -94,7 +94,7 @@ export function checkDerivation(
                     'Computed derived: ' + derivedXpub + ', ' +
                     'Computed received: ' + compXpub);
     }
-}
+}*/
 
 export function derivePubKeyHash(
     nodes: Array<bitcoin.HDNode>,
@@ -109,19 +109,28 @@ export function derivePubKeyHash(
 export function getHDNode(
     session: Session,
     path: Array<number>,
-    network?: bitcoin.Network = bitcoin.networks.bitcoin
+    network: bitcoin.Network,
+    xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>,
 ): Promise<bitcoin.HDNode> {
     const suffix = 0;
     const childPath = path.concat([suffix]);
 
     return session._getPublicKeyInternal(path).then((resKey: MessageResponse<trezor.PublicKey>) => {
         const resNode = pubKey2bjsNode(resKey, network);
+        const resXpub = resKey.message.xpub;
 
         return session._getPublicKeyInternal(childPath).then((childKey: MessageResponse<trezor.PublicKey>) => {
-            const childNode = pubKey2bjsNode(childKey, network);
-
-            checkDerivation(resNode, childNode, suffix);
-            return resNode;
+            // const childNode = pubKey2bjsNode(childKey, network);
+            const childXpub = resKey.message.xpub;
+            return xpubDerive(resXpub, network, suffix).then(actualChildXpub => {
+                if (actualChildXpub !== childXpub) {
+                    throw new Error('Invalid public key transmission detected - ' +
+                        'invalid child cross-check. ' +
+                        'Computed derived: ' + actualChildXpub + ', ' +
+                        'Computed received: ' + childXpub);
+                }
+                return resNode;
+            });
         });
     });
 }

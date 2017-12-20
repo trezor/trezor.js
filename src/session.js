@@ -57,7 +57,16 @@ export default class Session extends EventEmitter {
 
     static LABEL_MAX_LENGTH: number = 16;
 
-    constructor(transport: Transport, sessionId: string, descriptor: DeviceDescriptor, debug: boolean, device: ?Device) {
+    xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>;
+
+    constructor(
+        transport: Transport,
+        sessionId: string,
+        descriptor: DeviceDescriptor,
+        debug: boolean,
+        device: ?Device,
+        xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>
+    ) {
         super();
         this._transport = transport;
         this._sessionId = sessionId;
@@ -65,6 +74,7 @@ export default class Session extends EventEmitter {
         this.device = device;
         this.callHelper = new CallHelper(transport, sessionId, this);
         this.debug = debug;
+        this.xpubDerive = xpubDerive;
     }
 
     deactivateEvents() {
@@ -429,7 +439,7 @@ export default class Session extends EventEmitter {
         path: Array<number>,
         network: trezor.CoinType | string | bitcoin.Network
     ): Promise<bitcoin.HDNode> {
-        return hdnodeUtils.getHDNode(this, path, coinNetwork(network));
+        return hdnodeUtils.getHDNode(this, path, coinNetwork(network), this.xpubDerive);
     }
 
     @integrityCheck

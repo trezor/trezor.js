@@ -1,6 +1,8 @@
 /* @flow */
 'use strict';
 
+import * as bitcoin from 'bitcoinjs-lib-zcash';
+
 import {EventEmitter} from './events';
 import {Event1, Event2} from './flow-events';
 import DescriptorStream from './descriptor-stream';
@@ -36,6 +38,8 @@ export type DeviceListOptions = {
     // This function needs to be set from app above.
     // It can be set later, not during creation of the list.
     getPassphraseHash?: ((device: Device) => ?Array<number>);
+
+    xpubDerive?: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>;
 };
 
 // a slight hack
@@ -90,6 +94,7 @@ export default class DeviceList extends EventEmitter {
     updateEvent: Event1<DeviceDescriptorDiff> = new Event1('update', this);
 
     requestNeeded: boolean;
+    xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>;
 
     constructor(options: ?DeviceListOptions) {
         super();
@@ -112,6 +117,10 @@ export default class DeviceList extends EventEmitter {
         // using setTimeout to emit 'transport' in next tick,
         // so people from outside can add listener after constructor finishes
         setTimeout(() => this._initTransport(), 0);
+
+        this.xpubDerive = this.options.xpubDerive != null ? this.options.xpubDerive : (xpub, network, index) => {
+            return Promise.resolve(bitcoin.HDNode.fromBase58(xpub, network, false).derive(index).toBase58());
+        };
     }
 
     requestDevice(): Promise<void> {
