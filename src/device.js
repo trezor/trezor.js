@@ -354,7 +354,7 @@ export default class Device extends EventEmitter {
             this.integrityCheckingXpub = xpub;
         } else {
             if (xpub !== this.integrityCheckingXpub) {
-                throw new Error('Inconsistent state. Please disconnect and reconnect the device.');
+                throw new Error('Inconsistent state');
             }
         }
     }
@@ -425,7 +425,7 @@ export default class Device extends EventEmitter {
                 if (checkPasshprase) {
                     arg(null, p);
                 } else {
-                    arg(new Error('Inconsistent state. Please reconnect the device.'));
+                    arg(new Error('Inconsistent state'));
                 }
                 return;
             }
@@ -435,7 +435,7 @@ export default class Device extends EventEmitter {
                     if (passphrase != null) {
                         const checkPasshprase = this.checkPassphraseHash(passphrase);
                         if (!checkPasshprase) {
-                            arg(new Error('Inconsistent state. Please reconnect the device.'));
+                            arg(new Error('Inconsistent state'));
                             return;
                         }
                     }
