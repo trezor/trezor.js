@@ -983,7 +983,7 @@ var Device = function (_EventEmitter) {
     }, {
         key: 'canSayXpub',
         value: function canSayXpub() {
-            if (!this.features.bootloader_mode) {
+            if (this.features.bootloader_mode) {
                 return false;
             }
             if (!this.features.initialized) {
