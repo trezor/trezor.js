@@ -3039,7 +3039,7 @@ function getHDNode(session, path, network, xpubDerive) {
 
         return session._getPublicKeyInternal(childPath).then(function (childKey) {
             // const childNode = pubKey2bjsNode(childKey, network);
-            var childXpub = resKey.message.xpub;
+            var childXpub = childKey.message.xpub;
             return xpubDerive(resXpub, network, suffix).then(function (actualChildXpub) {
                 if (actualChildXpub !== childXpub) {
                     throw new Error('Invalid public key transmission detected - ' + 'invalid child cross-check. ' + 'Computed derived: ' + actualChildXpub + ', ' + 'Computed received: ' + childXpub);
