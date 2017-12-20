@@ -335,7 +335,7 @@ export default class Device extends EventEmitter {
 
     // When we are doing integrity checking AFTER functions, we do it only when we can
     canSayXpub(): boolean {
-        if (!this.features.bootloader_mode) {
+        if (this.features.bootloader_mode) {
             return false;
         }
         if (!this.features.initialized) {
