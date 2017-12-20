@@ -341,7 +341,7 @@ export default class Device extends EventEmitter {
         if (!this.features.initialized) {
             return false;
         }
-        const noPassphrase = this.features.passphrase_protection ? this.features.passphrase_cached : true;
+        const noPassphrase = this.features.passphrase_protection ? (this.features.passphrase_cached || (this.rememberedPlaintextPasshprase != null)) : true;
         const noPin = this.features.pin_protection ? this.features.pin_cached : true;
         return noPassphrase && noPin;
     }
