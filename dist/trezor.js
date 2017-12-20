@@ -989,7 +989,7 @@ var Device = function (_EventEmitter) {
             if (!this.features.initialized) {
                 return false;
             }
-            var noPassphrase = this.features.passphrase_protection ? this.features.passphrase_cached : true;
+            var noPassphrase = this.features.passphrase_protection ? this.features.passphrase_cached || this.rememberedPlaintextPasshprase != null : true;
             var noPin = this.features.pin_protection ? this.features.pin_cached : true;
             return noPassphrase && noPin;
         }
