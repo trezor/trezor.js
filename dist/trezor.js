@@ -1027,7 +1027,7 @@ var Device = function (_EventEmitter) {
                                     break;
                                 }
 
-                                throw new Error('Inconsistent state. Please disconnect and reconnect the device.');
+                                throw new Error('Inconsistent state');
 
                             case 10:
                             case 'end':
@@ -1128,7 +1128,7 @@ var Device = function (_EventEmitter) {
                     if (checkPasshprase) {
                         arg(null, p);
                     } else {
-                        arg(new Error('Inconsistent state. Please reconnect the device.'));
+                        arg(new Error('Inconsistent state'));
                     }
                     return;
                 }
@@ -1138,7 +1138,7 @@ var Device = function (_EventEmitter) {
                         if (passphrase != null) {
                             var _checkPasshprase = _this5.checkPassphraseHash(passphrase);
                             if (!_checkPasshprase) {
-                                arg(new Error('Inconsistent state. Please reconnect the device.'));
+                                arg(new Error('Inconsistent state'));
                                 return;
                             }
                         }
@@ -3040,7 +3040,7 @@ function getHDNode(session, path, network, xpubDerive) {
         return session._getPublicKeyInternal(childPath).then(function (childKey) {
             // const childNode = pubKey2bjsNode(childKey, network);
             var childXpub = childKey.message.xpub;
-            return xpubDerive(resXpub, network, suffix).then(function (actualChildXpub) {
+            return xpubDerive(resXpub, bitcoin.networks.bitcoin, suffix).then(function (actualChildXpub) {
                 if (actualChildXpub !== childXpub) {
                     throw new Error('Invalid public key transmission detected - ' + 'invalid child cross-check. ' + 'Computed derived: ' + actualChildXpub + ', ' + 'Computed received: ' + childXpub);
                 }
