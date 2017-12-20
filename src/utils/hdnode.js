@@ -122,7 +122,7 @@ export function getHDNode(
         return session._getPublicKeyInternal(childPath).then((childKey: MessageResponse<trezor.PublicKey>) => {
             // const childNode = pubKey2bjsNode(childKey, network);
             const childXpub = childKey.message.xpub;
-            return xpubDerive(resXpub, network, suffix).then(actualChildXpub => {
+            return xpubDerive(resXpub, bitcoin.networks.bitcoin, suffix).then(actualChildXpub => {
                 if (actualChildXpub !== childXpub) {
                     throw new Error('Invalid public key transmission detected - ' +
                         'invalid child cross-check. ' +
