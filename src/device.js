@@ -62,6 +62,7 @@ export default class Device extends EventEmitter {
     integrityCheckingXpub: ?string;
     integrityCheckingXpubPath: Array<number> = [harden(49), harden(0), harden(0)];
     integrityCheckingXpubNetwork: trezor.CoinType | string | bitcoin.Network = 'bitcoin';
+    integrityCheckingPassphrase: ?string;
 
     disconnectEvent: Event0 = new Event0('disconnect', this);
     buttonEvent: Event1<string> = new Event1('button', this);
@@ -331,6 +332,7 @@ export default class Device extends EventEmitter {
         this.integrityCheckingXpubPath = integrityCheckingXpubPath;
         this.integrityCheckingXpub = integrityCheckingXpub;
         this.integrityCheckingXpubNetwork = integrityCheckingXpubNetwork;
+        this.integrityCheckingPassphrase = this.rememberedPlaintextPasshprase;
     }
 
     // When we are doing integrity checking AFTER functions, we do it only when we can
@@ -342,8 +344,9 @@ export default class Device extends EventEmitter {
             return false;
         }
         const noPassphrase = this.features.passphrase_protection ? (this.features.passphrase_cached || (this.rememberedPlaintextPasshprase != null)) : true;
+        const samePasshprase = (this.features.passphrase_protection === false && this.integrityCheckingPassphrase == null) || (this.features.passphrase_protection === true && this.rememberedPlaintextPasshprase != null && this.rememberedPlaintextPasshprase === this.integrityCheckingPassphrase);
         const noPin = this.features.pin_protection ? this.features.pin_cached : true;
-        return noPassphrase && noPin;
+        return noPassphrase && samePasshprase && noPin;
     }
 
     // See the comment on top on integrityCheckingXpub.
@@ -352,6 +355,7 @@ export default class Device extends EventEmitter {
         const xpub = hdnode.toBase58();
         if (this.integrityCheckingXpub == null) {
             this.integrityCheckingXpub = xpub;
+            this.integrityCheckingPassphrase = this.rememberedPlaintextPasshprase;
         } else {
             if (xpub !== this.integrityCheckingXpub) {
                 throw new Error('Inconsistent state');
