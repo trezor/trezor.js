@@ -976,6 +976,7 @@ var Device = function (_EventEmitter) {
             this.integrityCheckingXpubPath = integrityCheckingXpubPath;
             this.integrityCheckingXpub = integrityCheckingXpub;
             this.integrityCheckingXpubNetwork = integrityCheckingXpubNetwork;
+            this.integrityCheckingPassphrase = this.rememberedPlaintextPasshprase;
         }
 
         // When we are doing integrity checking AFTER functions, we do it only when we can
@@ -990,8 +991,9 @@ var Device = function (_EventEmitter) {
                 return false;
             }
             var noPassphrase = this.features.passphrase_protection ? this.features.passphrase_cached || this.rememberedPlaintextPasshprase != null : true;
+            var samePasshprase = this.features.passphrase_protection === false && this.integrityCheckingPassphrase == null || this.features.passphrase_protection === true && this.rememberedPlaintextPasshprase != null && this.rememberedPlaintextPasshprase === this.integrityCheckingPassphrase;
             var noPin = this.features.pin_protection ? this.features.pin_cached : true;
-            return noPassphrase && noPin;
+            return noPassphrase && samePasshprase && noPin;
         }
 
         // See the comment on top on integrityCheckingXpub.
@@ -1013,23 +1015,24 @@ var Device = function (_EventEmitter) {
                                 xpub = hdnode.toBase58();
 
                                 if (!(this.integrityCheckingXpub == null)) {
-                                    _context.next = 8;
+                                    _context.next = 9;
                                     break;
                                 }
 
                                 this.integrityCheckingXpub = xpub;
-                                _context.next = 10;
+                                this.integrityCheckingPassphrase = this.rememberedPlaintextPasshprase;
+                                _context.next = 11;
                                 break;
 
-                            case 8:
+                            case 9:
                                 if (!(xpub !== this.integrityCheckingXpub)) {
-                                    _context.next = 10;
+                                    _context.next = 11;
                                     break;
                                 }
 
                                 throw new Error('Inconsistent state');
 
-                            case 10:
+                            case 11:
                             case 'end':
                                 return _context.stop();
                         }
@@ -1179,26 +1182,25 @@ var Device = function (_EventEmitter) {
                             case 12:
                                 _context2.prev = 12;
 
-                                activeSession.deactivateEvents();
-
                                 if (skipFinalReload) {
-                                    _context2.next = 20;
+                                    _context2.next = 19;
                                     break;
                                 }
 
-                                _context2.next = 17;
+                                _context2.next = 16;
                                 return this._reloadFeaturesOrInitialize(activeSession);
 
-                            case 17:
+                            case 16:
                                 if (!this.canSayXpub()) {
-                                    _context2.next = 20;
+                                    _context2.next = 19;
                                     break;
                                 }
 
-                                _context2.next = 20;
+                                _context2.next = 19;
                                 return this.xpubIntegrityCheck(activeSession);
 
-                            case 20:
+                            case 19:
+                                activeSession.deactivateEvents();
                                 return _context2.finish(12);
 
                             case 21:
