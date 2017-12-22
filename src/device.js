@@ -472,13 +472,13 @@ export default class Device extends EventEmitter {
         try {
             return await fn(activeSession);
         } finally {
-            activeSession.deactivateEvents();
             if (!skipFinalReload) {
                 await this._reloadFeaturesOrInitialize(activeSession);
                 if (this.canSayXpub()) {
                     await this.xpubIntegrityCheck(activeSession);
                 }
             }
+            activeSession.deactivateEvents();
         }
     }
 
