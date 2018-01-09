@@ -27,8 +27,13 @@ function sharedWorkerFactoryWrapper() {
         return sharedWorkerFactory();
     }
 }
+const USE_WEBUSB = false;
 
-DeviceList._setTransport(() => new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb(), () => sharedWorkerFactoryWrapper())]));
+if (USE_WEBUSB) {
+    DeviceList._setTransport(() => new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb(), () => sharedWorkerFactoryWrapper())]));
+} else {
+    DeviceList._setTransport(() => new Fallback([new Extension(), new Bridge()]));
+}
 
 import {setFetch as installersSetFetch} from './installers';
 DeviceList._setFetch(window.fetch);
