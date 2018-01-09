@@ -2456,6 +2456,16 @@ var Session = (_class = (_temp = _class2 = function (_EventEmitter) {
         value: function nemSignTx(transaction) {
             return this.typedCall('NEMSignTx', 'NEMSignedTx', transaction);
         }
+    }, {
+        key: 'nemDecryptMessage',
+        value: function nemDecryptMessage(address_n, network, public_key, payload) {
+            return this.typedCall('NEMDecryptMessage', 'NEMDecryptedMessage', {
+                address_n: address_n,
+                network: network,
+                public_key: public_key,
+                payload: payload
+            });
+        }
     }]);
 
     return Session;
