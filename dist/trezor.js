@@ -1825,12 +1825,19 @@ function sharedWorkerFactoryWrapper() {
         return sharedWorkerFactory();
     }
 }
+var USE_WEBUSB = false;
 
-_deviceList2.default._setTransport(function () {
-    return new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb(), function () {
-        return sharedWorkerFactoryWrapper();
-    })]);
-});
+if (USE_WEBUSB) {
+    _deviceList2.default._setTransport(function () {
+        return new Fallback([new Extension(), new Bridge(), new Lowlevel(new WebUsb(), function () {
+            return sharedWorkerFactoryWrapper();
+        })]);
+    });
+} else {
+    _deviceList2.default._setTransport(function () {
+        return new Fallback([new Extension(), new Bridge()]);
+    });
+}
 
 _deviceList2.default._setFetch(window.fetch);
 (0, _installers.setFetch)(window.fetch);
