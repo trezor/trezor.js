@@ -51,7 +51,7 @@
     "flow-bin": "0.45.0"
   },
   "dependencies": {
-    "bitcoinjs-lib-zcash": "^3.0.0",
+    "bitcoinjs-lib-zcash": "^3.3.2",
     "ecurve": "^1.0.2",
     "node-fetch": "^1.6.0",
     "randombytes": "^2.0.1",

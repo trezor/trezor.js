@@ -53,7 +53,7 @@
     "uglify-js": "^2.7.3"
   },
   "dependencies": {
-    "bitcoinjs-lib-zcash": "^3.0.0",
+    "bitcoinjs-lib-zcash": "^3.3.2",
     "ecurve": "^1.0.2",
     "randombytes": "^2.0.1",
     "semver-compare": "1.0.0",
