@@ -471,6 +471,10 @@ export default class Device extends EventEmitter {
 
         try {
             return await fn(activeSession);
+        } catch (error) {
+            // wait 1 second to catch up with enumerate
+            await new Promise((resolve) => { setTimeout(() => resolve(), 1000); });
+            throw error;
         } finally {
             if (!skipFinalReload) {
                 await this._reloadFeaturesOrInitialize(activeSession);
