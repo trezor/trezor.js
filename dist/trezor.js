@@ -3338,7 +3338,7 @@ function isBech32(address) {
 }
 
 function isScriptHash(address, network) {
-    if (isBech32(address)) {
+    if (!isBech32(address)) {
         var decoded = bitcoin.address.fromBase58Check(address);
         if (decoded.version === network.pubKeyHash) {
             return false;
