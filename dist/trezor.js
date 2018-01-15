@@ -3338,12 +3338,22 @@ function isBech32(address) {
 }
 
 function isScriptHash(address, network) {
-    var decoded = isBech32(address) ? bitcoin.address.fromBech32(address) : bitcoin.address.fromBase58Check(address);
-    if (decoded.version === network.pubKeyHash) {
-        return false;
-    }
-    if (decoded.version === network.scriptHash) {
-        return true;
+    if (isBech32(address)) {
+        var decoded = bitcoin.address.fromBase58Check(address);
+        if (decoded.version === network.pubKeyHash) {
+            return false;
+        }
+        if (decoded.version === network.scriptHash) {
+            return true;
+        }
+    } else {
+        var _decoded = bitcoin.address.fromBech32(address);
+        if (_decoded.data.length === 20) {
+            return false;
+        }
+        if (_decoded.data.length === 32) {
+            return true;
+        }
     }
     throw new Error('Unknown address type.');
 }
