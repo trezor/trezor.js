@@ -273,12 +273,22 @@ function isBech32(address: string): boolean {
 }
 
 function isScriptHash(address: string, network: bitcoin.Network): boolean {
-    const decoded = isBech32(address) ? bitcoin.address.fromBech32(address) : bitcoin.address.fromBase58Check(address);
-    if (decoded.version === network.pubKeyHash) {
-        return false;
-    }
-    if (decoded.version === network.scriptHash) {
-        return true;
+    if (isBech32(address)) {
+        const decoded = bitcoin.address.fromBase58Check(address);
+        if (decoded.version === network.pubKeyHash) {
+            return false;
+        }
+        if (decoded.version === network.scriptHash) {
+            return true;
+        }
+    } else {
+        const decoded = bitcoin.address.fromBech32(address);
+        if (decoded.data.length === 20) {
+            return false;
+        }
+        if (decoded.data.length === 32) {
+            return true;
+        }
     }
     throw new Error('Unknown address type.');
 }
