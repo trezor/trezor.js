@@ -1179,49 +1179,36 @@ var Device = function (_EventEmitter) {
                             case 11:
                                 return _context2.abrupt('return', _context2.sent);
 
-                            case 14:
-                                _context2.prev = 14;
-                                _context2.t0 = _context2['catch'](8);
-                                _context2.next = 18;
-                                return new Promise(function (resolve) {
-                                    setTimeout(function () {
-                                        return resolve();
-                                    }, 1000);
-                                });
-
-                            case 18:
-                                throw _context2.t0;
-
-                            case 19:
-                                _context2.prev = 19;
+                            case 12:
+                                _context2.prev = 12;
 
                                 if (skipFinalReload) {
-                                    _context2.next = 26;
+                                    _context2.next = 19;
                                     break;
                                 }
 
-                                _context2.next = 23;
+                                _context2.next = 16;
                                 return this._reloadFeaturesOrInitialize(activeSession);
 
-                            case 23:
+                            case 16:
                                 if (!this.canSayXpub()) {
-                                    _context2.next = 26;
+                                    _context2.next = 19;
                                     break;
                                 }
 
-                                _context2.next = 26;
+                                _context2.next = 19;
                                 return this.xpubIntegrityCheck(activeSession);
 
-                            case 26:
+                            case 19:
                                 activeSession.deactivateEvents();
-                                return _context2.finish(19);
+                                return _context2.finish(12);
 
-                            case 28:
+                            case 21:
                             case 'end':
                                 return _context2.stop();
                         }
                     }
-                }, _callee2, this, [[8, 14, 19, 28]]);
+                }, _callee2, this, [[8,, 12, 21]]);
             }));
 
             function _runInside(_x2, _x3, _x4, _x5) {
