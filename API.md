@@ -1,5 +1,38 @@
 trezor.js API
 -----
+- [trezor.js API](#trezorjs-api)
+- [trezor.js API](#trezorjs-api)
+    - [DeviceList](#devicelist)
+    - [UnacquiredDevice](#unacquireddevice)
+    - [Device](#device)
+    - [Session](#session)
+            - [signBjsTx parameters](#signbjstx-parameters)
+    - [Multitasking](#multitasking)
+            - [Multitasking flow](#multitasking-flow)
+            - [Ideal case](#ideal-case)
+            - [Waiting for initialization](#waiting-for-initialization)
+            - [Stealing before initialization](#stealing-before-initialization)
+            - [Two concurrent acquires](#two-concurrent-acquires)
+            - [Running concurrent actions - default case](#running-concurrent-actions---default-case)
+            - [Running concurrent actions - waiting](#running-concurrent-actions---waiting)
+            - [Stealing](#stealing)
+            - [Strategies](#strategies)
+    - [DeviceList](#devicelist)
+    - [UnacquiredDevice](#unacquireddevice)
+    - [Device](#device)
+    - [Session](#session)
+            - [signBjsTx parameters](#signbjstx-parameters)
+    - [Multitasking](#multitasking)
+            - [Multitasking flow](#multitasking-flow)
+            - [Ideal case](#ideal-case)
+            - [Waiting for initialization](#waiting-for-initialization)
+            - [Stealing before initialization](#stealing-before-initialization)
+            - [Two concurrent acquires](#two-concurrent-acquires)
+            - [Running concurrent actions - default case](#running-concurrent-actions---default-case)
+            - [Running concurrent actions - waiting](#running-concurrent-actions---waiting)
+            - [Stealing](#stealing)
+            - [Strategies](#strategies)
+
 All the code examples are written with the assumption trezor.js is imported to the `trezor` variable. So, for example
      
      var trezor = require('trezor.js'); // if you are using the npm version
