@@ -12,17 +12,10 @@
 ../node_modules/node-fetch/
 ../node_modules/whatwg-fetch/
 ../node_modules/trezor-link/
-../node_modules/trezor-link-node/
 ../node_modules/protobufjs-old-fixed-webpack/
-../node_modules/trezor-link-node/node_modules/protobufjs/
 ../node_modules/json-stable-stringify/
-../node_modules/trezor-link-node/node_modules/json-stable-stringify/
 ../node_modules/bigi/
-../node_modules/trezor-link-node/node_modules/bigi/
 ../node_modules/object.values/
-../node_modules/trezor-link-node/node_modules/object.values/
-../node_modules/node-hid/
-../node_modules/trezor-link-node/node_modules/node-hid/
 
 [libs]
 ../node_modules/trezor-link/flowtype/
