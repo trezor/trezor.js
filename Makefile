@@ -8,6 +8,9 @@ git-ancestor:
 	git fetch origin
 	git merge-base --is-ancestor origin/master master
 
+yarn:
+	yarn
+
 node_modules:
 	yarn
 
