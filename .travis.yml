@@ -6,15 +6,14 @@ node_js:
   - "4.4"
 
 before_script:
-  - npm install rimraf
-  - sudo apt-get install libusb-1.0-0-dev
+  - yarn
 
+env:
+  - GOAL=flow
+  - GOAL=eslint
+  - GOAL=build
 
-script:
-  - cp package-node.json package.json && npm install && cp package-browser.json package.json && npm install && rm package.json
-  - make check
-  - make .move-in-node build-node .cleanup-node
-  - make .move-in-browser build-browser .cleanup-browser
+script: make $GOAL
 
 notifications:
   webhooks:

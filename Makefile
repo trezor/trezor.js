@@ -1,5 +1,7 @@
-check: node_modules
+flow: node_modules
 	`npm bin`/flow check src/
+
+eslint:
 	cd src/; `npm bin`/eslint .
 
 git-ancestor:
@@ -7,41 +9,17 @@ git-ancestor:
 	git merge-base --is-ancestor origin/master master
 
 node_modules:
-	npm install
+	yarn
 
 clean:
 	rm -rf lib
 	rm -rf dist
 
-build-node: clean node_modules
+build: clean node_modules
 	cp -r src/ lib
 	find lib/ -type f ! -name '*.js' | xargs -I {} rm {}
 	find lib/ -name '*.js' | xargs -I {} mv {} {}.flow
 	`npm bin`/babel src --out-dir lib
-	rm lib/index-browser.js
-	rm lib/index-browser.js.flow
-
-build-browser: clean node_modules
-	cp -r src/ lib
-	find lib/ -type f ! -name '*.js' | xargs -I {} rm {}
-	find lib/ -name '*.js' | xargs -I {} mv {} {}.flow
-	`npm bin`/babel src --out-dir lib
-	mkdir dist
-	`npm bin`/browserify lib/index-browser.js --s trezor > dist/trezor.js
-	cat dist/trezor.js | `npm bin`/uglifyjs -c -m > dist/trezor.min.js
-	rm lib/index-node.js
-	rm lib/index-node.js.flow
-
-.move-in-%:
-	mv README.md README.old.md
-	mv README-$*.md README.md
-	mv package-$*.json package.json
-
-.cleanup-%:
-	mv README.md README-$*.md 
-	mv README.old.md README.md
-	mv package.json package-$*.json 
-	rm -rf lib
 
 .version-%: .move-in-%
 	npm install	
@@ -51,25 +29,20 @@ build-browser: clean node_modules
 	npm publish || ( make .cleanup-$* && false )
 	make .cleanup-$*
 
-.versions: git-clean git-ancestor check .version-node .version-browser
-	rm -rf lib
-	git add package*.json
-	mv package-node.json package.json
-	git add dist/trezor.js dist/trezor.min.js
-	git commit -m `npm view . version`
-	git tag v`npm view . version`
-	mv package.json package-node.json
+.version: yarn git-clean git-ancestor flow eslint build
+	npm version ${TYPE}
+	npm publish
 	git push
 	git push --tags
 
-versions-patch: TYPE = patch
-versions-patch: .versions
+version-patch: TYPE = patch
+version-patch: .version
 
-versions-minor: TYPE = minor
-versions-minor: .versions
+version-minor: TYPE = minor
+version-minor: .version
 
-versions-major: TYPE = major
-versions-major: .versions
+version-major: TYPE = major
+version-major: .version
 
 git-clean:
 	test ! -n "$$(git status --porcelain)"

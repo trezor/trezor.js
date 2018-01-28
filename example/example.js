@@ -1,7 +1,7 @@
 'use strict';
 
 // installed from npm
-var trezor = require('trezor.js-node');
+var trezor = require('trezor.js');
 
 // set to true to see messages
 var debug = true;
