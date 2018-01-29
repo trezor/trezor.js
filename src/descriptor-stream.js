@@ -65,12 +65,11 @@ export default class DescriptorStream extends EventEmitter {
             }
 
             this.current = descriptors;
-            this._reportChanges();
-
-            if (this.listening) { // handlers might have called stop()
-                this.listen();
-            }
-            return;
+            this._reportChanges().then(() => {
+                if (this.listening) { // handlers might have called stop()
+                    this.listen();
+                }
+            });
         }).catch(error => {
             this.errorEvent.emit(error);
         });
@@ -123,7 +122,7 @@ export default class DescriptorStream extends EventEmitter {
     }
 
     _reportChanges() {
-        lock(() => {
+        return lock(() => {
             const diff = this._diff(this.previous, this.current);
             this.previous = this.current;
 
