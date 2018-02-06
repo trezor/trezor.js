@@ -229,19 +229,40 @@ export default class Session extends EventEmitter {
         });
     }
 
-    eraseFirmware(): Promise<MessageResponse<trezor.Success>> {
-        return this.typedCall('FirmwareErase', 'Success');
+    // payload is in hexa
+    updateFirmware(payload: string): Promise<MessageResponse<trezor.Success>> {
+        const device = this.device;
+        if (device == null) {
+            return Promise.reject(new Error('Cannot determine bootloader version.'));
+        }
+        if (!(device.features.bootloader_mode)) {
+            return Promise.reject(new Error('Device is not in bootloader mode.'));
+        }
+        if (device.features.major_version === 2) {
+            return this._updateFirmwareV2(payload);
+        } else {
+            return this._updateFirmwareV2(payload);
+        }
     }
 
-    // payload is in hexa
-    uploadFirmware(payload: string): Promise<MessageResponse<trezor.Success>> {
-        return this.typedCall('FirmwareUpload', 'Success', {
+    async _updateFirmwareV1(payload: string): Promise<MessageResponse<trezor.Success>> {
+        await this.typedCall('FirmwareErase', 'Success');
+        return await this.typedCall('FirmwareUpload', 'Success', {
             payload: payload,
         });
     }
 
-    updateFirmware(payload: string): Promise<MessageResponse<trezor.Success>> {
-        return this.eraseFirmware().then(() => this.uploadFirmware(payload));
+    async _updateFirmwareV2(payload: string): Promise<MessageResponse<trezor.Success>> {
+        let request = await this.typedCall('FirmwareErase', 'FirmwareRequest', {length: payload.length / 2});
+        while (request.type !== 'Success') {
+            const start = request.message.offset * 2;
+            const end = request.message.offset * 2 + request.message.length * 2;
+            const substring = payload.substring(start, end);
+            request = await this.typedCall('FirmwareUpload', 'FirmwareRequest|Success', {
+                payload: substring,
+            });
+        }
+        return request;
     }
 
     // failure to verify rejects returned promise

@@ -7,8 +7,9 @@ import type {DefaultMessageResponse} from '../session';
 import type {Transport} from 'trezor-link';
 import type Session from '../session';
 
-function assertType(res: DefaultMessageResponse, resType: string) {
-    if (res.type !== resType) {
+function assertType(res: DefaultMessageResponse, resTypes: string) {
+    const splitResTypes = resTypes.split('|');
+    if (!(splitResTypes.includes(res.type))) {
         throw new TypeError(`Response of unexpected type: ${res.type}`);
     }
 }
