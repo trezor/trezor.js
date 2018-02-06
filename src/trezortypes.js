@@ -97,6 +97,10 @@ export type ApplySettings = {
     homescreen?: string;
 };
 
+export type ApplyFlags = {
+    flags?: number;
+};
+
 export type MessageSignature = {
     address: string;
     signature: string;

@@ -215,6 +215,10 @@ export default class Session extends EventEmitter {
         return this.typedCall('ApplySettings', 'Success', settings);
     }
 
+    applyFlags(flags: number): Promise<MessageResponse<trezor.Success>> {
+        return this.typedCall('ApplyFlags', 'Success', {flags});
+    }
+
     clearSession(settings?: {}): Promise<MessageResponse<trezor.Success>> {
         return this.typedCall('ClearSession', 'Success', settings);
     }
