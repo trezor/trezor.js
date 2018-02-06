@@ -33,6 +33,7 @@ export type Features = {
     passphrase_cached: boolean;
     needs_backup?: boolean;
     firmware_present?: boolean;
+    flags?: number;
 };
 
 export type ResetDeviceSettings = {
