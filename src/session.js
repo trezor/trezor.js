@@ -241,7 +241,7 @@ export default class Session extends EventEmitter {
         if (device.features.major_version === 2) {
             return this._updateFirmwareV2(payload);
         } else {
-            return this._updateFirmwareV2(payload);
+            return this._updateFirmwareV1(payload);
         }
     }
 
