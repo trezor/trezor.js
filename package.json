@@ -20,6 +20,9 @@
   "browser": "lib/index-browser.js",
   "main": "lib/index-node.js",
   "babel": {
+    "presets": [
+      "env"
+    ],
     "plugins": [
       "transform-es2015-template-literals",
       "transform-flow-strip-types",
@@ -51,7 +54,7 @@
     "node-fetch": "^1.6.0",
     "randombytes": "^2.0.1",
     "semver-compare": "1.0.0",
-    "trezor-link": "1.0.6",
+    "trezor-link": "1.0.8",
     "unorm": "^1.3.3",
     "whatwg-fetch": "0.11.0"
   }
