@@ -20,21 +20,6 @@
   "browser": "lib/index-browser.js",
   "main": "lib/index-node.js",
   "babel": {
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "browsers": [
-              "chrome >= 56",
-              "firefox >= 55",
-              "chromeandroid >= 56"
-            ],
-            "node": "8.9.4"
-          }
-        }
-      ]
-    ],
     "plugins": [
       "transform-es2015-template-literals",
       "transform-flow-strip-types",
