@@ -21,6 +21,8 @@ export type DeviceDescriptorDiff = {
 export default class DescriptorStream extends EventEmitter {
     transport: Transport;
     listening: boolean = false;
+    failedToFetchTries: number = 0;
+    failedToFetchTriesLimit: number = 1;
     previous: ?Array<DeviceDescriptor> = null;
     current: Array<DeviceDescriptor> = [];
 
@@ -64,6 +66,8 @@ export default class DescriptorStream extends EventEmitter {
                 return;
             }
 
+            this.failedToFetchTries = 0;
+
             this.current = descriptors;
             this._reportChanges().then(() => {
                 if (this.listening) { // handlers might have called stop()
@@ -71,7 +75,15 @@ export default class DescriptorStream extends EventEmitter {
                 }
             });
         }).catch(error => {
-            this.errorEvent.emit(error);
+            if (error && error.message === 'Failed to fetch' && this.failedToFetchTries < this.failedToFetchTriesLimit) {
+                // Try again. This error could be thrown by fetch API when computer goes to sleep and pending request is cancelled
+                this.failedToFetchTries++;
+                if (this.listening) {
+                    this.listen();
+                }
+            } else {
+                this.errorEvent.emit(error);
+            }
         });
     }
 
