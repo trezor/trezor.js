@@ -469,17 +469,18 @@ export default class Device extends EventEmitter {
         forwardCallback1(activeSession.wordEvent, this.wordEvent);
         this.forwardPassphrase(activeSession.passphraseEvent);
 
+        const res = await fn(activeSession);
         try {
-            return await fn(activeSession);
-        } finally {
             if (!skipFinalReload) {
                 await this._reloadFeaturesOrInitialize(activeSession);
                 if (this.canSayXpub()) {
                     await this.xpubIntegrityCheck(activeSession);
                 }
             }
+        } finally {
             activeSession.deactivateEvents();
         }
+        return res;
     }
 
     _waitForNullSession(): Promise<?string> {
