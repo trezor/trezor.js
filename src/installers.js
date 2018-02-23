@@ -115,7 +115,7 @@ type VersionOptions = {
 export function latestVersion(options: ?VersionOptions): Promise<string> {
     const o: VersionOptions = options || {};
     const bridgeUrl: string = o.bridgeUrl || BRIDGE_VERSION_URL;
-    return _fetch(bridgeUrl)
+    return _fetch(bridgeUrl, {credentials: 'same-origin'})
         .then(response => {
             return response.ok
                 ? response.text()
