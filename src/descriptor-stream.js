@@ -138,7 +138,7 @@ export default class DescriptorStream extends EventEmitter {
             const diff = this._diff(this.previous, this.current);
             this.previous = this.current;
 
-            if (diff.didUpdate) {
+            if (diff.didUpdate && this.listening) {
                 diff.connected.forEach(d => {
                     this.connectEvent.emit(d);
                 });

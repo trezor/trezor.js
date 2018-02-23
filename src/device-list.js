@@ -483,6 +483,12 @@ export default class DeviceList extends EventEmitter {
 
     onbeforeunload(clearSession?: ?boolean) {
         this.asArray().forEach(device => device.onbeforeunload(clearSession));
+        // some weird issue on chrome on mac makes the window alive
+        // even after closing
+        // we need to stop the stream
+        if (this.stream != null) {
+            this.stream.stop();
+        }
     }
 }
 
