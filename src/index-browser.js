@@ -15,7 +15,7 @@ export {default as Device} from './device';
 export {default as DescriptorStream} from './descriptor-stream';
 export {default as DeviceList} from './device-list';
 
-let sharedWorkerFactory: ?() => ?SharedWorker = () => { throw new Error('WebUsb is not yet enabled.'); };
+let sharedWorkerFactory: ?() => ?SharedWorker = null;
 export function setSharedWorkerFactory(swf: ?() => ?SharedWorker) {
     sharedWorkerFactory = swf;
 }
