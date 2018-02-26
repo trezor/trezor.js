@@ -207,6 +207,9 @@ export default class DeviceList extends EventEmitter {
 
     _initTransport() {
         const transport = this.options.transport ? this.options.transport : DeviceList.defaultTransport();
+        if (this.options.bridgeVersionUrl != null) {
+            transport.setBridgeLatestUrl(this.options.bridgeVersionUrl);
+        }
         if (this.options.debugInfo) {
             console.log('[trezor.js] [device list] Initializing transports');
         }
