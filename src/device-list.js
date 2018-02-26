@@ -128,7 +128,6 @@ export default class DeviceList extends EventEmitter {
         this.xpubDerive = this.options.xpubDerive != null ? this.options.xpubDerive : (xpub, network, index) => {
             return Promise.resolve(bitcoin.HDNode.fromBase58(xpub, network, false).derive(index).toBase58());
         };
-        this._setUnreadableHidDeviceChange();
     }
 
     requestDevice(): Promise<void> {
@@ -218,6 +217,7 @@ export default class DeviceList extends EventEmitter {
                 if (this.options.debugInfo) {
                     console.log('[trezor.js] [device list] Configuring transports done');
                 }
+                this._setUnreadableHidDeviceChange();
                 this.transportEvent.emit(transport);
             });
         }, error => {
