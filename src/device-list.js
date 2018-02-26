@@ -115,6 +115,7 @@ export default class DeviceList extends EventEmitter {
             this.requestNeeded = transport.requestNeeded;
 
             this._initStream(transport);
+            this._setUnreadableHidDeviceChange();
         });
 
         this.streamEvent.on(stream => {
@@ -217,7 +218,6 @@ export default class DeviceList extends EventEmitter {
                 if (this.options.debugInfo) {
                     console.log('[trezor.js] [device list] Configuring transports done');
                 }
-                this._setUnreadableHidDeviceChange();
                 this.transportEvent.emit(transport);
             });
         }, error => {
