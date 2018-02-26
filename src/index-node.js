@@ -16,6 +16,7 @@ export {default as DeviceList} from './device-list';
 
 const fetch = require('node-fetch');
 DeviceList._setTransport(() => new Fallback([new BridgeV2(), new BridgeV1()]));
+DeviceList._setNode(true);
 
 import {setFetch as installersSetFetch} from './installers';
 const myFetch = typeof window === 'undefined' ? fetch : window.fetch;

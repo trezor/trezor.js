@@ -4,7 +4,7 @@
 import * as bitcoin from 'bitcoinjs-lib-zcash';
 
 import {EventEmitter} from './events';
-import {Event1, Event2} from './flow-events';
+import {Event0, Event1, Event2} from './flow-events';
 import DescriptorStream from './descriptor-stream';
 import Device from './device';
 import UnacquiredDevice from './unacquired-device';
@@ -98,6 +98,8 @@ export default class DeviceList extends EventEmitter {
     disconnectUnacquiredEvent: Event1<UnacquiredDevice> = new Event1('disconnectUnacquired', this);
     updateEvent: Event1<DeviceDescriptorDiff> = new Event1('update', this);
 
+    unreadableHidDeviceChange: Event0 = new Event0('unreadableHidDevice', this);
+
     requestNeeded: boolean;
     xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>;
 
@@ -126,6 +128,7 @@ export default class DeviceList extends EventEmitter {
         this.xpubDerive = this.options.xpubDerive != null ? this.options.xpubDerive : (xpub, network, index) => {
             return Promise.resolve(bitcoin.HDNode.fromBase58(xpub, network, false).derive(index).toBase58());
         };
+        this._setUnreadableHidDeviceChange();
     }
 
     requestDevice(): Promise<void> {
@@ -486,6 +489,35 @@ export default class DeviceList extends EventEmitter {
         });
     }
 
+    _setUnreadableHidDeviceChange(): void {
+        if (DeviceList.node) {
+            return;
+        }
+        try {
+            const transport = this.transport;
+            if (transport == null) {
+                return;
+            }
+            // $FlowIssue - this all is going around Flow :/
+            const activeTransport = transport.activeTransport;
+            if (activeTransport == null || activeTransport.name !== 'ParallelTransport') {
+                return;
+            }
+            const webusbTransport = activeTransport.workingTransports['webusb'];
+            if (webusbTransport == null) {
+                return;
+            }
+            // one of the HID fallbacks are working -> do not display the message
+            const hidTransport = activeTransport.workingTransports['hid'];
+            if (hidTransport != null) {
+                return;
+            }
+            return webusbTransport.plugin.unreadableHidDeviceChange.on(() => this.unreadableHidDeviceChange.emit());
+        } catch (e) {
+            return;
+        }
+    }
+
     unreadableHidDevice(): boolean {
         if (DeviceList.node) {
             return false;
@@ -509,7 +541,7 @@ export default class DeviceList extends EventEmitter {
             if (hidTransport != null) {
                 return false;
             }
-            return webusbTransport.unreadableHidDevice;
+            return webusbTransport.plugin.unreadableHidDevice;
         } catch (e) {
             return false;
         }
