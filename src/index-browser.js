@@ -28,6 +28,8 @@ function sharedWorkerFactoryWrap() {
     }
 }
 
+DeviceList._setNode(false);
+
 DeviceList._setTransport(() => new Fallback([
     new BridgeV2(),
     new Parallel({

@@ -70,6 +70,11 @@ export default class DeviceList extends EventEmitter {
         DeviceList.defaultTransport = t;
     }
 
+    static node: boolean;
+    static _setNode(node: boolean) {
+        DeviceList.node = node;
+    }
+
     options: DeviceListOptions;
     transport: ?Transport;
     transportLoading: boolean = true;
@@ -479,6 +484,35 @@ export default class DeviceList extends EventEmitter {
             }
             throw err;
         });
+    }
+
+    unreadableHidDevice(): boolean {
+        if (DeviceList.node) {
+            return false;
+        }
+        try {
+            const transport = this.transport;
+            if (transport == null) {
+                return false;
+            }
+            // $FlowIssue - this all is going around Flow :/
+            const activeTransport = transport.activeTransport;
+            if (activeTransport == null || activeTransport.name !== 'ParallelTransport') {
+                return false;
+            }
+            const webusbTransport = activeTransport.workingTransports['webusb'];
+            if (webusbTransport == null) {
+                return false;
+            }
+            // one of the HID fallbacks are working -> do not display the message
+            const hidTransport = activeTransport.workingTransports['hid'];
+            if (hidTransport != null) {
+                return false;
+            }
+            return webusbTransport.unreadableHidDevice;
+        } catch (e) {
+            return false;
+        }
     }
 
     onbeforeunload(clearSession?: ?boolean) {
