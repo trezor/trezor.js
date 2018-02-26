@@ -7,7 +7,7 @@ import 'unorm';
 import link from 'trezor-link';
 import DeviceList from './device-list';
 
-const {BridgeV1, BridgeV2, Extension, Lowlevel, WebUsb, Fallback} = link;
+const {BridgeV1, BridgeV2, Extension, Lowlevel, WebUsb, Fallback, Parallel} = link;
 
 export {default as Session} from './session';
 export {default as UnacquiredDevice} from './unacquired-device';
@@ -20,20 +20,24 @@ export function setSharedWorkerFactory(swf: ?() => ?SharedWorker) {
     sharedWorkerFactory = swf;
 }
 
-function sharedWorkerFactoryWrapper() {
+function sharedWorkerFactoryWrap() {
     if (sharedWorkerFactory == null) {
         return null;
     } else {
         return sharedWorkerFactory();
     }
 }
-const USE_WEBUSB = false;
 
-if (USE_WEBUSB) {
-    DeviceList._setTransport(() => new Fallback([new BridgeV2(), new Extension(), new BridgeV1(), new Lowlevel(new WebUsb(), () => sharedWorkerFactoryWrapper())]));
-} else {
-    DeviceList._setTransport(() => new Fallback([new BridgeV2(), new Extension(), new BridgeV1()]));
-}
+DeviceList._setTransport(() => new Fallback([
+    new BridgeV2(),
+    new Parallel({
+        webusb: new Lowlevel(new WebUsb(), () => sharedWorkerFactoryWrap()),
+        hid: new Fallback([
+            new Extension(),
+            new BridgeV1(),
+        ]),
+    }),
+]));
 
 import {setFetch as installersSetFetch} from './installers';
 DeviceList._setFetch(window.fetch);
