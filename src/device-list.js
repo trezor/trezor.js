@@ -512,7 +512,7 @@ export default class DeviceList extends EventEmitter {
             if (hidTransport != null) {
                 return;
             }
-            return webusbTransport.plugin.unreadableHidDeviceChange.on(() => this.unreadableHidDeviceChange.emit());
+            return webusbTransport.plugin.unreadableHidDeviceChange.on('change', () => this.unreadableHidDeviceChange.emit('change'));
         } catch (e) {
             return;
         }
