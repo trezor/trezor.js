@@ -51,3 +51,6 @@ export type {
 export type {
     RunOptions,
 } from './device';
+
+// exporting only for correct Flow checks
+export function setSharedWorkerFactory(swf: ?() => ?SharedWorker) {}
