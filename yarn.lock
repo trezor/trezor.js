@@ -2507,9 +2507,9 @@ tough-cookie@~2.3.0:
   dependencies:
     punycode "^1.4.1"
 
-trezor-link@1.1.5:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/trezor-link/-/trezor-link-1.1.5.tgz#8520521728aef4af611604037a17ac1622f46099"
+trezor-link@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/trezor-link/-/trezor-link-1.2.0.tgz#50d6210f65163df2084506dcf1b757f20e82bd67"
   dependencies:
     bigi "^1.4.1"
     bitcoinjs-lib-zcash "^3.0.0"

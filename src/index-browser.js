@@ -33,11 +33,20 @@ DeviceList._setNode(false);
 DeviceList._setTransport(() => new Fallback([
     new BridgeV2(),
     new Parallel({
-        webusb: new Lowlevel(new WebUsb(), () => sharedWorkerFactoryWrap()),
-        hid: new Fallback([
-            new Extension(),
-            new BridgeV1(),
-        ]),
+        webusb: {
+            transport: new Lowlevel(
+                new WebUsb(),
+                () => sharedWorkerFactoryWrap()
+            ),
+            mandatory: true,
+        },
+        hid: {
+            transport: new Fallback([
+                new Extension(),
+                new BridgeV1(),
+            ]),
+            mandatory: false,
+        },
     }),
 ]));
 
