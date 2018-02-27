@@ -138,6 +138,9 @@ export class CallHelper {
         }
 
         if (res.type === 'PassphraseRequest') {
+            if (res.message.on_device) {
+                return this._commonCall('PassphraseAck', { });
+            }
             return this._promptPassphrase().then(
                 passphrase => {
                     return this._commonCall('PassphraseAck', { passphrase: passphrase });
