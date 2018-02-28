@@ -642,7 +642,10 @@ export default class Device extends EventEmitter {
         if (currentSession != null) {
             // cannot run .then() in browser; so let's just fire and hope for the best
             if (this.clearSession) {
-                currentSession.clearSession();
+                const model = this.features.model;
+                if (model == null || model !== 'T') {
+                    currentSession.clearSession();
+                }
             }
             currentSession.release();
         }
