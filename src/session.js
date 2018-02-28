@@ -102,11 +102,11 @@ export default class Session extends EventEmitter {
         return this._descriptor.path === descriptor.path;
     }
 
-    release(): Promise<void> {
+    release(onclose: boolean): Promise<void> {
         if (this.debug) {
             console.log('[trezor.js] [session] releasing');
         }
-        return this._transport.release(this._sessionId);
+        return this._transport.release(this._sessionId, onclose);
     }
 
     initialize(): Promise<MessageResponse<trezor.Features>> {

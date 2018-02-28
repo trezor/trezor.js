@@ -142,7 +142,7 @@ export default class Device extends EventEmitter {
     ): Promise<void> {
         const released = lock(() =>
             promiseFinally(
-                session.release(),
+                session.release(false),
                 (res, error) => {
                     if (error == null) {
                         deviceList.setHard(originalDescriptor.path, null);
@@ -647,7 +647,7 @@ export default class Device extends EventEmitter {
                     currentSession.clearSession();
                 }
             }
-            currentSession.release();
+            currentSession.release(true);
         }
     }
 }
