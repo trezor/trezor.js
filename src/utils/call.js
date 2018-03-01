@@ -144,7 +144,7 @@ export class CallHelper {
                 if (currentState != null && currentState !== receivedState) {
                     return Promise.reject(new Error('Device has entered inconsistent state. Please reconnect the device.'));
                 }
-                this.session.device = receivedState;
+                this.session.device.passphraseState = receivedState;
                 return this._commonCall('PassphraseStateAck', { });
             }
             // ??? nowhere to save the state, throwing error
