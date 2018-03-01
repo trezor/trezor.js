@@ -110,7 +110,7 @@ export default class Session extends EventEmitter {
     }
 
     initialize(): Promise<MessageResponse<trezor.Features>> {
-        if (this.device && this.device.state) {
+        if (this.device && this.device.passphraseState) {
             return this.typedCall('Initialize', 'Features', { state: this.device.passphraseState });
         }
         return this.typedCall('Initialize', 'Features');
