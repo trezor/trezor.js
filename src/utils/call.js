@@ -137,18 +137,32 @@ export class CallHelper {
             );
         }
 
+        if (res.type === 'PassphraseStateRequest') {
+            if (this.session.device) {
+                const currentState = this.session.device.passphraseState;
+                const receivedState = res.message.state;
+                if (currentState != null && currentState !== receivedState) {
+                    return Promise.reject(new Error('Device has entered inconsistent state. Please reconnect the device.'));
+                }
+                this.session.device = receivedState;
+                return this._commonCall('PassphraseStateAck', { });
+            }
+            // ??? nowhere to save the state, throwing error
+            return Promise.reject(new Error('Nowhere to save passphrase state.'));
+        }
+
         if (res.type === 'PassphraseRequest') {
             if (res.message.on_device) {
-                /* if (this.session.device && this.session.device.features.state) {
-                    return this._commonCall('PassphraseAck', { state: this.session.device.features.state });
-                }*/
+                if (this.session.device && this.session.device.state) {
+                    return this._commonCall('PassphraseAck', { state: this.session.device.passphraseState });
+                }
                 return this._commonCall('PassphraseAck', { });
             }
             return this._promptPassphrase().then(
                 passphrase => {
-                    /* if (this.session.device && this.session.device.features.state) {
-                        return this._commonCall('PassphraseAck', { passphrase: passphrase, state: this.session.device.features.state });
-                    }*/
+                    if (this.session.device && this.session.device.state) {
+                        return this._commonCall('PassphraseAck', { passphrase: passphrase, state: this.session.device.passphraseState });
+                    }
 
                     return this._commonCall('PassphraseAck', { passphrase: passphrase });
                 },

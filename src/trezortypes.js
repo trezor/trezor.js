@@ -34,7 +34,6 @@ export type Features = {
     needs_backup?: boolean;
     firmware_present?: boolean;
     flags?: number;
-    state?: string;
     model?: string;
 };
 

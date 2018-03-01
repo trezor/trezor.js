@@ -51,6 +51,8 @@ export default class Device extends EventEmitter {
     rememberPlaintextPassphrase: boolean = false;
     rememberedPlaintextPasshprase: ?string = null;
 
+    passphraseState: ?string = null;
+
     // First of two "advanced" integrity checks
     // We check whether the xpub that we get from the trezor is
     // the same that *the application* remembers.
