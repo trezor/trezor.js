@@ -41,6 +41,9 @@ function filterForLog(type: string, msg: Object): Object {
             message: '(redacted...)',
             address: '(redacted...)',
         },
+        FirmwareUpload: {
+            payload: '...',
+        },
     };
 
     if (type in blacklist) {
