@@ -104,7 +104,7 @@ export default class Session extends EventEmitter {
 
     release(onclose: boolean): Promise<void> {
         if (this.debug) {
-            console.log('[trezor.js] [session] releasing');
+            console.log('[trezor.js] [session] releasing', onclose);
         }
         return this._transport.release(this._sessionId, onclose);
     }
