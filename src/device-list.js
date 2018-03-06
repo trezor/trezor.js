@@ -558,6 +558,9 @@ export default class DeviceList extends EventEmitter {
         if (this.stream != null) {
             this.stream.stop();
         }
+        if (this.transport != null) {
+            this.transport.stop();
+        }
     }
 }
 
