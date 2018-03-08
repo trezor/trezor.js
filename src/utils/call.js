@@ -156,6 +156,8 @@ export class CallHelper {
 
         if (res.type === 'PassphraseRequest') {
             if (res.message.on_device) {
+                // "fake" button event
+                this.session.buttonEvent.emit('PassphraseOnDevice');
                 if (this.session.device && this.session.device.passphraseState) {
                     return this._commonCall('PassphraseAck', { state: this.session.device.passphraseState });
                 }
