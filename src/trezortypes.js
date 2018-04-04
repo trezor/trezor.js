@@ -35,6 +35,7 @@ export type Features = {
     firmware_present?: boolean;
     flags?: number;
     model?: string;
+    unfinished_backup?: boolean;
 };
 
 export type ResetDeviceSettings = {
