@@ -156,7 +156,7 @@ export default class DeviceList extends EventEmitter {
             return '';
         }
         if (this.transport.activeName) {
-            // $FlowIssue
+            // $ FlowIssue
             const activeName: string = this.transport.activeName;
             if (activeName === 'BridgeTransport') {
                 return 'bridge';
