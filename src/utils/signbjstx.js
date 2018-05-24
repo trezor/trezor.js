@@ -1,6 +1,7 @@
 /* @flow */
 'use strict';
 
+import bchaddr from 'bchaddrjs';
 import * as bitcoin from 'bitcoinjs-lib-zcash';
 import * as trezor from '../trezortypes';
 import * as hdnodeUtils from './hdnode';
@@ -57,7 +58,7 @@ function _flow_makeArray(a: mixed): Array<number> {
     return res;
 }
 
-function output2trezor(output: OutputInfo, network: bitcoin.Network): trezor.TransactionOutput {
+function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddress: ?boolean): trezor.TransactionOutput {
     if (output.address == null) {
         if (output.opReturnData != null) {
             if (output.value != null) {
@@ -103,10 +104,11 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network): trezor.Tra
     // $FlowIssue
     const amount: number = output.value;
 
-    isScriptHash(address, network);
+    isScriptHash(address, network, isCashaddress);
 
+    // cashaddr hack, internally we work only with legacy addresses, but we output cashaddr
     return {
-        address: address,
+        address: isCashaddress ? bchaddr.toCashAddress(address) : address,
         amount: amount,
         script_type: 'PAYTOADDRESS',
     };
@@ -272,7 +274,17 @@ function isBech32(address: string): boolean {
     }
 }
 
-function isScriptHash(address: string, network: bitcoin.Network): boolean {
+function isScriptHash(address: string, network: bitcoin.Network, isCashaddress: ?boolean): boolean {
+    // cashaddr hack
+    // Cashaddr format (with prefix) is neither base58 nor bech32, so it would fail
+    // in bitcoinjs-lib-zchash. For this reason, we use legacy format here
+    try {
+        if (isCashaddress) {
+            address = bchaddr.toLegacyAddress(address);
+        }
+    } catch (err) {
+        throw new Error('Received cashaddr address could not be translated to legacy format for purpose of internal checks');
+    }
     if (!isBech32(address)) {
         const decoded = bitcoin.address.fromBase58Check(address);
         if (decoded.version === network.pubKeyHash) {
@@ -310,7 +322,8 @@ export function signBjsTx(
     nodes: Array<bitcoin.HDNode>,
     coinName: string,
     network_: ?bitcoin.Network,
-    locktime: ?number
+    locktime: ?number,
+    isCashaddress: ?boolean,
 ): Promise<bitcoin.Transaction> {
     const network: bitcoin.Network = network_ == null ? bitcoin.networks[coinName.toLowerCase()] : network_;
     if (network == null) {
@@ -321,8 +334,10 @@ export function signBjsTx(
     const sequence = locktime ? (0xffffffff - 1) : 0xffffffff;
 
     const trezorInputs: Array<trezor.TransactionInput> = info.inputs.map(i => input2trezor(i, sequence));
+    // in case of bitcoin cash transaction, in output2trezor function actual conversion from legacy
+    // to cashaddress format takes place
     const trezorOutputs: Array<trezor.TransactionOutput> =
-        info.outputs.map(o => output2trezor(o, network));
+        info.outputs.map(o => output2trezor(o, network, isCashaddress));
     const trezorRefTxs: Array<trezor.RefTransaction> = refTxs.map(tx => bjsTx2refTx(tx));
 
     return session.signTx(

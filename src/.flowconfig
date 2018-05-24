@@ -16,6 +16,7 @@
 ../node_modules/json-stable-stringify/
 ../node_modules/bigi/
 ../node_modules/object.values/
+../node_modules/bchaddrjs/
 
 [libs]
 ../node_modules/trezor-link/flowtype/
