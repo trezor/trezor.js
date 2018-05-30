@@ -23,6 +23,14 @@ Example of usage is on `example-browser/`, `example-node/` and `example-electron
 #### Flow
 trezor.js is annotated with [Flow](https://github.com/facebook/flow) types; if you want to use Flow and use the previous setup, it will use the right types. Note that you might have to set up `.flowconfig` to include all the modules and interface files in [our flowconfig](https://github.com/trezor/trezor.js/blob/master/lib/.flowconfig)
 
+to run flow use `make flow` 
+
+#### Build 
+to build production bundle run `make build`
+
+#### eslint
+`make eslint`
+
 Using trezor.js in a web app
 ----
 If you are using trezor.js in a web app, the *end user* has to install one of our transport layers. Also, the web app's URL has to be whitelisted specifically by SatoshiLabs.
