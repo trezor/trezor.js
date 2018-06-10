@@ -8,7 +8,6 @@ import {Event0, Event1, Event2} from './flow-events';
 import Session from './session';
 import {lock} from './utils/connectionLock';
 import {harden} from './utils/hdnode';
-import * as trezor from './trezortypes';
 import * as bitcoin from 'bitcoinjs-lib-zcash';
 
 import type DeviceList from './device-list';
@@ -63,7 +62,7 @@ export default class Device extends EventEmitter {
     // comparing different calls with each other, since this is set on first call.
     integrityCheckingXpub: ?string;
     integrityCheckingXpubPath: Array<number> = [harden(49), harden(0), harden(0)];
-    integrityCheckingXpubNetwork: trezor.CoinType | string | bitcoin.Network = 'bitcoin';
+    integrityCheckingXpubNetwork: string | bitcoin.Network = 'bitcoin';
     integrityCheckingPassphrase: ?string;
 
     disconnectEvent: Event0 = new Event0('disconnect', this);
@@ -330,7 +329,7 @@ export default class Device extends EventEmitter {
     // See the comment on top on integrityCheckingXpub.
     // This sets the xpub that we will re-check when possible (before important actions, and
     // after all action when it makes sense)
-    setCheckingXpub(integrityCheckingXpubPath: Array<number>, integrityCheckingXpub: string, integrityCheckingXpubNetwork: (trezor.CoinType | string | bitcoin.Network)) {
+    setCheckingXpub(integrityCheckingXpubPath: Array<number>, integrityCheckingXpub: string, integrityCheckingXpubNetwork: (string | bitcoin.Network)) {
         this.integrityCheckingXpubPath = integrityCheckingXpubPath;
         this.integrityCheckingXpub = integrityCheckingXpub;
         this.integrityCheckingXpubNetwork = integrityCheckingXpubNetwork;
@@ -556,17 +555,6 @@ export default class Device extends EventEmitter {
 
     atLeast(version: string): boolean {
         return semvercmp(this.getVersion(), version) >= 0;
-    }
-
-    getCoin(name: boolean): Object {
-        const coins = this.features.coins;
-
-        for (let i = 0; i < coins.length; i++) {
-            if (coins[i].coin_name === name) {
-                return coins[i];
-            }
-        }
-        throw new Error('Device does not support given coin type');
     }
 
     _watch() {

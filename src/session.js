@@ -129,7 +129,7 @@ export default class Session extends EventEmitter {
     @integrityCheck
     getAddress(
         address_n: Array<number>,
-        coin: trezor.CoinType | string,
+        coin: string,
         show_display: ?boolean,
         segwit: boolean
     ): Promise<MessageResponse<{
@@ -168,14 +168,14 @@ export default class Session extends EventEmitter {
     @integrityCheck
     getPublicKey(
         address_n: Array<number>,
-        coin: ?(trezor.CoinType | string),
+        coin: ?(string),
     ): Promise<MessageResponse<trezor.PublicKey>> {
         return this._getPublicKeyInternal(address_n, coin);
     }
 
     _getPublicKeyInternal(
         address_n: Array<number>,
-        coin: ?(trezor.CoinType | string),
+        coin: ?(string),
     ): Promise<MessageResponse<trezor.PublicKey>> {
         const coin_name = coin ? coinName(coin) : 'Bitcoin';
         return this.typedCall('GetPublicKey', 'PublicKey', {
@@ -197,7 +197,7 @@ export default class Session extends EventEmitter {
 
     loadDevice(
         settings: trezor.LoadDeviceSettings,
-        network: ?(trezor.CoinType | string | bitcoin.Network)
+        network: ?(string | bitcoin.Network)
     ): Promise<MessageResponse<trezor.Success>> {
         const convertedNetwork = network == null ? null : coinNetwork(network);
         return this.typedCall(
@@ -273,7 +273,7 @@ export default class Session extends EventEmitter {
         address: string,
         signature: string,
         message: string,
-        coin: trezor.CoinType | string
+        coin: string
     ): Promise<MessageResponse<trezor.Success>> {
         return this.typedCall('VerifyMessage', 'Success', {
             address: address,
@@ -298,7 +298,7 @@ export default class Session extends EventEmitter {
     signMessage(
         address_n: Array<number>,
         message: string,
-        coin: trezor.CoinType | string,
+        coin: string,
         segwit: boolean,
     ): Promise<MessageResponse<trezor.MessageSignature>> {
         return this.typedCall('SignMessage', 'MessageSignature', {
@@ -372,7 +372,7 @@ export default class Session extends EventEmitter {
     measureTx(
         inputs: Array<trezor.TransactionInput>,
         outputs: Array<trezor.TransactionInput>,
-        coin: string | trezor.CoinType
+        coin: string
     ): Promise<MessageResponse<{tx_size: number}>> {
         return this.typedCall('EstimateTxSize', 'TxSize', {
             inputs_count: inputs.length,
@@ -386,7 +386,7 @@ export default class Session extends EventEmitter {
         inputs: Array<trezor.TransactionInput>,
         outputs: Array<trezor.TransactionOutput>,
         txs: Array<trezor.RefTransaction>,
-        coin: trezor.CoinType | string,
+        coin: string,
         locktime: ?number
     ): Promise<MessageResponse<trezor.SignedTx>> {
         return signTxHelper.signTx(this, inputs, outputs, txs, coin, locktime);
@@ -424,7 +424,7 @@ export default class Session extends EventEmitter {
     }
 
     @integrityCheck
-    verifyAddress(path: Array<number>, address: string, coin: string | trezor.CoinType, segwit: boolean): Promise<boolean> {
+    verifyAddress(path: Array<number>, address: string, coin: string, segwit: boolean): Promise<boolean> {
         return this.getAddress(path, coin, true, segwit).then((res) => {
             const verified = res.message.address === address;
 
@@ -466,7 +466,7 @@ export default class Session extends EventEmitter {
 
     _getHDNodeInternal(
         path: Array<number>,
-        network: trezor.CoinType | string | bitcoin.Network
+        network: string | bitcoin.Network
     ): Promise<bitcoin.HDNode> {
         return hdnodeUtils.getHDNode(this, path, coinNetwork(network), this.xpubDerive);
     }
@@ -474,7 +474,7 @@ export default class Session extends EventEmitter {
     @integrityCheck
     getHDNode(
         path: Array<number>,
-        network: trezor.CoinType | string | bitcoin.Network
+        network: string | bitcoin.Network
     ): Promise<bitcoin.HDNode> {
         return this._getHDNodeInternal(path, network);
     }
@@ -531,16 +531,12 @@ export default class Session extends EventEmitter {
     }
 }
 
-export function coinName(coin: trezor.CoinType | string): string {
-    if (typeof coin === 'string') {
-        return coin.charAt(0).toUpperCase() + coin.slice(1);
-    } else {
-        return coin.coin_name;
-    }
+export function coinName(coin: string): string {
+    return coin.charAt(0).toUpperCase() + coin.slice(1);
 }
 
 export function coinNetwork(
-    coin: trezor.CoinType | string | bitcoin.Network
+    coin: string | bitcoin.Network
 ): bitcoin.Network {
     const r: any = coin;
     if (typeof coin.messagePrefix === 'string') {

@@ -62,7 +62,6 @@ export {
 
 export type {
     Features,
-    CoinType,
     LoadDeviceSettings,
     ResetDeviceSettings,
     RecoverDeviceSettings,

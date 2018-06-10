@@ -5,14 +5,6 @@
 
 export type Success = {};
 
-export type CoinType = {
-    coin_name: string;
-    coin_shortcut: string;
-    address_type: number;
-    maxfee_kb: number;
-    address_type_p2sh: number;
-};
-
 export type Features = {
     vendor: string;
     major_version: number;
@@ -24,7 +16,6 @@ export type Features = {
     passphrase_protection: boolean;
     language: string;
     label: string;
-    coins: CoinType[];
     initialized: boolean;
     revision: string;
     bootloader_hash: string;

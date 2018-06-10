@@ -185,7 +185,7 @@ export function signTx(
     inputs: Array<trezor.TransactionInput>,
     outputs: Array<trezor.TransactionOutput>,
     txs: Array<trezor.RefTransaction>,
-    coin: trezor.CoinType | string,
+    coin: string,
     locktime: ?number
 ): Promise<MessageResponse<trezor.SignedTx>> {
     const index = indexTxsForSign(txs);
