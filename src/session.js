@@ -387,9 +387,10 @@ export default class Session extends EventEmitter {
         outputs: Array<trezor.TransactionOutput>,
         txs: Array<trezor.RefTransaction>,
         coin: string,
-        locktime: ?number
+        locktime: ?number,
+        overwinter: ?boolean,
     ): Promise<MessageResponse<trezor.SignedTx>> {
-        return signTxHelper.signTx(this, inputs, outputs, txs, coin, locktime);
+        return signTxHelper.signTx(this, inputs, outputs, txs, coin, locktime, overwinter);
     }
 
     @integrityCheck
@@ -401,8 +402,9 @@ export default class Session extends EventEmitter {
         network: ?bitcoin.Network,
         locktime: ?number,
         isCashaddress: ?boolean,
+        overwinter: ?boolean,
     ): Promise<bitcoin.Transaction> {
-        return signBjsTxHelper.signBjsTx(this, info, refTxs, nodes, coinName, network, locktime, isCashaddress);
+        return signBjsTxHelper.signBjsTx(this, info, refTxs, nodes, coinName, network, locktime, isCashaddress, overwinter);
     }
 
     @integrityCheck
