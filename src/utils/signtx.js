@@ -205,7 +205,7 @@ export function signTx(
 
     // this is done like that, so old devices work on non-zcash txs
     if (overwintered) {
-        txDesc = {...txDesc, overwintered: true};
+        txDesc = {...txDesc, overwintered: true, version: 3};
     }
 
     return session.typedCall('SignTx', 'TxRequest', txDesc).then((res) =>
