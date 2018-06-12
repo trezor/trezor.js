@@ -114,8 +114,8 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
     };
 }
 
-function signedTx2bjsTx(signedTx: MessageResponse<trezor.SignedTx>): bitcoin.Transaction {
-    const res = bitcoin.Transaction.fromHex(signedTx.message.serialized.serialized_tx);
+function signedTx2bjsTx(signedTx: MessageResponse<trezor.SignedTx>, overwinter: boolean): bitcoin.Transaction {
+    const res = bitcoin.Transaction.fromHex(signedTx.message.serialized.serialized_tx, overwinter);
     return res;
 }
 
@@ -348,7 +348,7 @@ export function signBjsTx(
         coinName,
         locktime,
         overwintered,
-    ).then(tx => signedTx2bjsTx(tx))
+    ).then(tx => signedTx2bjsTx(tx, !!overwintered))
         .then(res => {
             verifyBjsTx(info.inputs, info.outputs, nodes, res, network);
             return res;
