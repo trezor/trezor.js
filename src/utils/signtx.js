@@ -186,7 +186,8 @@ export function signTx(
     outputs: Array<trezor.TransactionOutput>,
     txs: Array<trezor.RefTransaction>,
     coin: string,
-    locktime: ?number
+    locktime: ?number,
+    overwintered: ?boolean,
 ): Promise<MessageResponse<trezor.SignedTx>> {
     const index = indexTxsForSign(txs);
     const signatures = [];
@@ -195,12 +196,19 @@ export function signTx(
     const coinName = (typeof coin === 'string') ? coin : coin.coin_name;
     const coinNameCapitalized = coinName.charAt(0).toUpperCase() + coinName.slice(1);
 
-    return session.typedCall('SignTx', 'TxRequest', {
+    let txDesc = {
         inputs_count: inputs.length,
         outputs_count: outputs.length,
         coin_name: coinNameCapitalized,
         lock_time: locktime,
-    }).then((res) =>
+    };
+
+    // this is done like that, so old devices work on non-zcash txs
+    if (overwintered) {
+        txDesc = {...txDesc, overwintered: true};
+    }
+
+    return session.typedCall('SignTx', 'TxRequest', txDesc).then((res) =>
         processTxRequest(session, res.message, serializedTx, signatures, index, inputs, outputs)
     );
 }

@@ -324,6 +324,7 @@ export function signBjsTx(
     network_: ?bitcoin.Network,
     locktime: ?number,
     isCashaddress: ?boolean,
+    overwintered: ?boolean,
 ): Promise<bitcoin.Transaction> {
     const network: bitcoin.Network = network_ == null ? bitcoin.networks[coinName.toLowerCase()] : network_;
     if (network == null) {
@@ -345,7 +346,8 @@ export function signBjsTx(
         trezorOutputs,
         trezorRefTxs,
         coinName,
-        locktime
+        locktime,
+        overwintered,
     ).then(tx => signedTx2bjsTx(tx))
         .then(res => {
             verifyBjsTx(info.inputs, info.outputs, nodes, res, network);
