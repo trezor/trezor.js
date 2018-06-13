@@ -170,7 +170,7 @@ Note that the lenght of the action is not tied to the actual device actions. You
 | togglePassphrase | enable:&nbsp;boolean | Promise | Turns the passphrase on/off. |
 | changeHomescreen | picture: string (hex) | Promise | changes the homescreen. |
 | signBjsTx | info:&nbsp;TxInfo<br>refTx:&nbsp;Array&lt;Transaction&gt;<br>nodes:&nbsp;Array&lt;HDNode&gt;<br>coinName:&nbsp;string<br>network:&nbsp;bitcoin.Network | Promise&lt;Transaction&gt; | Signs transaction after asking user on the device.<br>The name is `signBjsTx` for backwards compatibility, meaning "sign Bitcoin.js transaction", since it accepts and returns blockchain.js data structures.<br><br>The parameters are explained under this table. |
-| signEthTx | address_n:&nbsp;Array&lt;number&gt;<br>nonce:&nbsp;string<br>gas_price:&nbsp;string<br>gas_limit:&nbsp;string<br>to:&nbsp;string<br>value:&nbsp;string<br>data:&nbsp;?string<br>chain_id:&nbsp;?string | Promise&lt;EthereumSignature&gt; | Signs Ethereum transaction after asking user on the device. |
+| signEthTx | address_n:&nbsp;Array&lt;number&gt;<br>nonce:&nbsp;string<br>gas_price:&nbsp;string<br>gas_limit:&nbsp;string<br>to:&nbsp;string<br>value:&nbsp;string<br>data:&nbsp;?string<br>chain_id:&nbsp;?number | Promise&lt;EthereumSignature&gt; | Signs Ethereum transaction after asking user on the device. |
 | backupDevice | | Promise | Initiates the display of recovery mnemonic, works only for devices with needs_backup `true`, sets needs_backup to `false`|
 
 
