@@ -166,6 +166,43 @@ export default class Session extends EventEmitter {
     }
 
     @integrityCheck
+    tezosGetAddress(
+        address_n: Array<number>,
+        show_display: ?boolean
+    ): Promise<MessageResponse<{
+        address: string;
+        path: Array<number>;
+    }>> {
+        return this.typedCall('TezosGetAddress', 'TezosAddress', {
+            address_n: address_n,
+            show_display: !!show_display,
+        }).then(res => {
+            res.message.path = address_n || [];
+            return res;
+        });
+    }
+
+    @integrityCheck
+    tezosSignTx(
+        address_n: Array<number>,
+        to: string,
+        fee: number,
+        amount: number,
+        operation: string,
+    ): Promise<MessageResponse<{
+        data: string;
+        signature: string;
+    }>> {
+        return this.typedCall('TezosSignTx', 'TezosSignedTx', {
+            address_n: address_n,
+            to: to,
+            value: amount,
+            fee: fee,
+            operation_bytes: operation,
+        });
+    }
+
+    @integrityCheck
     getPublicKey(
         address_n: Array<number>,
         coin: ?(string),
