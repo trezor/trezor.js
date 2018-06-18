@@ -46,7 +46,7 @@ Other is [TREZOR bridge](https://github.com/trezor/trezord) (or `trezord`) that 
 
 You cannot connect to transport layers from anywhere on the internet. Your URL needs to be specifically whitelisted by SatoshiLabs.
 
-`localhost` is specifically whitelisted, so you can experiment on `http://localhost/*`. If you want to add your url in order to make a TREZOR web application, [make a pull request to this file](https://github.com/trezor/trezor-common/blob/master/signer/config.json).
+`localhost` is specifically whitelisted on ports `5xxx` and `8xxx`, so you can experiment on `http://localhost:[5|8]000/*`. If you want to add your url in order to make a TREZOR web application, [make a pull request to this file](https://github.com/trezor/trezor-common/blob/master/signer/config.json).
 
 trezor.js API
 -----
