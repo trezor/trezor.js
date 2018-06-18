@@ -1,24 +1,19 @@
+
 trezor.js
 =========
 
 [![Build Status](https://travis-ci.org/trezor/trezor.js.svg?branch=master)](https://travis-ci.org/trezor/trezor.js)
 
-Javascript API for Bitcoin TREZOR.
+Javascript API for Trezor.
 
-Use this library if you want deeper integration of TREZOR into your node app, including electron.
+We are currently migrating from this library to Trezor Connect. When Trezor Connect is done and tested, this library will be deprecated.
 
-If you are including the library in web app, try `trezor.js` package.
+Right now, you can use this library for integrating into node js apps. The library will also work for web apps with WebUSB with Trezor Model T and soon Trezor One (on Chrome); however, we do not allow external websites to use Trezor Bridge 2.* for security reasons, so this library can be used on Firefox only from localhost.
 
 Install with npm
 -----
 
 `npm install --save trezor.js`
-
-We use some ES6 methods (Array.find etc), that aren't in all browsers as of now, so if you are targetting older browsers/mobile browsers, you have to add babel polyfill. See https://www.npmjs.com/package/babel-polyfill and https://babeljs.io/docs/usage/polyfill/
-
-#### Examples
-
-Example of usage is on `example-browser/`, `example-node/` and `example-electron-webpack/` on github.
 
 #### Flow
 trezor.js is annotated with [Flow](https://github.com/facebook/flow) types; if you want to use Flow and use the previous setup, it will use the right types. Note that you might have to set up `.flowconfig` to include all the modules and interface files in [our flowconfig](https://github.com/trezor/trezor.js/blob/master/lib/.flowconfig)
@@ -33,20 +28,15 @@ to build production bundle run `make build`
 
 Using trezor.js in a web app
 ----
-If you are using trezor.js in a web app, the *end user* has to install one of our transport layers. Also, the web app's URL has to be whitelisted specifically by SatoshiLabs.
+Unfortunately, trezor.js works in a very limited way for external websites. Websites outside of trezor.io domain cannot communicate with Trezor Bridge for security reasons; users with Firefox cannot communicate through WebUSB; users with Trezor One cannot communicate with WebUSB yet.
 
-#### Transport layers
-We have two transport layers. The user needs to install one of them.
+TREZOR Bridge can still work with trezor.js if you connect on `http://localhost/` on ports `5xxx` and `8xxx`. 
 
-One is [TREZOR Chrome extension](https://github.com/trezor/trezor-chrome-extension) for the users that have Chrome and want an easier, one-click installation.
+Using trezor.js in a node app
+----
+Trezor.js should be possible to use from node.js if the user has Trezor Bridge installed, because origin URLs are spoofed.
 
-Other is [TREZOR bridge](https://github.com/trezor/trezord) (or `trezord`) that works cross-browser.
-
-#### Whitelisting
-
-You cannot connect to transport layers from anywhere on the internet. Your URL needs to be specifically whitelisted by SatoshiLabs.
-
-`localhost` is specifically whitelisted, so you can experiment on `http://localhost/*`. If you want to add your url in order to make a TREZOR web application, [make a pull request to this file](https://github.com/trezor/trezor-common/blob/master/signer/config.json).
+Trezor used to work with node HID API directly, but the binary API and the various node versions got too hard to manage, so we removed them.
 
 trezor.js API
 -----
