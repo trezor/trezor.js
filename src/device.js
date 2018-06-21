@@ -337,7 +337,7 @@ export default class Device extends EventEmitter {
     }
 
     // When we are doing integrity checking AFTER functions, we do it only when we can
-    canSayXpub(): boolean {
+    canSayXpub(oldFeatures: Features): boolean {
         if (this.features.bootloader_mode) {
             return false;
         }
@@ -345,7 +345,17 @@ export default class Device extends EventEmitter {
             return false;
         }
         const noPassphrase = this.features.passphrase_protection ? (this.features.passphrase_cached || (this.rememberedPlaintextPasshprase != null)) : true;
-        const samePasshprase = (this.features.passphrase_protection === false && this.integrityCheckingPassphrase == null) || (this.features.passphrase_protection === true && this.rememberedPlaintextPasshprase != null && this.rememberedPlaintextPasshprase === this.integrityCheckingPassphrase);
+
+        const passphraseDisabled = this.features.passphrase_protection === false &&
+            oldFeatures.passphrase_protection === false &&
+            this.integrityCheckingPassphrase == null;
+        const passphraseEnabledRemembered =
+            this.features.passphrase_protection === true &&
+            oldFeatures.passphrase_protection === true &&
+            this.rememberedPlaintextPasshprase != null &&
+            this.rememberedPlaintextPasshprase === this.integrityCheckingPassphrase;
+        const samePasshprase = passphraseDisabled || passphraseEnabledRemembered;
+
         const noPin = this.features.pin_protection ? this.features.pin_cached : true;
         return noPassphrase && samePasshprase && noPin;
     }
@@ -473,8 +483,9 @@ export default class Device extends EventEmitter {
         const res = await fn(activeSession);
         try {
             if (!skipFinalReload) {
+                const oldFeatures = features;
                 await this._reloadFeaturesOrInitialize(activeSession);
-                if (this.canSayXpub()) {
+                if (this.canSayXpub(oldFeatures)) {
                     await this.xpubIntegrityCheck(activeSession);
                 }
             }
