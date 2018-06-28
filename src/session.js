@@ -9,11 +9,13 @@ import * as hdnodeUtils from './utils/hdnode';
 import * as signTxHelper from './utils/signtx';
 import * as signBjsTxHelper from './utils/signbjstx';
 import * as signEthTxHelper from './utils/signethtx';
+import * as signLiskTxHelper from './utils/signlsktx';
 import {CallHelper} from './utils/call';
 
 import * as trezor from './trezortypes';
 import type {TxInfo} from './utils/signbjstx';
 import type {EthereumSignature} from './utils/signethtx';
+import type {LiskSignature} from './utils/signlsktx';
 import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
 import type Device from './device';
 
@@ -166,6 +168,34 @@ export default class Session extends EventEmitter {
     }
 
     @integrityCheck
+    liskGetAddress(
+        address_n: Array<number>,
+        show_display: ?boolean
+    ): Promise<MessageResponse<{
+        address: string;
+        path: Array<number>;
+    }>> {
+        return this.typedCall('LiskGetAddress', 'LiskAddress', {
+            address_n: address_n,
+            show_display: !!show_display,
+        }).then(res => {
+            res.message.path = address_n || [];
+            return res;
+        });
+    }
+
+    @integrityCheck
+    liskGetPublicKey(
+        address_n: Array<number>,
+        show_display: ?boolean
+    ): Promise<MessageResponse<{public_key: string}>> {
+        return this.typedCall('LiskGetPublicKey', 'LiskPublicKey', {
+            address_n: address_n,
+            show_display: !!show_display,
+        });
+    }
+
+    @integrityCheck
     getPublicKey(
         address_n: Array<number>,
         coin: ?(string),
@@ -295,6 +325,18 @@ export default class Session extends EventEmitter {
         });
     }
 
+    verifyLiskMessage(
+        signature: string,
+        public_key: string,
+        message: string
+    ): Promise<MessageResponse<trezor.Success>> {
+        return this.typedCall('LiskVerifyMessage', 'Success', {
+            signature: signature,
+            public_key: public_key,
+            message: message,
+        });
+    }
+
     signMessage(
         address_n: Array<number>,
         message: string,
@@ -314,6 +356,16 @@ export default class Session extends EventEmitter {
         message: string
     ): Promise<MessageResponse<trezor.MessageSignature>> {
         return this.typedCall('EthereumSignMessage', 'EthereumMessageSignature', {
+            address_n: address_n,
+            message: message,
+        });
+    }
+
+    signLiskMessage(
+        address_n: Array<number>,
+        message: string
+    ): Promise<MessageResponse<trezor.MessageSignature>> {
+        return this.typedCall('LiskSignMessage', 'LiskMessageSignature', {
             address_n: address_n,
             message: message,
         });
@@ -419,6 +471,14 @@ export default class Session extends EventEmitter {
         chain_id?: number
     ): Promise<EthereumSignature> {
         return signEthTxHelper.signEthTx(this, address_n, nonce, gas_price, gas_limit, to, value, data, chain_id);
+    }
+
+    @integrityCheck
+    signLiskTx(
+        address_n: Array<number>,
+        transaction: any
+    ): Promise<MessageResponse<LiskSignature>> {
+        return signLiskTxHelper.signLiskTx(this, address_n, transaction);
     }
 
     typedCall(type: string, resType: string, msg: Object = {}): Promise<DefaultMessageResponse> {
