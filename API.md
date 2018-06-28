@@ -1,7 +1,7 @@
 trezor.js API
 -----
 All the code examples are written with the assumption trezor.js is imported to the `trezor` variable. So, for example
-     
+
      var trezor = require('trezor.js'); // if you are using the npm version
 
 ### DeviceList
@@ -23,7 +23,7 @@ or
 The config should be available either on [github](https://github.com/trezor/webwallet-data/blob/master/config_signed.bin), on [Amazon AWS](http://mytrezor.s3.amazonaws.com/config_signed.bin), or on [wallet.trezor.io](https://wallet.trezor.io/data/config_signed.bin). The AWS URL is hardcoded and is used by default, so you don't have to worry about it if you don't want to.
 
 `DeviceList` emits following events:
- 
+
 | event | parameters | description |
 |-------|------------|-------------|
 | `error` | e:&nbsp;Error | Error on either initialization of DeviceList, or any other error. <br><br>If `deviceList.transport` is null, it means transport layer was not initialized and none of the layers are probably installed. You should probably offer user to install either extension or bridge in that case. |
@@ -96,9 +96,9 @@ Note that the lenght of the action is not tied to the actual device actions. You
 |-------|------------|-------------|
 | `changedSessions` | isUsed:&nbsp;boolean<br>isUsedHere:&nbsp;boolean | Some change in sessions happened. Either release or acquire.<br>isUsed is true if the device is used (meaning session was acquired), either with this application or elsewhere.<br>isUsedHere is true if the device is used in this application. |
 | `disconnect` | | This device was disconnected. |
-| `error` | e&nbsp;:Error | Error<br>Can be anything from bad response to user pressing Cancel on device |  
-| `send` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being sent to Trezor with a given type |  
-| `receive` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being received from Trezor with a given type |  
+| `error` | e&nbsp;:Error | Error<br>Can be anything from bad response to user pressing Cancel on device |
+| `send` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being sent to Trezor with a given type |
+| `receive` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being received from Trezor with a given type |
 | `button` | type:&nbsp;string | User needs to confirm something on the device |
 | `pin` | type:&nbsp;string<br>callback:&nbsp;(error: Error, pin: string)=&gt;void | The device asks for PIN.<br>You can either send PIN or send Error back to the device. You need to do one for the flow to continue.<br>PIN is randomized depending on device display; top right is "9", bottom left is "1". "123" means the bottom row on the display. |
 | `passphrase` | callback:&nbsp;(error: Error, passphrase: string)=&gt;void | The device asks for passhprase.<br>You can either send passphrase or send Error back to the device. You need to do one for the flow to continue. |
@@ -126,7 +126,7 @@ Note that the lenght of the action is not tied to the actual device actions. You
   * `device.features.pin_protection` - is PIN protection turned on?
   * `device.features.passphrase_protection` - is PIN protection turned on?
   * `device.features.device_id` - a unique ID (is restarted only on device wipe)
-  
+
 ### Session
 
 `Session` object represents one running session, between acquiring and releasing. All the "actual" calls are done here.
@@ -135,9 +135,9 @@ Note that the lenght of the action is not tied to the actual device actions. You
 
 | event | parameters | description |
 |-------|------------|-------------|
-| `error` | e&nbsp;:Error | Error<br>Can be anything from bad response to user pressing Cancel on device |  
-| `send` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being sent to Trezor with a given type |  
-| `receive` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being received from Trezor with a given type |  
+| `error` | e&nbsp;:Error | Error<br>Can be anything from bad response to user pressing Cancel on device |
+| `send` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being sent to Trezor with a given type |
+| `receive` | type:&nbsp;string, msg:&nbsp;Object | (low level)<br>Message is being received from Trezor with a given type |
 | `button` | type:&nbsp;string | User needs to confirm something on the device |
 | `pin` | type:&nbsp;string<br>callback:&nbsp;(error: Error, pin: string)=&gt;void | The device asks for PIN.<br>You can either send PIN or send Error back to the device. You need to do one for the flow to continue.<br>PIN is randomized depending on device display; top right is "9", bottom left is "1". "123" means the bottom row on the display. |
 | `passphrase` | callback:&nbsp;(error: Error, passphrase: string)=&gt;void | The device asks for passhprase.<br>You can either send passphrase or send Error back to the device. You need to do one for the flow to continue. |
@@ -162,8 +162,12 @@ Note that the lenght of the action is not tied to the actual device actions. You
 | updateFirmware | payload:&nbsp;string&nbsp;(hex) | Promise | Erases current firmware and loads a new one. |
 | signMessage |  path:&nbsp;Array&lt;number&gt;<br>message:&nbsp;string<br>coin:&nbsp;string<br>segwit:&nbsp;boolean | Promise&lt;<br>MessageResponse&lt;<br>address:&nbsp; string,<br>signature:&nbsp;string<br>&gt;&gt; | Signs a message.<br><br> Note: you have to pass the message encoded as HEX<br><br>Coin can be specified as string 'Bitcoin' or 'Litecoin': [source](https://github.com/trezor/trezor-common/blob/master/coins.json) |
 | signEthMessage | address_n:&nbsp;Array&lt;number&gt;<br>message:&nbsp;string | Promise&lt;<br>MessageResponse&lt;<br>address:&nbsp; string,<br>signature:&nbsp;string<br>&gt;&gt; | Signs a message using an Ethereum private key.<br><br> Note: you have to pass the message encoded as HEX |
+| signLiskMessage | address_n:&nbsp;Array&lt;number&gt;<br>message:&nbsp;string | Promise&lt;<br>MessageResponse&lt;<br>address:&nbsp; string,<br>signature:&nbsp;string<br>&gt;&gt; | Signs a message using a Lisk private key.<br><br> Note: you have to pass the message encoded as HEX |
+| liskGetAddress | address_n:&nbsp;Array&lt;number&gt;<br>show_display:&nbsp;boolean | Promise&lt;<br>MessageResponse&lt;<br>address:&nbsp; string<br>&gt;&gt; | Get a Lisk address
+| liskGetPublicKey | address_n:&nbsp;Array&lt;number&gt;<br>show_display:&nbsp;boolean | Promise&lt;<br>MessageResponse&lt;<br>public_key:&nbsp; string<br>&gt;&gt; | Get a Lisk public key
 | verifyMessage | address:&nbsp;string<br>signature:&nbsp;string<br>message:&nbsp;string<br>coin:&nbsp;string | Promise | Verifies a signed message. Rejects on wrong signature. |
 | verifyEthMessage | address:&nbsp;string<br>signature:&nbsp;string<br>message:&nbsp;string | Promise | Verifies a signed Ethereum message. Rejects on wrong signature. |
+| verifyLiskMessage | public_key:&nbsp;string<br>signature:&nbsp;string<br>message:&nbsp;string | Promise | Verifies a signed Lisk message. Rejects on wrong signature. |
 | signIdentity | identity:{<br>proto:?string,<br>user:?string,<br>host:?string,<br>port:?string,<br>path:?string,<br>index:?number;}<br>challengeHidden:&nbsp;string<br>challengeVisual:&nbsp;string | Promise&lt;<br>MessageResponse&lt;<br>address:&nbsp;string,<br>public_key:&nbsp;string,<br>signature:&nbsp;string&gt;&gt; | Signs identity<br><br>TODO: write docs here |
 | cipherKeyValue | path:&nbsp;Array&lt;number&gt;<br>key:&nbsp;string<br>value:&nbsp;string | Buffer<br>encrypt:&nbsp;boolean<br>ask_on_encrypt:&nbsp;boolean<br>ask_on_decrypt:&nbsp;boolean<br>iv:&nbsp;[iv&nbsp;Buffer] | Promise&lt;<br>Response&lt;<br>{value:&nbsp;string<br>}&gt;&gt; | Encrypts a value on a given key.<br><br>Exact documentation of cipherKeyValue will be in [SLIP-0011](https://github.com/satoshilabs/slips/blob/master/slip-0011.md) - meanwhile, you can check [TREZOR source code](https://github.com/trezor/trezor-mcu/blob/master/firmware/fsm.c#L451-L483). |
 | changeLabel | label:&nbsp;string | Promise | Changes label. |
@@ -171,6 +175,7 @@ Note that the lenght of the action is not tied to the actual device actions. You
 | changeHomescreen | picture: string (hex) | Promise | changes the homescreen. |
 | signBjsTx | info:&nbsp;TxInfo<br>refTx:&nbsp;Array&lt;Transaction&gt;<br>nodes:&nbsp;Array&lt;HDNode&gt;<br>coinName:&nbsp;string<br>network:&nbsp;bitcoin.Network | Promise&lt;Transaction&gt; | Signs transaction after asking user on the device.<br>The name is `signBjsTx` for backwards compatibility, meaning "sign Bitcoin.js transaction", since it accepts and returns blockchain.js data structures.<br><br>The parameters are explained under this table. |
 | signEthTx | address_n:&nbsp;Array&lt;number&gt;<br>nonce:&nbsp;string<br>gas_price:&nbsp;string<br>gas_limit:&nbsp;string<br>to:&nbsp;string<br>value:&nbsp;string<br>data:&nbsp;?string<br>chain_id:&nbsp;?number | Promise&lt;EthereumSignature&gt; | Signs Ethereum transaction after asking user on the device. |
+| signLiskTx | address_n:&nbsp;Array&lt;number&gt;<br>transaction:&nbsp;LiskTransaction<br> | Promise&lt;<br>MessageResponse&lt;<br>LiskSignature&gt;&gt; | Signs Lisk transaction after asking user on the device. |
 | backupDevice | | Promise | Initiates the display of recovery mnemonic, works only for devices with needs_backup `true`, sets needs_backup to `false`|
 
 
@@ -197,7 +202,7 @@ OutputInfo is an object with:
 
 refTxs are bitcoin.js transations, that are referenced in the inputs. You need to put all the transactions which are referenced in any of the inputs!
 
-nodes is an array of Bitcoin.js HDNodes for addresses, with indexes being the index of the nodes. So, most often, `[externalChainHDNode, changeChainHDNode]`. 
+nodes is an array of Bitcoin.js HDNodes for addresses, with indexes being the index of the nodes. So, most often, `[externalChainHDNode, changeChainHDNode]`.
 
 coinName is "bitcoin", "litecoin", "dash", ...
 
@@ -205,7 +210,7 @@ network is network for Bitcoin.js. If it's not present, trezor.js tries to find 
 
 ### Multitasking
 
-More applications can, in general, work with the same TREZOR; however, they cannot perform actions with the device at the same time. 
+More applications can, in general, work with the same TREZOR; however, they cannot perform actions with the device at the same time.
 
 We use a "cooperative multitasking". Trezor.js does an "acquire" command to transport layer before any action, and after the action calls a "release". This is done transparently by trezor.js, so the app doesn't have to call the commands explicitly; however, it's important to keep the multitasking model in mind to understand various call results.
 
@@ -235,7 +240,7 @@ The `Device` object creation has to wait until the action is finished. `DeviceLi
 
 ![Stealing before initialization](doc_images/4.png)
 
-The first application does *not* have to finish the action (it might be stuck - the tab could be frozen, or perhaps there is a bug in the application, or perhaps user forgot about the tab). You can explicitly call `steal()` on the `UnacquiredDevice` object, which will stop the first application action and automatically acquire the device. 
+The first application does *not* have to finish the action (it might be stuck - the tab could be frozen, or perhaps there is a bug in the application, or perhaps user forgot about the tab). You can explicitly call `steal()` on the `UnacquiredDevice` object, which will stop the first application action and automatically acquire the device.
 
 Note that you should only do `steal` when user explicitly asks for it - you don't want to stop other application from finishing its task, if it's not necessary.
 
@@ -243,9 +248,9 @@ Note that you should only do `steal` when user explicitly asks for it - you don'
 
 ![Two concurrent acquires](doc_images/5.png)
 
-Often, two acquires happen at the same time. 
+Often, two acquires happen at the same time.
 
-If you have two application open at the same time and one device is connected, both will try to call `acquire` at the same time. 
+If you have two application open at the same time and one device is connected, both will try to call `acquire` at the same time.
 
 Only one of those two acquires immediately succeed. The second application will first get `unacquiredDevice` event, and very quickly afterwards `device` event.
 
@@ -270,7 +275,7 @@ Note that `waitForSessionAndRun()` also works within a single application.
 ##### Stealing
 ![Stealing](doc_images/8.png)
 
-Instead of waiting for session, you can actively stop the other action by using `steal()`. 
+Instead of waiting for session, you can actively stop the other action by using `steal()`.
 
 Stealing will not actually "give you" the session; however, it will stop the first action, allowing you to use `run()` immediately.
 

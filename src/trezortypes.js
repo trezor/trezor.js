@@ -212,3 +212,45 @@ export type SignTxInfoToTrezor = {
     extra_data_len?: number;
 };
 
+export type LiskDataAsset = {
+    data: string;
+}
+
+export type LiskVoteAsset = {
+    votes: Array<string>;
+}
+
+export type LiskSignatureAsset = {
+    signature: {
+        publicKey: string;
+    }
+}
+
+export type LiskDelegateAsset = {
+    delegate: {
+        username: string;
+    }
+}
+
+export type LiskMultisignatureAsset = {
+    multisignature: {
+       min: number;
+       lifetime: number;
+       keysgroup: Array<string>;
+    }
+}
+
+export type LiskAsset = LiskSignatureAsset | LiskMultisignatureAsset | LiskDelegateAsset | LiskVoteAsset | LiskDataAsset;
+
+export type LiskTransaction = {
+    type: number;
+    fee: string;
+    amount: string;
+    timestamp: number;
+    recipientId?: string;
+    senderPublicKey?: string;
+    requesterPublicKey?: string;
+    // convert hex -> buffer
+    signature?: string | Buffer;
+    asset?: LiskAsset;
+}
