@@ -2,7 +2,7 @@
 'use strict';
 
 import bchaddr from 'bchaddrjs';
-import * as bitcoin from 'bitcoinjs-lib-zcash';
+import * as bitcoin from 'bitcoinjs-trezor';
 import * as trezor from '../trezortypes';
 import * as hdnodeUtils from './hdnode';
 

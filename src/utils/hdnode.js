@@ -1,8 +1,7 @@
 /* @flow */
 'use strict';
 
-import * as bitcoin from 'bitcoinjs-lib-zcash';
-import * as ecurve from 'ecurve';
+import * as bitcoin from 'bitcoinjs-trezor';
 import * as trezor from '../trezortypes';
 
 import type Session, {MessageResponse} from '../session';
