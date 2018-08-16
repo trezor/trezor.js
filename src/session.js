@@ -197,9 +197,9 @@ export default class Session extends EventEmitter {
 
     loadDevice(
         settings: trezor.LoadDeviceSettings,
-        network: ?(string | bitcoin.Network)
+        network: ?bitcoin.Network
     ): Promise<MessageResponse<trezor.Success>> {
-        const convertedNetwork = network == null ? null : coinNetwork(network);
+        const convertedNetwork = network;
         return this.typedCall(
             'LoadDevice',
             'Success',
@@ -468,15 +468,15 @@ export default class Session extends EventEmitter {
 
     _getHDNodeInternal(
         path: Array<number>,
-        network: string | bitcoin.Network
+        network: bitcoin.Network
     ): Promise<bitcoin.HDNode> {
-        return hdnodeUtils.getHDNode(this, path, coinNetwork(network), this.xpubDerive);
+        return hdnodeUtils.getHDNode(this, path, network, this.xpubDerive);
     }
 
     @integrityCheck
     getHDNode(
         path: Array<number>,
-        network: string | bitcoin.Network
+        network: bitcoin.Network
     ): Promise<bitcoin.HDNode> {
         return this._getHDNodeInternal(path, network);
     }
@@ -535,22 +535,6 @@ export default class Session extends EventEmitter {
 
 export function coinName(coin: string): string {
     return coin.charAt(0).toUpperCase() + coin.slice(1);
-}
-
-export function coinNetwork(
-    coin: string | bitcoin.Network
-): bitcoin.Network {
-    const r: any = coin;
-    if (typeof coin.messagePrefix === 'string') {
-        return r;
-    }
-
-    const name: string = coinName(r).toLowerCase();
-    const network = bitcoin.networks[name];
-    if (network == null) {
-        throw new Error(`No network with the name ${name}.`);
-    }
-    return network;
 }
 
 function wrapLoadDevice(
