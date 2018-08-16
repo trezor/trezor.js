@@ -25,7 +25,7 @@ function processTxRequest(
     request: trezor.EthereumTxRequest,
     data: ?string
 ): Promise<EthereumSignature> {
-    if (!request.data_length) {
+    if (request.data_length == null) {
         const v = request.signature_v;
         const r = request.signature_r;
         const s = request.signature_s;

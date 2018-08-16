@@ -25,7 +25,7 @@ function requestTxInfo(
 ): trezor.SignTxInfoToTrezor {
     const md = m.details;
     const hash = md.tx_hash;
-    if (hash) {
+    if (hash != null) {
         const reqTx = index[hash.toLowerCase()];
         if (!reqTx) {
             throw new Error(`Requested unknown tx: ${hash}`);

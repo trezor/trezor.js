@@ -86,10 +86,11 @@ export default class Device extends EventEmitter {
 
         if (this.deviceList.options.clearSession) {
             this.clearSession = true;
-            if (this.deviceList.options.clearSessionTime) {
+            if (this.deviceList.options.clearSessionTime != null) {
                 this.clearSessionTime = this.deviceList.options.clearSessionTime;
             }
         }
+
         if (this.deviceList.options.rememberDevicePassphrase) {
             this.rememberPlaintextPassphrase = true;
         }

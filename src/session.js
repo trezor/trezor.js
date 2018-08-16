@@ -110,7 +110,7 @@ export default class Session extends EventEmitter {
     }
 
     initialize(): Promise<MessageResponse<trezor.Features>> {
-        if (this.device && this.device.passphraseState) {
+        if (this.device && this.device.passphraseState != null) {
             return this.typedCall('Initialize', 'Features', { state: this.device.passphraseState });
         }
         return this.typedCall('Initialize', 'Features');
@@ -177,7 +177,7 @@ export default class Session extends EventEmitter {
         address_n: Array<number>,
         coin: ?(string),
     ): Promise<MessageResponse<trezor.PublicKey>> {
-        const coin_name = coin ? coinName(coin) : 'Bitcoin';
+        const coin_name = coin != null ? coinName(coin) : 'Bitcoin';
         return this.typedCall('GetPublicKey', 'PublicKey', {
             address_n: address_n,
             coin_name: coin_name,

@@ -93,8 +93,8 @@ type UdevOptions = {
 
 export function udevInstallers(options: ?UdevOptions): Array<UdevInstaller> {
     const o: UdevOptions = options || {};
-    const platform: string = o.platform || preferredPlatform();
-    const domain: string = o.domain || DATA_DOMAIN;
+    const platform: string = o.platform == null ? preferredPlatform() : o.platform;
+    const domain: string = o.domain == null ? DATA_DOMAIN : o.domain;
 
     return UDEV_INSTALLERS
         .map(i => fillInstallerUrl(i, domain))
@@ -114,7 +114,7 @@ type VersionOptions = {
 
 export function latestVersion(options: ?VersionOptions): Promise<string> {
     const o: VersionOptions = options || {};
-    const bridgeUrl: string = o.bridgeUrl || BRIDGE_VERSION_URL;
+    const bridgeUrl: string = o.bridgeUrl == null ? BRIDGE_VERSION_URL : o.bridgeUrl;
     return _fetch(bridgeUrl, {credentials: 'same-origin'})
         .then(response => {
             return response.ok
@@ -140,10 +140,10 @@ type BridgeOptions = {
 // bridge preferred for the user's platform.
 export function installers(options: ?BridgeOptions): Promise<Array<BridgeInstaller>> {
     const o: BridgeOptions = options || {};
-    const version: Promise<string> = Promise.resolve(o.version || latestVersion(options));
+    const version: Promise<string> = Promise.resolve(o.version == null ? latestVersion(options) : o.version);
     return version.then(version => {
-        const platform: string = o.platform || preferredPlatform();
-        const domain: string = o.domain || DATA_DOMAIN;
+        const platform: string = o.platform == null ? preferredPlatform() : o.platform;
+        const domain: string = o.domain == null ? DATA_DOMAIN : o.domain;
 
         return BRIDGE_INSTALLERS
             .map(i => fillInstallerUrl(i, domain))

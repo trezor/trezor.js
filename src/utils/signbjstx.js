@@ -74,7 +74,7 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
             };
         }
 
-        if (!output.path) {
+        if (output.path == null) {
             throw new Error('Both address and path of an output cannot be null.');
         }
 
@@ -82,7 +82,7 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
 
         // $FlowIssue
         const amount: number = output.value;
-        if (output.segwit) {
+        if (_flow_getSegwit(output)) {
             return {
                 address_n: pathArr,
                 amount,
@@ -145,7 +145,7 @@ function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
 }
 
 function _flow_getPathOrAddress(output: OutputInfo): string | Array<number> {
-    if (output.path) {
+    if (output.path != null) {
         const path = output.path;
         return _flow_makeArray(path);
     }
@@ -156,6 +156,7 @@ function _flow_getPathOrAddress(output: OutputInfo): string | Array<number> {
 }
 
 function _flow_getSegwit(output: OutputInfo): boolean {
+    // $FlowIssueWarn
     if (output.segwit) {
         return true;
     }
@@ -332,7 +333,7 @@ export function signBjsTx(
     }
 
     // TODO rbf
-    const sequence = locktime ? (0xffffffff - 1) : 0xffffffff;
+    const sequence = (locktime == null || locktime === 0 ) ? 0xffffffff : (0xffffffff - 1);
 
     const trezorInputs: Array<trezor.TransactionInput> = info.inputs.map(i => input2trezor(i, sequence));
     // in case of bitcoin cash transaction, in output2trezor function actual conversion from legacy

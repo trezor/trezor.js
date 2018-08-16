@@ -158,14 +158,14 @@ export class CallHelper {
             if (res.message.on_device) {
                 // "fake" button event
                 this.session.buttonEvent.emit('PassphraseOnDevice');
-                if (this.session.device && this.session.device.passphraseState) {
+                if (this.session.device && this.session.device.passphraseState != null) {
                     return this._commonCall('PassphraseAck', { state: this.session.device.passphraseState });
                 }
                 return this._commonCall('PassphraseAck', { });
             }
             return this._promptPassphrase().then(
                 passphrase => {
-                    if (this.session.device && this.session.device.passphraseState) {
+                    if (this.session.device && this.session.device.passphraseState != null) {
                         return this._commonCall('PassphraseAck', { passphrase: passphrase, state: this.session.device.passphraseState });
                     }
 
