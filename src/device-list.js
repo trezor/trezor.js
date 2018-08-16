@@ -127,7 +127,7 @@ export default class DeviceList extends EventEmitter {
         setTimeout(() => this._initTransport(), 0);
 
         this.xpubDerive = this.options.xpubDerive != null ? this.options.xpubDerive : (xpub, network, index) => {
-            return Promise.resolve(bitcoin.HDNode.fromBase58(xpub, network, false).derive(index).toBase58());
+            return Promise.resolve(bitcoin.HDNode.fromBase58(xpub, network).derive(index).toBase58());
         };
     }
 

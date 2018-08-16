@@ -562,12 +562,7 @@ function wrapLoadDevice(
         if (settings.payload == null) {
             throw new Error('Payload, mnemonic or node necessary.');
         }
-        try { // try to decode as xprv
-            const bjsNode = bitcoin.HDNode.fromBase58(settings.payload, network);
-            settings = { ...settings, node: hdnodeUtils.bjsNode2privNode(bjsNode) };
-        } catch (e) { // use as mnemonic
-            settings = { ...settings, mnemonic: settings.payload };
-        }
+        settings = { ...settings, mnemonic: settings.payload };
         delete settings.payload;
     }
     return settings;

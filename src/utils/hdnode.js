@@ -6,21 +6,6 @@ import * as trezor from '../trezortypes';
 
 import type Session, {MessageResponse} from '../session';
 
-const curve = ecurve.getCurveByName('secp256k1');
-
-export function bjsNode2privNode(node: bitcoin.HDNode): trezor.HDPrivNode {
-    const d = node.keyPair.d;
-    if (!d) {
-        throw new Error('Not a private node.');
-    }
-    const depth = node.depth;
-    const fingerprint = node.parentFingerprint;
-    const child_num = node.index;
-    const private_key = d.toString(16);
-    const chain_code = node.chainCode.toString('hex');
-    return {depth, fingerprint, child_num, chain_code, private_key};
-}
-
 export function pubNode2bjsNode(
     node: trezor.HDPubNode,
     network: bitcoin.Network
@@ -28,15 +13,7 @@ export function pubNode2bjsNode(
     const chainCode = new Buffer(node.chain_code, 'hex');
     const publicKey = new Buffer(node.public_key, 'hex');
 
-    if (curve == null) {
-        throw new Error('secp256k1 is null');
-    }
-    const Q = ecurve.Point.decodeFrom(curve, publicKey);
-    const res = new bitcoin.HDNode(new bitcoin.ECPair(null, Q, {network: network}), chainCode);
-
-    res.depth = +node.depth;
-    res.index = +node.child_num;
-    res.parentFingerprint = node.fingerprint;
+    const res = bitcoin.HDNode.fromInternal(chainCode, publicKey, network, +node.depth, +node.child_num, node.fingerprint);
 
     return res;
 }
@@ -50,7 +27,7 @@ function convertXpub(original: string, network: bitcoin.Network) {
         const node = bitcoin.HDNode.fromBase58(original); // use bitcoin magic
 
         // "hard-fix" the new network into the HDNode keypair
-        node.keyPair.network = network;
+        node.setNetwork(network);
         return node.toBase58();
     }
 }
