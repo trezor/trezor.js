@@ -515,7 +515,7 @@ export default class DeviceList extends EventEmitter {
             if (hidTransport != null) {
                 return;
             }
-            return webusbTransport.plugin.unreadableHidDeviceChange.on('change', () => this.unreadableHidDeviceChange.emit('change'));
+            return webusbTransport.plugin.unreadableHidDeviceChange.on('change', () => this.unreadableHidDeviceChange.emit());
         } catch (e) {
             return;
         }
@@ -550,8 +550,8 @@ export default class DeviceList extends EventEmitter {
         }
     }
 
-    onbeforeunload(clearSession?: ?boolean) {
-        this.asArray().forEach(device => device.onbeforeunload(clearSession));
+    onbeforeunload() {
+        this.asArray().forEach(device => device.onbeforeunload());
         // some weird issue on chrome on mac makes the window alive
         // even after closing
         // we need to stop the stream
