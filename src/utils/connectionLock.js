@@ -1,3 +1,4 @@
+/* @flow */
 let currentP = Promise.resolve();
 
 export function lock<X>(fn: () => Promise<X>): Promise<X> {
