@@ -110,7 +110,7 @@ export default class Device extends EventEmitter {
     // - first the session and second the fresh device features.
     // Note - when descriptor.path != null, this will steal the device from someone else
     static async _run<X>(
-        fn: (session: Session, features: Features) => (X|Promise<X>),
+        fn: (session: Session, features: Features) => (Promise<X>|X),
         transport: Transport,
         descriptor: DeviceDescriptor,
         deviceList: DeviceList,
@@ -242,7 +242,7 @@ export default class Device extends EventEmitter {
             return Promise.resolve();
         };
 
-        return waitingPromise.then((resolvedSession: ?string) => {
+        return waitingPromise.then((resolvedSession: ?string): Promise<X> => {
             const descriptor = { ...this.originalDescriptor, session: resolvedSession };
 
             // This is a bit overengineered, but I am not sure how to do it otherwise
@@ -465,7 +465,7 @@ export default class Device extends EventEmitter {
     }
 
     async _runInside<X>(
-        fn: (session: Session) => (X|Promise<X>),
+        fn: (session: Session) => (Promise<X>|X),
         activeSession: Session,
         features: Features,
         skipFinalReload: boolean
