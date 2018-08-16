@@ -1,5 +1,5 @@
 flow: node_modules
-	`npm bin`/flow check src/
+	`npm bin`/flow check
 
 eslint:
 	cd src/; `npm bin`/eslint .
