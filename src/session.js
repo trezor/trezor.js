@@ -340,8 +340,8 @@ export default class Session extends EventEmitter {
         ask_on_decrypt: boolean,
         iv: ?(string | Buffer) // in hexadecimal
     ): Promise<MessageResponse<{value: string}>> {
-        const valueString = value.toString('hex');
-        const ivString = iv == null ? null : iv.toString('hex');
+        const valueString = typeof value === "string" ? value : value.toString('hex');
+        const ivString = iv == null ? null : (typeof iv === "string" ? iv : iv.toString('hex'));
 
         return this.typedCall('CipherKeyValue', 'CipheredKeyValue', {
             address_n: address_n,
