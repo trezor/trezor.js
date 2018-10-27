@@ -864,9 +864,9 @@ bitcoinjs-lib-zcash@^3.0.0:
     varuint-bitcoin "^1.0.4"
     wif "^2.0.1"
 
-bitcoinjs-lib-zcash@^3.5.1:
-  version "3.5.1"
-  resolved "https://registry.yarnpkg.com/bitcoinjs-lib-zcash/-/bitcoinjs-lib-zcash-3.5.1.tgz#b0172618953e8d596c20e02059014b03c3958922"
+bitcoinjs-lib-zcash@^3.5.2:
+  version "3.5.2"
+  resolved "https://registry.yarnpkg.com/bitcoinjs-lib-zcash/-/bitcoinjs-lib-zcash-3.5.2.tgz#cd757976572106363dfe2b497e0d6c92f9a8ed98"
   dependencies:
     bech32 "^1.1.2"
     bigi "^1.4.0"
