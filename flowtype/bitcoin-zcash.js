@@ -254,6 +254,7 @@ declare module 'bitcoinjs-lib-zcash' {
         locktime: number;
         ins: Array<Input>;
         outs: Array<Output>;
+        versionGroupId: ?number;
 
         constructor(): void;
         static fromHex(hex: string): Transaction;
