@@ -210,5 +210,6 @@ export type SignTxInfoToTrezor = {
     inputs_cnt: number;
     outputs_cnt: number;
     extra_data_len?: number;
+    version_group_id?: number;
 };
 

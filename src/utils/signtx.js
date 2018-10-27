@@ -86,6 +86,7 @@ function requestPrevTxInfo(
                 inputs_cnt: reqTx.inputs.length,
                 outputs_cnt: outputCount,
                 extra_data_len: data_.length / 2,
+                version_group_id: reqTx.version_group_id,
             };
         } else {
             return {
@@ -93,6 +94,7 @@ function requestPrevTxInfo(
                 lock_time: reqTx.lock_time,
                 inputs_cnt: reqTx.inputs.length,
                 outputs_cnt: outputCount,
+                version_group_id: reqTx.version_group_id,
             };
         }
     }
@@ -205,7 +207,7 @@ export function signTx(
 
     // this is done like that, so old devices work on non-zcash txs
     if (overwintered) {
-        txDesc = {...txDesc, overwintered: true, version: 3};
+        txDesc = {...txDesc, overwintered: true, version: 4, version_group_id: 0x892f2085};
     }
 
     return session.typedCall('SignTx', 'TxRequest', txDesc).then((res) =>
