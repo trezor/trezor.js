@@ -86,7 +86,6 @@ function requestPrevTxInfo(
                 inputs_cnt: reqTx.inputs.length,
                 outputs_cnt: outputCount,
                 extra_data_len: data_.length / 2,
-                version_group_id: reqTx.version_group_id,
             };
         } else {
             return {
@@ -94,7 +93,6 @@ function requestPrevTxInfo(
                 lock_time: reqTx.lock_time,
                 inputs_cnt: reqTx.inputs.length,
                 outputs_cnt: outputCount,
-                version_group_id: reqTx.version_group_id,
             };
         }
     }
