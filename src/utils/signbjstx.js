@@ -122,7 +122,7 @@ function signedTx2bjsTx(signedTx: MessageResponse<trezor.SignedTx>, overwinter: 
 function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
     const data = getJoinSplitData(tx);
     const dataStr = data == null ? null : data.toString('hex');
-    const versionGroupId = tx.zcash ? null : tx.versionGroupId;
+    const versionGroupId = (!tx.zcash) ? null : tx.versionGroupId;
     return {
         lock_time: tx.locktime,
         version: tx.version,
