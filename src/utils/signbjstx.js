@@ -308,7 +308,7 @@ function isScriptHash(address: string, network: bitcoin.Network, isCashaddress: 
 }
 
 function getJoinSplitData(transaction: bitcoin.Transaction): ?Buffer {
-    if (transaction.version < 2) {
+    if (!transaction.zcash) {
         return null;
     }
     const buffer = transaction.toBuffer();
