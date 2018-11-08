@@ -30,7 +30,7 @@ export type DeviceListOptions = {
     bridgeVersionUrl?: string;
     clearSession?: boolean;
     clearSessionTime?: number;
-    rememberDevicePasshprase?: boolean;
+    rememberDevicePassphrase?: boolean;
 
     // Second of two "advanced" integrity checks
     // In *the app itself*, we store the hash of the passphrase in localstorage
