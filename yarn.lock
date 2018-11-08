@@ -846,24 +846,6 @@ bitcoin-script@^0.1.1:
     sha1 "^1.1.0"
     sha256 "^0.1.1"
 
-bitcoinjs-lib-zcash@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/bitcoinjs-lib-zcash/-/bitcoinjs-lib-zcash-3.0.0.tgz#0a36cc2145977d3861a9c859719916638e85a86c"
-  dependencies:
-    bigi "^1.4.0"
-    bip66 "^1.1.0"
-    bitcoin-ops "^1.3.0"
-    bs58check "^2.0.0"
-    create-hash "^1.1.0"
-    create-hmac "^1.1.3"
-    ecurve "^1.0.0"
-    merkle-lib "^1.0.0"
-    pushdata-bitcoin "^1.0.1"
-    randombytes "^2.0.1"
-    typeforce "^1.8.7"
-    varuint-bitcoin "^1.0.4"
-    wif "^2.0.1"
-
 bitcoinjs-lib-zcash@^3.5.2:
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/bitcoinjs-lib-zcash/-/bitcoinjs-lib-zcash-3.5.2.tgz#cd757976572106363dfe2b497e0d6c92f9a8ed98"
@@ -2043,10 +2025,6 @@ lru-cache@^4.1.3:
     pseudomap "^1.0.2"
     yallist "^2.1.2"
 
-merkle-lib@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/merkle-lib/-/merkle-lib-1.0.0.tgz#bd088b2c7b1026339103a0f3429ae09022cfb25c"
-
 merkle-lib@^2.0.10:
   version "2.0.10"
   resolved "https://registry.yarnpkg.com/merkle-lib/-/merkle-lib-2.0.10.tgz#82b8dbae75e27a7785388b73f9d7725d0f6f3326"
@@ -2743,12 +2721,11 @@ tough-cookie@~2.3.0:
   dependencies:
     punycode "^1.4.1"
 
-trezor-link@1.5.2:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/trezor-link/-/trezor-link-1.5.2.tgz#a87defc5ea4d0e882c5a8623b554673d62cdabbb"
+trezor-link@1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/trezor-link/-/trezor-link-1.6.0.tgz#d79fec3e6ecf57c74c11ffbe37ebbd9118a91826"
   dependencies:
     bigi "^1.4.1"
-    bitcoinjs-lib-zcash "^3.0.0"
     ecurve "^1.0.3"
     json-stable-stringify "^1.0.1"
     node-fetch "^1.6.0"
@@ -2788,12 +2765,6 @@ typedarray@^0.0.6:
 typeforce@^1.11.3:
   version "1.12.0"
   resolved "https://registry.yarnpkg.com/typeforce/-/typeforce-1.12.0.tgz#ca40899919f1466d7819e37be039406beb912a2e"
-
-typeforce@^1.8.7:
-  version "1.11.1"
-  resolved "https://registry.yarnpkg.com/typeforce/-/typeforce-1.11.1.tgz#ab66f3b094856d00ed0c8913b0742d3dabfafe62"
-  dependencies:
-    inherits "^2.0.1"
 
 uid-number@^0.0.6:
   version "0.0.6"

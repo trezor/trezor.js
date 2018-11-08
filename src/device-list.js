@@ -85,6 +85,7 @@ export default class DeviceList extends EventEmitter {
     creatingDevices: {[k: string]: boolean} = {};
 
     sessions: {[path: string]: ?string} = {};
+    debugSessions: {[path: string]: ?string} = {};
 
     errorEvent: Event1<Error> = new Event1('error', this);
     transportEvent: Event1<Transport> = new Event1('transport', this);
@@ -94,6 +95,11 @@ export default class DeviceList extends EventEmitter {
     changedSessionsEvent: Event1<Device> = new Event1('changedSessions', this);
     acquiredEvent: Event1<Device> = new Event1('acquired', this);
     releasedEvent: Event1<Device> = new Event1('released', this);
+
+    debugChangedSessionsEvent: Event1<Device> = new Event1('debugChangedSessions', this);
+    debugAcquiredEvent: Event1<Device> = new Event1('debugAcquired', this);
+    debugReleasedEvent: Event1<Device> = new Event1('debugReleased', this);
+
     disconnectEvent: Event1<Device> = new Event1('disconnect', this);
     disconnectUnacquiredEvent: Event1<UnacquiredDevice> = new Event1('disconnectUnacquired', this);
     updateEvent: Event1<DeviceDescriptorDiff> = new Event1('update', this);
@@ -303,15 +309,22 @@ export default class DeviceList extends EventEmitter {
         return res;
     }
 
-    getSession(path: string): ?string {
+    getSession(path: string, debug: boolean): ?string {
+        if (debug) {
+            return this.debugSessions[path];
+        }
         return this.sessions[path];
     }
 
-    setHard(path: string, session: ?string) {
+    setHard(path: string, session: ?string, debug: boolean) {
         if (this.stream != null) {
-            this.stream.setHard(path, session);
+            this.stream.setHard(path, session, debug);
         }
-        this.sessions[path] = session;
+        if (debug) {
+            this.debugSessions[path] = session;
+        } else {
+            this.sessions[path] = session;
+        }
     }
 
     _initStream(transport: Transport) {
@@ -319,8 +332,10 @@ export default class DeviceList extends EventEmitter {
 
         stream.updateEvent.on((diff: DeviceDescriptorDiff) => {
             this.sessions = {};
+            this.debugSessions = {};
             diff.descriptors.forEach(descriptor => {
                 this.sessions[descriptor.path.toString()] = descriptor.session;
+                this.debugSessions[descriptor.path.toString()] = descriptor.debugSession;
             });
 
             diff.connected.forEach((descriptor: DeviceDescriptor) => {
@@ -349,6 +364,16 @@ export default class DeviceList extends EventEmitter {
                 }, {
                     d: diff.released,
                     e: this.releasedEvent,
+                },
+                {
+                    d: diff.debugChangedSessions,
+                    e: this.debugChangedSessionsEvent,
+                }, {
+                    d: diff.debugAcquired,
+                    e: this.debugAcquiredEvent,
+                }, {
+                    d: diff.debugReleased,
+                    e: this.debugReleasedEvent,
                 },
             ];
 

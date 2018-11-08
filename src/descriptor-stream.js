@@ -14,6 +14,9 @@ export type DeviceDescriptorDiff = {
     changedSessions: Array<DeviceDescriptor>,
     acquired: Array<DeviceDescriptor>,
     released: Array<DeviceDescriptor>,
+    debugChangedSessions: Array<DeviceDescriptor>,
+    debugAcquired: Array<DeviceDescriptor>,
+    debugReleased: Array<DeviceDescriptor>,
     didUpdate: boolean,
     descriptors: Array<DeviceDescriptor>
 };
@@ -33,15 +36,23 @@ export default class DescriptorStream extends EventEmitter {
     changedSessionsEvent: Event1<DeviceDescriptor> = new Event1('changedSessions', this);
     updateEvent: Event1<DeviceDescriptorDiff> = new Event1('update', this);
 
+    debugAcquiredEvent: Event1<DeviceDescriptor> = new Event1('debugAcquired', this);
+    debugReleasedEvent: Event1<DeviceDescriptor> = new Event1('debugReleased', this);
+    debugChangedSessionsEvent: Event1<DeviceDescriptor> = new Event1('debugChangedSessions', this);
+
     constructor(transport: Transport) {
         super();
         this.transport = transport;
     }
 
-    setHard(path: string, session: ?string) {
+    setHard(path: string, session: ?string, debug: boolean) {
         if (this.previous != null) {
             const copy = this.previous.map(d => {
                 if (d.path === path) {
+                    if (debug) {
+                        const debugSession = session;
+                        return {...d, debugSession};
+                    }
                     return {...d, session};
                 } else {
                     return d;
@@ -120,7 +131,24 @@ export default class DescriptorStream extends EventEmitter {
             return descriptor.session == null;
         });
 
-        const didUpdate = (connected.length + disconnected.length + changedSessions.length) > 0;
+        const debugChangedSessions = descriptors.filter(d => {
+            const previousDescriptor = previous.find(x => {
+                return x.path === d.path;
+            });
+            if (previousDescriptor !== undefined) {
+                return (previousDescriptor.debugSession !== d.debugSession);
+            } else {
+                return false;
+            }
+        });
+        const debugAcquired = debugChangedSessions.filter(descriptor => {
+            return descriptor.debugSession != null;
+        });
+        const debugReleased = debugChangedSessions.filter(descriptor => {
+            return descriptor.debugSession == null;
+        });
+
+        const didUpdate = (connected.length + disconnected.length + changedSessions.length + debugChangedSessions.length) > 0;
 
         return {
             connected: connected,
@@ -130,6 +158,9 @@ export default class DescriptorStream extends EventEmitter {
             released: released,
             didUpdate: didUpdate,
             descriptors: descriptors,
+            debugChangedSessions,
+            debugAcquired,
+            debugReleased,
         };
     }
 
@@ -145,6 +176,16 @@ export default class DescriptorStream extends EventEmitter {
                 diff.disconnected.forEach(d => {
                     this.disconnectEvent.emit(d);
                 });
+                diff.debugAcquired.forEach(d => {
+                    this.debugAcquiredEvent.emit(d);
+                });
+                diff.debugReleased.forEach(d => {
+                    this.debugReleasedEvent.emit(d);
+                });
+                diff.debugChangedSessions.forEach(d => {
+                    this.debugChangedSessionsEvent.emit(d);
+                });
+
                 diff.acquired.forEach(d => {
                     this.acquiredEvent.emit(d);
                 });

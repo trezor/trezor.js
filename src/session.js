@@ -59,13 +59,16 @@ export default class Session extends EventEmitter {
 
     xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>;
 
+    debugLink: boolean;
+
     constructor(
         transport: Transport,
         sessionId: string,
         descriptor: DeviceDescriptor,
         debug: boolean,
         device: ?Device,
-        xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>
+        xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>,
+        debugLink: boolean
     ) {
         super();
         this._transport = transport;
@@ -75,6 +78,7 @@ export default class Session extends EventEmitter {
         this.callHelper = new CallHelper(transport, sessionId, this);
         this.debug = debug;
         this.xpubDerive = xpubDerive;
+        this.debugLink = debugLink;
     }
 
     deactivateEvents() {
@@ -106,18 +110,18 @@ export default class Session extends EventEmitter {
         if (this.debug) {
             console.log('[trezor.js] [session] releasing');
         }
-        return this._transport.release(this._sessionId, onclose);
+        return this._transport.release(this._sessionId, onclose, this.debugLink);
     }
 
     initialize(): Promise<MessageResponse<trezor.Features>> {
         if (this.device && this.device.passphraseState) {
             return this.typedCall('Initialize', 'Features', { state: this.device.passphraseState });
         }
-        return this.typedCall('Initialize', 'Features');
+        return this.typedCall('Initialize', 'Features', {});
     }
 
     getFeatures(): Promise<MessageResponse<trezor.Features>> {
-        return this.typedCall('GetFeatures', 'Features');
+        return this.typedCall('GetFeatures', 'Features', {});
     }
 
     getEntropy(size: number): Promise<MessageResponse<{bytes: string}>> {
@@ -188,7 +192,7 @@ export default class Session extends EventEmitter {
     }
 
     wipeDevice(): Promise<MessageResponse<trezor.Success>> {
-        return this.typedCall('WipeDevice', 'Success');
+        return this.typedCall('WipeDevice', 'Success', {});
     }
 
     resetDevice(settings: trezor.ResetDeviceSettings): Promise<MessageResponse<trezor.Success>> {
@@ -223,7 +227,8 @@ export default class Session extends EventEmitter {
     }
 
     clearSession(settings?: {}): Promise<MessageResponse<trezor.Success>> {
-        return this.typedCall('ClearSession', 'Success', settings);
+        const s = settings == null ? {} : settings;
+        return this.typedCall('ClearSession', 'Success', s);
     }
 
     changePin(remove: ?boolean): Promise<MessageResponse<trezor.Success>> {
@@ -249,7 +254,7 @@ export default class Session extends EventEmitter {
     }
 
     async _updateFirmwareV1(payload: string): Promise<MessageResponse<trezor.Success>> {
-        await this.typedCall('FirmwareErase', 'Success');
+        await this.typedCall('FirmwareErase', 'Success', {});
         return await this.typedCall('FirmwareUpload', 'Success', {
             payload: payload,
         });
@@ -421,8 +426,20 @@ export default class Session extends EventEmitter {
         return signEthTxHelper.signEthTx(this, address_n, nonce, gas_price, gas_limit, to, value, data, chain_id);
     }
 
-    typedCall(type: string, resType: string, msg: Object = {}): Promise<DefaultMessageResponse> {
+    typedCall(type: string, resType: string, msg: Object): Promise<DefaultMessageResponse> {
         return this.callHelper.typedCall(type, resType, msg);
+    }
+
+    rawPost(type: string, msg: Object): Promise<void> {
+        return this.callHelper.post(type, msg);
+    }
+
+    rawRead(): Promise<DefaultMessageResponse> {
+        return this.callHelper.read();
+    }
+
+    rawCall(type: string, msg: Object): Promise<DefaultMessageResponse> {
+        return this.callHelper.call(type, msg);
     }
 
     @integrityCheck
@@ -490,7 +507,7 @@ export default class Session extends EventEmitter {
     }
 
     backupDevice(): Promise<DefaultMessageResponse> {
-        return this.typedCall('BackupDevice', 'Success');
+        return this.typedCall('BackupDevice', 'Success', {});
     }
 
     nemGetAddress(
