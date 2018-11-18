@@ -11,27 +11,15 @@ const curve = ecurve.getCurveByName('secp256k1');
 
 // simplified CoinInfo object passed from mytrezor
 export type CoinInfo = {
-    network: { // bitcoinjs network
-        bip32: {
-            public: number;
-            private: number;
-        };
-        dustThreshold: number;
-        messagePrefix: string;
-        pubKeyHash: number;
-        scriptHash: number;
-        wif: number;
-    };
+    network: typeof bitcoin.networks.bitcoin;
     name: string;
     segwitPubMagic: ?number;
-    segwitNativePubMagic: ?number;
 }
 
 export const BITCOIN_COIN_INFO: CoinInfo = {
     name: 'Bitcoin',
     network: bitcoin.networks.bitcoin,
     segwitPubMagic: 77429938,
-    segwitNativePubMagic: null,
 };
 
 export function bjsNode2privNode(node: bitcoin.HDNode): trezor.HDPrivNode {
