@@ -7,11 +7,12 @@ import {EventEmitter} from './events';
 import {Event0, Event1, Event2} from './flow-events';
 import Session from './session';
 import {lock} from './utils/connectionLock';
-import {harden} from './utils/hdnode';
+import {BITCOIN_COIN_INFO, harden} from './utils/hdnode';
 import * as bitcoin from 'bitcoinjs-lib-zcash';
 
 import type DeviceList from './device-list';
 import type {Features} from './trezortypes';
+import type {CoinInfo} from './utils/hdnode';
 import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
 
 // a slight hack
@@ -62,7 +63,7 @@ export default class Device extends EventEmitter {
     // comparing different calls with each other, since this is set on first call.
     integrityCheckingXpub: ?string;
     integrityCheckingXpubPath: Array<number> = [harden(49), harden(0), harden(0)];
-    integrityCheckingXpubNetwork: string | bitcoin.Network = 'bitcoin';
+    integrityCheckingXpubNetwork: string | bitcoin.Network | CoinInfo = BITCOIN_COIN_INFO;
     integrityCheckingPassphrase: ?string;
 
     disconnectEvent: Event0 = new Event0('disconnect', this);
@@ -329,7 +330,7 @@ export default class Device extends EventEmitter {
     // See the comment on top on integrityCheckingXpub.
     // This sets the xpub that we will re-check when possible (before important actions, and
     // after all action when it makes sense)
-    setCheckingXpub(integrityCheckingXpubPath: Array<number>, integrityCheckingXpub: string, integrityCheckingXpubNetwork: (string | bitcoin.Network)) {
+    setCheckingXpub(integrityCheckingXpubPath: Array<number>, integrityCheckingXpub: string, integrityCheckingXpubNetwork: string | bitcoin.Network | CoinInfo) {
         this.integrityCheckingXpubPath = integrityCheckingXpubPath;
         this.integrityCheckingXpub = integrityCheckingXpub;
         this.integrityCheckingXpubNetwork = integrityCheckingXpubNetwork;

@@ -16,6 +16,7 @@ import type {TxInfo} from './utils/signbjstx';
 import type {EthereumSignature} from './utils/signethtx';
 import type {Transport, TrezorDeviceInfoWithSession as DeviceDescriptor} from 'trezor-link';
 import type Device from './device';
+import type {CoinInfo} from './utils/hdnode';
 
 export type MessageResponse<T> = {
     type: string;
@@ -23,6 +24,11 @@ export type MessageResponse<T> = {
 };
 
 export type DefaultMessageResponse = MessageResponse<Object>;
+
+/* eslint-disable no-redeclare */
+declare function coinNetwork(coin: string | bitcoin.Network): bitcoin.Network;
+declare function coinNetwork(coin: CoinInfo): CoinInfo;
+/* eslint-enable no-redeclare */
 
 //
 // Trezor device session handle. Acts as a event emitter.
@@ -176,11 +182,13 @@ export default class Session extends EventEmitter {
     _getPublicKeyInternal(
         address_n: Array<number>,
         coin: ?(string),
+        script_type?: ?string,
     ): Promise<MessageResponse<trezor.PublicKey>> {
         const coin_name = coin ? coinName(coin) : 'Bitcoin';
         return this.typedCall('GetPublicKey', 'PublicKey', {
             address_n: address_n,
             coin_name: coin_name,
+            script_type: script_type,
         }).then(res => {
             res.message.node.path = address_n || [];
             return res;
@@ -468,7 +476,7 @@ export default class Session extends EventEmitter {
 
     _getHDNodeInternal(
         path: Array<number>,
-        network: string | bitcoin.Network
+        network: string | bitcoin.Network | CoinInfo,
     ): Promise<bitcoin.HDNode> {
         return hdnodeUtils.getHDNode(this, path, coinNetwork(network), this.xpubDerive);
     }
@@ -476,7 +484,7 @@ export default class Session extends EventEmitter {
     @integrityCheck
     getHDNode(
         path: Array<number>,
-        network: string | bitcoin.Network
+        network: string | bitcoin.Network | CoinInfo,
     ): Promise<bitcoin.HDNode> {
         return this._getHDNodeInternal(path, network);
     }
@@ -537,21 +545,20 @@ export function coinName(coin: string): string {
     return coin.charAt(0).toUpperCase() + coin.slice(1);
 }
 
-export function coinNetwork(
-    coin: string | bitcoin.Network
-): bitcoin.Network {
-    const r: any = coin;
-    if (typeof coin.messagePrefix === 'string') {
-        return r;
+/* eslint-disable no-redeclare */
+export function coinNetwork(coin) {
+    if (typeof coin !== 'string') {
+        return coin;
     }
 
-    const name: string = coinName(r).toLowerCase();
+    const name: string = coinName(coin).toLowerCase();
     const network = bitcoin.networks[name];
     if (network == null) {
         throw new Error(`No network with the name ${name}.`);
     }
     return network;
 }
+/* eslint-enable no-redeclare */
 
 function wrapLoadDevice(
     settings: trezor.LoadDeviceSettings,

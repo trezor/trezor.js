@@ -9,6 +9,31 @@ import type Session, {MessageResponse} from '../session';
 
 const curve = ecurve.getCurveByName('secp256k1');
 
+// simplified CoinInfo object passed from mytrezor
+export type CoinInfo = {
+    network: { // bitcoinjs network
+        bip32: {
+            public: number;
+            private: number;
+        };
+        dustThreshold: number;
+        messagePrefix: string;
+        pubKeyHash: number;
+        scriptHash: number;
+        wif: number;
+    };
+    name: string;
+    segwitPubMagic: ?number;
+    segwitNativePubMagic: ?number;
+}
+
+export const BITCOIN_COIN_INFO: CoinInfo = {
+    name: 'Bitcoin',
+    network: bitcoin.networks.bitcoin,
+    segwitPubMagic: 77429938,
+    segwitNativePubMagic: null,
+};
+
 export function bjsNode2privNode(node: bitcoin.HDNode): trezor.HDPrivNode {
     const d = node.keyPair.d;
     if (!d) {
@@ -60,13 +85,15 @@ function convertXpub(original: string, network: bitcoin.Network) {
 // network info is necessary. throws error on wrong xpub
 export function pubKey2bjsNode(
     key: MessageResponse<trezor.PublicKey>,
-    network: bitcoin.Network
+    network: bitcoin.Network,
+    convert: boolean = true,
 ): bitcoin.HDNode {
     const keyNode: trezor.HDPubNode = key.message.node;
     const bjsNode: bitcoin.HDNode = pubNode2bjsNode(keyNode, network);
 
     const bjsXpub: string = bjsNode.toBase58();
-    const keyXpub: string = convertXpub(key.message.xpub, network);
+    // const keyXpub: string = convertXpub(key.message.xpub, network);
+    const keyXpub = convert ? convertXpub(key.message.xpub, network) : bitcoin.HDNode.fromBase58(key.message.xpub, network).toBase58();
 
     if (bjsXpub !== keyXpub) {
         throw new Error('Invalid public key transmission detected - ' +
@@ -106,7 +133,92 @@ export function derivePubKeyHash(
     return pkh;
 }
 
+// Proxy
+// Generate xpub with or without script_type
 export function getHDNode(
+    session: Session,
+    path: Array<number>,
+    networkOrCoinInfo: bitcoin.Network | CoinInfo,
+    xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>,
+): Promise<bitcoin.HDNode> {
+    const device = session.device;
+    const canUseScriptType = device && ((device.features.major_version === 2 && device.atLeast('2.0.10')) || (device.features.major_version === 1 && device.atLeast('1.7.2')));
+    const coinInfo: any = (typeof networkOrCoinInfo.name === 'string') ? networkOrCoinInfo : null;
+    if (canUseScriptType && coinInfo) {
+        return getScriptTypeHDNode(session, path, coinInfo, xpubDerive);
+    }
+    const network: any = coinInfo ? coinInfo.network : networkOrCoinInfo;
+    return getBitcoinHDNode(session, path, network, xpubDerive);
+}
+
+function getScriptType(path: Array<number>, coinInfo: CoinInfo): ?string {
+    if (!Array.isArray(path) || path.length < 1) return;
+    const s = (path[0] & ~0x80000000) >>> 0;
+    switch (s) {
+        case 44:
+            return 'SPENDADDRESS';
+        case 48:
+            return 'SPENDMULTISIG';
+        case 49:
+            return coinInfo.segwitPubMagic ? 'SPENDP2SHWITNESS' : undefined;
+        case 84:
+            return coinInfo.segwitNativePubMagic ? 'SPENDWITNESS' : undefined;
+        default:
+            return;
+    }
+}
+
+function getScriptTypeNetwork(scriptType: ?string, coinInfo: CoinInfo): bitcoin.Network {
+    const clone = JSON.parse(JSON.stringify(coinInfo));
+    if (scriptType === 'SPENDP2SHWITNESS' && coinInfo.segwitPubMagic) {
+        clone.network.bip32.public = coinInfo.segwitPubMagic;
+    }
+    if (scriptType === 'SPENDWITNESS' && coinInfo.segwitNativePubMagic) {
+        clone.network.bip32.public = coinInfo.segwitNativePubMagic;
+    }
+    return clone.network;
+}
+
+// calling GetPublicKey message with script_type field
+// to make it work we need to have more information about network (segwitPubMagic and segwitNativePubMagic)
+// that's why this method should accept CoinInfo object only, an extended coin definition from "mytrezor"
+// consider to add script_type values witch segwit and bech32 magic fields to bitcoinjs-trezor lib
+function getScriptTypeHDNode(
+    session: Session,
+    path: Array<number>,
+    coinInfo: CoinInfo,
+    xpubDerive: (xpub: string, network: bitcoin.Network, index: number) => Promise<string>,
+): Promise<bitcoin.HDNode> {
+    const suffix = 0;
+    const childPath = path.concat([suffix]);
+    const scriptType = getScriptType(path, coinInfo);
+    const network = getScriptTypeNetwork(scriptType, coinInfo);
+
+    return session._getPublicKeyInternal(path, coinInfo.name, scriptType).then((resKey: MessageResponse<trezor.PublicKey>) => {
+        const resNode = pubKey2bjsNode(resKey, network, false);
+        const resXpub = resKey.message.xpub;
+
+        return session._getPublicKeyInternal(childPath, coinInfo.name, scriptType).then((childKey: MessageResponse<trezor.PublicKey>) => {
+            // const childNode = pubKey2bjsNode(childKey, network);
+            const childXpub = childKey.message.xpub;
+            return xpubDerive(resXpub, network, suffix).then(actualChildXpub => {
+                if (actualChildXpub !== childXpub) {
+                    throw new Error('Invalid public key transmission detected - ' +
+                        'invalid child cross-check. ' +
+                        'Computed derived: ' + actualChildXpub + ', ' +
+                        'Computed received: ' + childXpub);
+                }
+                // wallet is still expecting xpubs in Bitcoin Legacy format
+                // it should be fixed in mytrezor to avoid unnecessary conversion back and forth
+                resNode.keyPair.network = bitcoin.networks.bitcoin;
+                return resNode;
+            });
+        });
+    });
+}
+
+// fw below 1.7.1 and 2.0.8 does not return xpubs in proper format
+function getBitcoinHDNode(
     session: Session,
     path: Array<number>,
     network: bitcoin.Network,
