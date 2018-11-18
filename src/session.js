@@ -25,11 +25,6 @@ export type MessageResponse<T> = {
 
 export type DefaultMessageResponse = MessageResponse<Object>;
 
-/* eslint-disable no-redeclare */
-declare function coinNetwork(coin: string | bitcoin.Network): bitcoin.Network;
-declare function coinNetwork(coin: CoinInfo): CoinInfo;
-/* eslint-enable no-redeclare */
-
 //
 // Trezor device session handle. Acts as a event emitter.
 //
@@ -546,6 +541,9 @@ export function coinName(coin: string): string {
 }
 
 /* eslint-disable no-redeclare */
+declare function coinNetwork(coin: string | bitcoin.Network): bitcoin.Network;
+declare function coinNetwork(coin: CoinInfo): CoinInfo;
+
 export function coinNetwork(coin) {
     if (typeof coin !== 'string') {
         return coin;
