@@ -66,13 +66,13 @@ export default class UnacquiredDevice extends EventEmitter {
                 () => reject(new Error('Device disconnected before grabbing'))
             );
         });
-        const currentSession = this.deviceList.getSession(this.originalDescriptor.path);
+        const currentSession = this.deviceList.getSession(this.originalDescriptor.path, false);
         const descriptor = { ...this.originalDescriptor, session: currentSession };
 
         // if the run fails, I want to return that error, I guess
         const aggressiveRunResult = Device._run(() => {
             return true;
-        }, this.transport, descriptor, this.deviceList);
+        }, this.transport, descriptor, this.deviceList, null, null, null, false);
         return aggressiveRunResult.then(() => result);
     }
 

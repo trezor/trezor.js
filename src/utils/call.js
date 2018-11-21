@@ -68,16 +68,8 @@ export class CallHelper {
         this.session = session;
     }
 
-    // Sends an async message to the opened device.
-    call(type: string, msg: Object = {}): Promise<DefaultMessageResponse> {
-        const logMessage: Object = filterForLog(type, msg);
-
-        if (this.session.debug) {
-            console.log('[trezor.js] [call] Sending', type, logMessage);
-        }
-        this.session.sendEvent.emit(type, msg);
-
-        return this.transport.call(this.sessionId, type, msg).then(
+    read(): Promise<DefaultMessageResponse> {
+        return this.transport.read(this.sessionId, this.session.debugLink).then(
             (res: DefaultMessageResponse) => {
                 const logMessage = filterForLog(res.type, res.message);
 
@@ -97,7 +89,54 @@ export class CallHelper {
         );
     }
 
-    typedCall(type: string, resType: string, msg: Object = {}): Promise<DefaultMessageResponse> {
+    post(type: string, msg: Object): Promise<void> {
+        const logMessage: Object = filterForLog(type, msg);
+
+        if (this.session.debug) {
+            console.log('[trezor.js] [call] Sending', type, logMessage);
+        }
+        this.session.sendEvent.emit(type, msg);
+
+        return this.transport.post(this.sessionId, type, msg, this.session.debugLink).catch(err => {
+            if (this.session.debug) {
+                console.log('[trezor.js] [call] Received error', err);
+            }
+            this.session.errorEvent.emit(err);
+            throw err;
+        }
+        );
+    }
+
+    // Sends an async message to the opened device.
+    call(type: string, msg: Object): Promise<DefaultMessageResponse> {
+        const logMessage: Object = filterForLog(type, msg);
+
+        if (this.session.debug) {
+            console.log('[trezor.js] [call] Sending', type, logMessage);
+        }
+        this.session.sendEvent.emit(type, msg);
+
+        return this.transport.call(this.sessionId, type, msg, this.session.debugLink).then(
+            (res: DefaultMessageResponse) => {
+                const logMessage = filterForLog(res.type, res.message);
+
+                if (this.session.debug) {
+                    console.log('[trezor.js] [call] Received', res.type, logMessage);
+                }
+                this.session.receiveEvent.emit(res.type, res.message);
+                return res;
+            },
+            err => {
+                if (this.session.debug) {
+                    console.log('[trezor.js] [call] Received error', err);
+                }
+                this.session.errorEvent.emit(err);
+                throw err;
+            }
+        );
+    }
+
+    typedCall(type: string, resType: string, msg: Object): Promise<DefaultMessageResponse> {
         return this._commonCall(type, msg).then(res => {
             assertType(res, resType);
             return res;

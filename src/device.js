@@ -32,6 +32,7 @@ export type RunOptions = {
     //          it tries repeatedly
     waiting?: boolean;
     onlyOneActivity?: boolean;
+    debugLink?: boolean;
 }
 
 export default class Device extends EventEmitter {
@@ -41,7 +42,10 @@ export default class Device extends EventEmitter {
     deviceList: DeviceList;
     activityInProgress: boolean = false;
     currentSessionObject: ?Session;
+    currentDebugSessionObject: ?Session;
     connected: boolean = true;
+
+    hasDebugLink: boolean;
 
     clearSession: boolean = false;
     clearSessionTime: number = 10 * 60 * 1000; // in miliseconds
@@ -77,7 +81,7 @@ export default class Device extends EventEmitter {
     sendEvent: Event2<string, Object> = new Event2('send', this);
     _stolenEvent: Event0 = new Event0('stolen', this);
 
-    constructor(transport: Transport, descriptor: DeviceDescriptor, features: Features, deviceList: DeviceList) {
+    constructor(transport: Transport, descriptor: DeviceDescriptor, features: Features, deviceList: DeviceList, hasDebugLink: boolean) {
         super();
 
         // === immutable properties
@@ -100,6 +104,8 @@ export default class Device extends EventEmitter {
         this.features = features;
         this.connected = true;
 
+        this.hasDebugLink = hasDebugLink;
+
         this._watch();
     }
 
@@ -116,18 +122,32 @@ export default class Device extends EventEmitter {
         deviceList: DeviceList,
         onAcquire?: ?((session: Session) => void),
         onRelease?: ?((error: ?Error) => Promise<any>),
-        device: ?Device
+        device: ?Device,
+        debugLink: boolean
     ): Promise<X> {
         const session = await Device._acquire(
             transport,
             descriptor,
             deviceList,
             onAcquire,
-            device
+            device,
+            debugLink
         );
         try {
-            const features = await session.initialize();
-            return await fn(session, features.message);
+            let features: ?Features;
+            if (debugLink) {
+                // do not reload features on debug link
+                if (device == null) {
+                    throw new Error('Debug link cannot load first');
+                }
+                features = device.features;
+            } else {
+                features = (await session.initialize()).message;
+            }
+            if (features == null) {
+                throw new Error('Features unexpected null');
+            }
+            return await fn(session, features);
         } finally {
             await Device._release(descriptor, session, deviceList, onRelease);
         }
@@ -147,7 +167,7 @@ export default class Device extends EventEmitter {
                 session.release(false),
                 (res, error) => {
                     if (error == null) {
-                        deviceList.setHard(originalDescriptor.path, null);
+                        deviceList.setHard(originalDescriptor.path, null, session.debugLink);
                     }
                     return Promise.resolve();
                 }
@@ -170,18 +190,18 @@ export default class Device extends EventEmitter {
         deviceList: DeviceList,
         onAcquire?: ?((session: Session) => void),
         device: ?Device,
+        debugLink: boolean,
     ): Promise<Session> {
         return lock(() =>
             transport.acquire({
                 path: descriptor.path,
                 previous: descriptor.session,
-                checkPrevious: true,
-            }).then(res => {
-                deviceList.setHard(descriptor.path, res);
+            }, debugLink).then(res => {
+                deviceList.setHard(descriptor.path, res, debugLink);
                 return res;
             })
         ).then(result => {
-            const session = new Session(transport, result, descriptor, !!deviceList.options.debugInfo, device, deviceList.xpubDerive);
+            const session = new Session(transport, result, descriptor, !!deviceList.options.debugInfo, device, deviceList.xpubDerive, debugLink);
             if (onAcquire != null) {
                 onAcquire(session);
             }
@@ -209,9 +229,10 @@ export default class Device extends EventEmitter {
         }
         const options_ = options == null ? {} : options;
         const aggressive = !!options_.aggressive;
-        const skipFinalReload = !!options_.skipFinalReload;
         const waiting = !!options_.waiting;
 
+        const debugLink = !!options_.debugLink;
+        const skipFinalReload = !!options_.skipFinalReload || debugLink;
         const onlyOneActivity = !!options_.onlyOneActivity;
         if (onlyOneActivity && this.activityInProgress) {
             return Promise.reject(new Error('One activity already running.'));
@@ -220,7 +241,7 @@ export default class Device extends EventEmitter {
         this.activityInProgress = true;
         this._stopClearSessionTimeout();
 
-        const currentSession = this.deviceList.getSession(this.originalDescriptor.path);
+        const currentSession = this.deviceList.getSession(this.originalDescriptor.path, debugLink);
         if ((!aggressive) && (!waiting) && (currentSession != null)) {
             return Promise.reject(new Error('Device used in another window.'));
         }
@@ -230,7 +251,7 @@ export default class Device extends EventEmitter {
 
         let waitingPromise: Promise<?string> = Promise.resolve(currentSession);
         if (waiting && currentSession != null) {
-            waitingPromise = this._waitForNullSession();
+            waitingPromise = this._waitForNullSession(debugLink);
         }
 
         const runFinal = (res, error) => {
@@ -268,11 +289,21 @@ export default class Device extends EventEmitter {
                 descriptor,
                 this.deviceList,
                 (session) => {
-                    this.currentSessionObject = session;
+                    if (debugLink) {
+                        this.currentDebugSessionObject = session;
+                    } else {
+                        this.currentSessionObject = session;
+                    }
                 },
                 (error) => {
-                    this.currentSessionObject = null;
-                    this.activityInProgress = false;
+                    if (debugLink) {
+                        this.currentDebugSessionObject = null;
+                    } else {
+                        this.currentSessionObject = null;
+                    }
+                    if (!debugLink) {
+                        this.activityInProgress = false;
+                    }
                     if (error != null && this.connected) {
                         if (error.message === 'Action was interrupted.') {
                             this._stolenEvent.emit();
@@ -299,7 +330,8 @@ export default class Device extends EventEmitter {
                         return Promise.resolve();
                     }
                 },
-                this
+                this,
+                debugLink
             );
 
             return promiseFinally(
@@ -317,7 +349,7 @@ export default class Device extends EventEmitter {
                 }
                 if (error.message === WRONG_PREVIOUS_SESSION_ERROR_MESSAGE && waiting) {
                     // trying again!!!
-                    return this._waitForNullSession().then(() => {
+                    return this._waitForNullSession(debugLink).then(() => {
                         return this.run(fn, options);
                     });
                 } else {
@@ -496,11 +528,11 @@ export default class Device extends EventEmitter {
         return res;
     }
 
-    _waitForNullSession(): Promise<?string> {
+    _waitForNullSession(debugLink: boolean): Promise<?string> {
         return new Promise((resolve, reject) => {
             let onDisconnect = () => {};
             const onUpdate = () => {
-                const updatedSession = this.deviceList.getSession(this.originalDescriptor.path);
+                const updatedSession = this.deviceList.getSession(this.originalDescriptor.path, debugLink);
                 const device = this.deviceList.devices[this.originalDescriptor.path.toString()];
                 if (updatedSession == null && device != null) {
                     this.deviceList.disconnectEvent.removeListener(onDisconnect);
@@ -527,10 +559,10 @@ export default class Device extends EventEmitter {
         deviceList: DeviceList,
     ): Promise<Device> {
         // at this point I am assuming nobody else has the device
-        const descriptor = { ...originalDescriptor, session: null };
+        const descriptor: DeviceDescriptor = { ...originalDescriptor, session: null };
         return Device._run((session, features) => {
-            return new Device(transport, descriptor, features, deviceList);
-        }, transport, descriptor, deviceList);
+            return new Device(transport, descriptor, features, deviceList, !!descriptor.debug);
+        }, transport, descriptor, deviceList, null, null, null, false);
     }
 
     reloadFeatures(): Promise<boolean> {
@@ -603,12 +635,12 @@ export default class Device extends EventEmitter {
     }
 
     isUsed(): boolean {
-        const session = this.deviceList.getSession(this.originalDescriptor.path);
+        const session = this.deviceList.getSession(this.originalDescriptor.path, false);
         return session != null;
     }
 
     isUsedHere(): boolean {
-        const session = this.deviceList.getSession(this.originalDescriptor.path);
+        const session = this.deviceList.getSession(this.originalDescriptor.path, false);
         const mySession = this.currentSessionObject != null ? this.currentSessionObject.getId() : null;
         return session != null && mySession === session;
     }
