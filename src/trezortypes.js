@@ -27,6 +27,7 @@ export type Features = {
     flags?: number;
     model?: string;
     unfinished_backup?: boolean;
+    no_backup: boolean:
 };
 
 export type ResetDeviceSettings = {
