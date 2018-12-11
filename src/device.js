@@ -219,25 +219,25 @@ export default class Device extends EventEmitter {
         return this.run(fn, {...options_, aggressive: true});
     }
 
-    getVersions(major, minor, patch, isBootloader) {
+    getVersions(major_version, minor_version, patch_version, isBootloader) {
         let result = {};
         if (isBootloader) {
             result = {
                 firmware_version: null,
-                bootloader_version: [
-                    major,
-                    minor,
-                    patch,
-                ],
+                bootloader_version: {
+                    major_version,
+                    minor_version,
+                    patch_version,
+                },
             };
         } else {
             result = {
                 bootloader_version: null,
-                firmware_version: [
-                    major,
-                    minor,
-                    patch,
-                ],
+                firmware_version: {
+                    major_version,
+                    minor_version,
+                    patch_version,
+                },
             };
         }
 
