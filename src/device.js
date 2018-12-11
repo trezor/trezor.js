@@ -83,7 +83,7 @@ export default class Device extends EventEmitter {
 
     constructor(transport: Transport, descriptor: DeviceDescriptor, features: Features, deviceList: DeviceList, hasDebugLink: boolean) {
         super();
-
+        const { major_version, minor_version, patch_version, bootloader_mode } = features;
         // === immutable properties
         this.transport = transport;
         this.originalDescriptor = descriptor;
@@ -101,7 +101,7 @@ export default class Device extends EventEmitter {
 
         // === mutable properties
         // features get reloaded after every initialization
-        this.features = features;
+        this.features = {...features, ...this.getVersions(major_version, minor_version, patch_version, bootloader_mode)};
         this.connected = true;
 
         this.hasDebugLink = hasDebugLink;
@@ -217,6 +217,31 @@ export default class Device extends EventEmitter {
     runAggressive<X>(fn: (session: Session) => (Promise<X> | X), options: ?RunOptions): Promise<X> {
         const options_: RunOptions = options == null ? {} : options;
         return this.run(fn, {...options_, aggressive: true});
+    }
+
+    getVersions(major, minor, patch, isBootloader) {
+        let result = {};
+        if (isBootloader) {
+            result = {
+                firmware_version: null,
+                bootloader_version: [
+                    major,
+                    minor,
+                    patch,
+                ],
+            };
+        } else {
+            result = {
+                bootloader_version: null,
+                firmware_version: [
+                    major,
+                    minor,
+                    patch,
+                ],
+            };
+        }
+
+        return result;
     }
 
     // Initializes device with the given descriptor,
