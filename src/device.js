@@ -219,7 +219,7 @@ export default class Device extends EventEmitter {
         return this.run(fn, {...options_, aggressive: true});
     }
 
-    getVersions(major_version, minor_version, patch_version, isBootloader) {
+    getVersions(major_version: number, minor_version: number, patch_version: number, isBootloader: boolean) {
         let result = {};
         if (isBootloader) {
             result = {
