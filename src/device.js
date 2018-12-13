@@ -224,20 +224,16 @@ export default class Device extends EventEmitter {
         if (isBootloader) {
             result = {
                 firmware_version: null,
-                bootloader_version: {
-                    major_version,
-                    minor_version,
-                    patch_version,
-                },
+                bootloader_major_version: major_version,
+                bootloader_minor_version: minor_version,
+                bootloader_patch_version: patch_version,
             };
         } else {
             result = {
                 bootloader_version: null,
-                firmware_version: {
-                    major_version,
-                    minor_version,
-                    patch_version,
-                },
+                firmware_major_version: major_version,
+                firmware_minor_version: minor_version,
+                firmware_patch_version: patch_version,
             };
         }
 
