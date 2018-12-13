@@ -223,17 +223,21 @@ export default class Device extends EventEmitter {
         let result = {};
         if (isBootloader) {
             result = {
-                firmware_version: null,
                 bootloader_major_version: major_version,
                 bootloader_minor_version: minor_version,
                 bootloader_patch_version: patch_version,
+                firmware_major_version: null,
+                firmware_minor_version: null,
+                firmware_patch_version: null,
             };
         } else {
             result = {
-                bootloader_version: null,
                 firmware_major_version: major_version,
                 firmware_minor_version: minor_version,
                 firmware_patch_version: patch_version,
+                bootloader_major_version: null,
+                bootloader_minor_version: null,
+                bootloader_patch_version: null,
             };
         }
 
