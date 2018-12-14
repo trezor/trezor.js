@@ -5,6 +5,10 @@
   "homepage": "https://github.com/trezor/trezor.js",
   "description": "High-level Javascript API for Bitcoin Trezor",
   "license": "LGPL-3.0",
+  "scripts": {
+    "lint": "eslint ./",
+    "flow": "flow ./src"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/trezor/trezor.js.git"

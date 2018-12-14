@@ -83,7 +83,7 @@ export default class Device extends EventEmitter {
 
     constructor(transport: Transport, descriptor: DeviceDescriptor, features: Features, deviceList: DeviceList, hasDebugLink: boolean) {
         super();
-
+        const { major_version, minor_version, patch_version, bootloader_mode } = features;
         // === immutable properties
         this.transport = transport;
         this.originalDescriptor = descriptor;
@@ -101,7 +101,7 @@ export default class Device extends EventEmitter {
 
         // === mutable properties
         // features get reloaded after every initialization
-        this.features = features;
+        this.features = {...features, ...this.getVersions(major_version, minor_version, patch_version, bootloader_mode)};
         this.connected = true;
 
         this.hasDebugLink = hasDebugLink;
@@ -217,6 +217,31 @@ export default class Device extends EventEmitter {
     runAggressive<X>(fn: (session: Session) => (Promise<X> | X), options: ?RunOptions): Promise<X> {
         const options_: RunOptions = options == null ? {} : options;
         return this.run(fn, {...options_, aggressive: true});
+    }
+
+    getVersions(major_version: number, minor_version: number, patch_version: number, isBootloader: boolean) {
+        let result = {};
+        if (isBootloader) {
+            result = {
+                bootloader_major_version: major_version,
+                bootloader_minor_version: minor_version,
+                bootloader_patch_version: patch_version,
+                firmware_major_version: null,
+                firmware_minor_version: null,
+                firmware_patch_version: null,
+            };
+        } else {
+            result = {
+                firmware_major_version: major_version,
+                firmware_minor_version: minor_version,
+                firmware_patch_version: patch_version,
+                bootloader_major_version: null,
+                bootloader_minor_version: null,
+                bootloader_patch_version: null,
+            };
+        }
+
+        return result;
     }
 
     // Initializes device with the given descriptor,
