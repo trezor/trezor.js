@@ -196,9 +196,12 @@ function getScriptTypeHDNode(
                         'Computed derived: ' + actualChildXpub + ', ' +
                         'Computed received: ' + childXpub);
                 }
-                // wallet is still expecting xpubs in Bitcoin Legacy format
+                // mytrezor wallet is still expecting xpubs to be in legacy format
+                // network.public should be set to default (CoinInfo.xpub_magic)
+                // Since network is already converted in "getScriptTypeNetwork" method xpub_magic_segwit_p2sh may be used at this point
+                // set back network to default
                 // it should be fixed in mytrezor to avoid unnecessary conversion back and forth
-                resNode.keyPair.network = bitcoin.networks.bitcoin;
+                resNode.keyPair.network = coinInfo.network;
                 return resNode;
             });
         });
