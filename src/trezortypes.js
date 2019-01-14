@@ -1,7 +1,7 @@
 /* @flow */
 'use strict';
 
-// This file has all various types that go into TREZOR or out of it.
+// This file has all various types that go into Trezor or out of it.
 
 export type Success = {};
 
@@ -28,6 +28,15 @@ export type Features = {
     model?: string;
     unfinished_backup?: boolean;
     no_backup: boolean;
+    // below listed version fields were introduced with trezor-rollout lib
+    // to ease its implementation. Difference between them and major_version etc.
+    // is that major_version might contain either bootloader or firmware version
+    firmware_major_version: number | null;
+    firmware_minor_version: number | null;
+    firmware_patch_version: number | null;
+    bootloader_major_version: number | null;
+    bootloader_minor_version: number | null;
+    bootloader_patch_version: number | null;
 };
 
 export type ResetDeviceSettings = {
