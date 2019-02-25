@@ -245,8 +245,7 @@ export default class Session extends EventEmitter {
         });
     }
 
-    // payload is in hexa
-    updateFirmware(payload: string): Promise<MessageResponse<trezor.Success>> {
+    updateFirmware(payload: Buffer): Promise<MessageResponse<trezor.Success>> {
         const device = this.device;
         if (device == null) {
             return Promise.reject(new Error('Cannot determine bootloader version.'));
@@ -261,21 +260,21 @@ export default class Session extends EventEmitter {
         }
     }
 
-    async _updateFirmwareV1(payload: string): Promise<MessageResponse<trezor.Success>> {
+    async _updateFirmwareV1(payload: Buffer): Promise<MessageResponse<trezor.Success>> {
         await this.typedCall('FirmwareErase', 'Success', {});
         return await this.typedCall('FirmwareUpload', 'Success', {
             payload: payload,
         });
     }
 
-    async _updateFirmwareV2(payload: string): Promise<MessageResponse<trezor.Success>> {
-        let request = await this.typedCall('FirmwareErase', 'FirmwareRequest', {length: payload.length / 2});
+    async _updateFirmwareV2(payload: Buffer): Promise<MessageResponse<trezor.Success>> {
+        let request = await this.typedCall('FirmwareErase', 'FirmwareRequest', {length: payload.byteLength});
         while (request.type !== 'Success') {
-            const start = request.message.offset * 2;
-            const end = request.message.offset * 2 + request.message.length * 2;
-            const substring = payload.substring(start, end);
+            const start = request.message.offset;
+            const end = request.message.offset + request.message.length;
+            const chunk = payload.slice(start, end);
             request = await this.typedCall('FirmwareUpload', 'FirmwareRequest|Success', {
-                payload: substring,
+                payload: chunk,
             });
         }
         return request;
