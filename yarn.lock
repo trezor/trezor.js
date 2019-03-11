@@ -846,9 +846,10 @@ bitcoin-script@^0.1.1:
     sha1 "^1.1.0"
     sha256 "^0.1.1"
 
-bitcoinjs-lib-zcash@^3.5.2:
-  version "3.5.2"
-  resolved "https://registry.yarnpkg.com/bitcoinjs-lib-zcash/-/bitcoinjs-lib-zcash-3.5.2.tgz#cd757976572106363dfe2b497e0d6c92f9a8ed98"
+bitcoinjs-lib-zcash@^3.6.1:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/bitcoinjs-lib-zcash/-/bitcoinjs-lib-zcash-3.6.1.tgz#563fe1a4c7255aa1bf07bb0904ec1de072cbc098"
+  integrity sha512-p09YKY2l0sNf1LjJOO82s4tgxLNdNTwOMN1yRzFm3ozGC87Odx1iq8vD6XTBs/g3nAOsXlmD2VJc2hHCHyH7xg==
   dependencies:
     bech32 "^1.1.2"
     bigi "^1.4.0"
@@ -864,7 +865,7 @@ bitcoinjs-lib-zcash@^3.5.2:
     pushdata-bitcoin "^1.0.1"
     randombytes "^2.0.1"
     safe-buffer "^5.0.1"
-    typeforce "^1.11.3"
+    typeforce "1.11.3"
     varuint-bitcoin "^1.0.4"
     wif "^2.0.1"
 
@@ -2762,9 +2763,12 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typeforce@^1.11.3:
-  version "1.12.0"
-  resolved "https://registry.yarnpkg.com/typeforce/-/typeforce-1.12.0.tgz#ca40899919f1466d7819e37be039406beb912a2e"
+typeforce@1.11.3:
+  version "1.11.3"
+  resolved "https://registry.yarnpkg.com/typeforce/-/typeforce-1.11.3.tgz#a54d0ff58808788fba358020982270bd6995d8e4"
+  integrity sha512-+vllWbxe1AKLkO3KNyZPjb51NRHwRE/8bAi/cmF6TK24VqrPiQPRiHrFV19j1xHxxCHQbIvN4Zfco+skuiXSWQ==
+  dependencies:
+    inherits "^2.0.1"
 
 uid-number@^0.0.6:
   version "0.0.6"
