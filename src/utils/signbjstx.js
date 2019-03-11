@@ -114,18 +114,16 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
     };
 }
 
-function signedTx2bjsTx(signedTx: MessageResponse<trezor.SignedTx>, overwinter: boolean): bitcoin.Transaction {
-    const res = bitcoin.Transaction.fromHex(signedTx.message.serialized.serialized_tx, overwinter);
+function signedTx2bjsTx(signedTx: MessageResponse<trezor.SignedTx>, network: bitcoin.Network): bitcoin.Transaction {
+    const res = bitcoin.Transaction.fromHex(signedTx.message.serialized.serialized_tx, network);
     return res;
 }
 
 function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
-    const data = getJoinSplitData(tx);
-    const dataStr = data == null ? null : data.toString('hex');
-    const versionGroupId = (!tx.zcash) ? null : tx.versionGroupId;
+    const extraData = tx.getExtraData();
     return {
         lock_time: tx.locktime,
-        version: tx.version,
+        version: tx.isDashSpecialTransaction() ? tx.version | tx.dashType << 16 : tx.version,
         hash: tx.getId(),
         inputs: tx.ins.map((input: bitcoin.Input) => {
             return {
@@ -141,8 +139,8 @@ function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
                 script_pubkey: output.script.toString('hex'),
             };
         }),
-        extra_data: dataStr,
-        version_group_id: versionGroupId,
+        extra_data: extraData ? extraData.toString('hex') : null,
+        version_group_id: tx.isZcashTransaction() ? parseInt(tx.versionGroupId, 16) : null,
     };
 }
 
@@ -307,16 +305,6 @@ function isScriptHash(address: string, network: bitcoin.Network, isCashaddress: 
     throw new Error('Unknown address type.');
 }
 
-function getJoinSplitData(transaction: bitcoin.Transaction): ?Buffer {
-    if (!transaction.zcash) {
-        return null;
-    }
-    const buffer = transaction.toBuffer();
-    const joinsplitByteLength = transaction.joinsplitByteLength();
-    const res = buffer.slice(buffer.length - joinsplitByteLength);
-    return res;
-}
-
 export function signBjsTx(
     session: Session,
     info: TxInfo,
@@ -350,7 +338,7 @@ export function signBjsTx(
         coinName,
         locktime,
         overwintered,
-    ).then(tx => signedTx2bjsTx(tx, !!overwintered))
+    ).then(tx => signedTx2bjsTx(tx, network))
         .then(res => {
             verifyBjsTx(info.inputs, info.outputs, nodes, res, network);
             return res;
