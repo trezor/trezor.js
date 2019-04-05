@@ -1,6 +1,5 @@
 [ignore]
-.*/node_modules/bitcoinjs-lib-zcash/.*
-.*/node_modules/bitcoinjs-lib/.*
+.*/node_modules/trezor-utxo-lib/.*
 .*/node_modules/events/.*
 .*/node_modules/protobufjs-old-fixed-webpack/src/bower.json
 
@@ -20,7 +19,8 @@
 
 [libs]
 ../node_modules/trezor-link/flowtype/
-../flowtype/
+../flowtype/trezor-utxo-lib.js
+../flowtype/bchaddr.js
 
 [options]
 esproposal.class_static_fields=enable
