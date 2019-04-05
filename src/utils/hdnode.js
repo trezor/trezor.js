@@ -1,7 +1,7 @@
 /* @flow */
 'use strict';
 
-import * as bitcoin from 'bitcoinjs-lib-zcash';
+import * as bitcoin from 'trezor-utxo-lib';
 import * as ecurve from 'ecurve';
 import * as trezor from '../trezortypes';
 
