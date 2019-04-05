@@ -2,20 +2,22 @@
 'use strict';
 
 import bchaddr from 'bchaddrjs';
-import * as bitcoin from 'bitcoinjs-lib-zcash';
+import * as bitcoin from 'trezor-utxo-lib';
 import * as trezor from '../trezortypes';
 import * as hdnodeUtils from './hdnode';
+
+bitcoin.Transaction.USE_STRING_VALUES = true;
 
 import type Session, {MessageResponse} from '../session';
 
 // TODO refactor this using string types
 export type OutputInfo = {
     path: Array<number>;
-    value: number;
+    value: string;
     segwit: boolean;
 } | {
     address: string;
-    value: number;
+    value: string;
 } | {
     opReturnData: Buffer;
 };
@@ -25,7 +27,7 @@ export type InputInfo = {
     index: number;
     path?: Array<number>;
     segwit: boolean;
-    amount?: number; // only with segwit
+    amount?: string; // only with segwit
 };
 
 export type TxInfo = {
@@ -68,7 +70,7 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
             // $FlowIssue
             const data: Buffer = output.opReturnData;
             return {
-                amount: 0,
+                amount: '0',
                 op_return_data: data.toString('hex'),
                 script_type: 'PAYTOOPRETURN',
             };
@@ -81,7 +83,7 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
         const pathArr: Array<number> = _flow_makeArray(output.path);
 
         // $FlowIssue
-        const amount: number = output.value;
+        const amount: string = output.value;
         if (output.segwit) {
             return {
                 address_n: pathArr,
@@ -102,7 +104,7 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
     }
 
     // $FlowIssue
-    const amount: number = output.value;
+    const amount: string = output.value;
 
     isScriptHash(address, network, isCashaddress);
 
@@ -121,9 +123,10 @@ function signedTx2bjsTx(signedTx: MessageResponse<trezor.SignedTx>, network: bit
 
 function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
     const extraData = tx.getExtraData();
+    const version_group_id = bitcoin.coins.isZcash(tx.network) ? parseInt(tx.versionGroupId, 16) : null;
     return {
         lock_time: tx.locktime,
-        version: tx.isDashSpecialTransaction() ? tx.version | tx.dashType << 16 : tx.version,
+        version: tx.isDashSpecialTransaction() ? tx.version | tx.type << 16 : tx.version,
         hash: tx.getId(),
         inputs: tx.ins.map((input: bitcoin.Input) => {
             return {
@@ -135,12 +138,12 @@ function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
         }),
         bin_outputs: tx.outs.map((output: bitcoin.Output) => {
             return {
-                amount: output.value,
+                amount: typeof output.value === 'number' ? output.value.toString() : output.value,
                 script_pubkey: output.script.toString('hex'),
             };
         }),
         extra_data: extraData ? extraData.toString('hex') : null,
-        version_group_id: tx.isZcashTransaction() ? parseInt(tx.versionGroupId, 16) : null,
+        version_group_id,
     };
 }
 
@@ -241,8 +244,7 @@ function verifyBjsTx(
     outputs.map((output, i) => {
         const scriptB = resTx.outs[i].script;
 
-        if (output.opReturnData != null) {
-            // $FlowIssue
+        if (output.opReturnData instanceof Buffer) {
             const scriptA = bitcoin.script.nullData.output.encode(output.opReturnData);
             if (scriptA.compare(scriptB) !== 0) {
                 throw new Error('Scripts differ');
@@ -251,7 +253,7 @@ function verifyBjsTx(
             if (output.value !== resTx.outs[i].value) {
                 throw new Error('Signed transaction has wrong output value.');
             }
-            if (output.address == null && output.path == null) {
+            if (output.address === null && output.path === null) {
                 throw new Error('Both path and address cannot be null.');
             }
 
@@ -277,7 +279,7 @@ function isBech32(address: string): boolean {
 function isScriptHash(address: string, network: bitcoin.Network, isCashaddress: ?boolean): boolean {
     // cashaddr hack
     // Cashaddr format (with prefix) is neither base58 nor bech32, so it would fail
-    // in bitcoinjs-lib-zchash. For this reason, we use legacy format here
+    // in trezor-utxo-lib. For this reason, we use legacy format here
     try {
         if (isCashaddress) {
             address = bchaddr.toLegacyAddress(address);
