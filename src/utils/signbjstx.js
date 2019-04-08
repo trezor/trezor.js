@@ -11,21 +11,21 @@ bitcoin.Transaction.USE_STRING_VALUES = true;
 import type Session, {MessageResponse} from '../session';
 
 // TODO refactor this using string types
-export type OutputInfo = {
+export type OutputInfo = {|
     path: Array<number>;
     value: string;
     segwit: boolean;
-} | {
+|} | {|
     address: string;
     value: string;
-} | {
+|} | {|
     opReturnData: Buffer;
-};
+|};
 
 export type InputInfo = {
     hash: Buffer;
     index: number;
-    path?: Array<number>;
+    path: Array<number>;
     segwit: boolean;
     amount?: string; // only with segwit
 };
@@ -67,7 +67,6 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
                 throw new Error('Wrong type.');
             }
 
-            // $FlowIssue
             const data: Buffer = output.opReturnData;
             return {
                 amount: '0',
@@ -82,7 +81,6 @@ function output2trezor(output: OutputInfo, network: bitcoin.Network, isCashaddre
 
         const pathArr: Array<number> = _flow_makeArray(output.path);
 
-        // $FlowIssue
         const amount: string = output.value;
         if (output.segwit) {
             return {
