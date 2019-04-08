@@ -19,8 +19,7 @@
 
 [libs]
 ../node_modules/trezor-link/flowtype/
-../flowtype/trezor-utxo-lib.js
-../flowtype/bchaddr.js
+../flowtype/
 
 [options]
 esproposal.class_static_fields=enable
