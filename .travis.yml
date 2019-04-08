@@ -3,7 +3,7 @@ language: node_js
 dist: trusty
 
 node_js:
-  - "6.0.0"
+  - "6.2.2"
 
 before_script:
   - yarn
