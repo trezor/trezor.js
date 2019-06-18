@@ -2,7 +2,7 @@
 'use strict';
 
 import bchaddr from 'bchaddrjs';
-import * as bitcoin from 'trezor-utxo-lib';
+import * as bitcoin from '@trezor/utxo-lib';
 import * as trezor from '../trezortypes';
 import * as hdnodeUtils from './hdnode';
 

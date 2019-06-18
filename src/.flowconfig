@@ -1,5 +1,5 @@
 [ignore]
-.*/node_modules/trezor-utxo-lib/.*
+.*/node_modules/@trezor/utxo-lib/.*
 .*/node_modules/events/.*
 .*/node_modules/protobufjs-old-fixed-webpack/src/bower.json
 

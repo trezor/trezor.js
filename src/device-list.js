@@ -1,7 +1,7 @@
 /* @flow */
 'use strict';
 
-import * as bitcoin from 'trezor-utxo-lib';
+import * as bitcoin from '@trezor/utxo-lib';
 
 import {EventEmitter} from './events';
 import {Event0, Event1, Event2} from './flow-events';
