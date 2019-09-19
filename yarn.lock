@@ -2772,10 +2772,10 @@ tough-cookie@~2.3.0:
   dependencies:
     punycode "^1.4.1"
 
-trezor-link@1.6.0-bridge-fallback:
-  version "1.6.0-bridge-fallback"
-  resolved "https://registry.yarnpkg.com/trezor-link/-/trezor-link-1.6.0-bridge-fallback.tgz#aaebab22b554713ecc6535172f3b24c6631d4b3f"
-  integrity sha512-A4VQ+JHmxrNZj8T/qSWXOWC7Vqr1gmOlrXzGWKpb0rzjSOHuGGcmJKgvd1u0/tIvrNm6wasC46x6JiwCGam22Q==
+trezor-link@1.6.0-bridge-fallback.1:
+  version "1.6.0-bridge-fallback.1"
+  resolved "https://registry.yarnpkg.com/trezor-link/-/trezor-link-1.6.0-bridge-fallback.1.tgz#b24e1b427a94a8e4fad3e573c48b6ba4eb03bb63"
+  integrity sha512-Vunxc35kwy+ROfkKoW3Yn7QxOquOodxKgT8s6mPd0unfn6OVCpzJuEpMR9obA0wEhQ/VMmiXkQ4A25h1QXlbDQ==
   dependencies:
     bigi "^1.4.1"
     ecurve "^1.0.3"
