@@ -184,7 +184,11 @@ export class CallHelper {
                 const currentState = this.session.device.passphraseState;
                 const receivedState = res.message.state;
                 if (currentState != null && currentState !== receivedState) {
-                    return Promise.reject(new Error('Device has entered inconsistent state. Please reconnect the device.'));
+                    // when cached passphrase is different than entered passphrase
+                    // cancel current request and emit error
+                    return this._commonCall('Cancel', {}).catch(() => {
+                        this.session.errorEvent.emit(new Error('Invalid passphrase'));
+                    });
                 }
                 this.session.device.passphraseState = receivedState;
                 return this._commonCall('PassphraseStateAck', { });
