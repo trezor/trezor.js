@@ -1,6 +1,6 @@
 {
   "name": "trezor.js",
-  "version": "9.0.0-bigint.9",
+  "version": "9.0.0",
   "author": "TREZOR <info@trezor.io>",
   "homepage": "https://github.com/trezor/trezor.js",
   "description": "High-level Javascript API for Bitcoin Trezor",
@@ -63,7 +63,7 @@
     "flow-bin": "0.45.0"
   },
   "dependencies": {
-    "@trezor/utxo-lib": "0.0.5-beta",
+    "@trezor/utxo-lib": "0.1.0",
     "bchaddrjs": "^0.2.1",
     "ecurve": "^1.0.2",
     "node-fetch": "^1.6.0",

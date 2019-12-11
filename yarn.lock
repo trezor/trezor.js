@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@trezor/utxo-lib@0.0.5-beta":
-  version "0.0.5-beta"
-  resolved "https://registry.yarnpkg.com/@trezor/utxo-lib/-/utxo-lib-0.0.5-beta.tgz#47cfdb258a591db3032d00d30f7dc6516007cede"
-  integrity sha512-4JX7F6gghfIgUOMVa6srWA8DybpfwPiUjzUrUFLDlO95FVhBfd5wudyANQMtY5aNeK4WKP9ASbydONLPfheLEg==
+"@trezor/utxo-lib@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@trezor/utxo-lib/-/utxo-lib-0.1.0.tgz#f7a60d514ab75bef2f2206200cf0317d2d8523b2"
+  integrity sha512-jkqFRKL++xTga3xUgu5pWw1ArzTfraK0unXuj31V9g6wu+MKPbvcXW1+tMOVh+WNZZ3QUSGSQNNflSyh+qD0Vw==
   dependencies:
     bech32 "0.0.3"
     bigi "^1.4.0"
