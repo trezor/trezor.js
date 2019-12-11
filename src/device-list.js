@@ -1,7 +1,7 @@
 /* @flow */
 'use strict';
 
-import * as bitcoin from 'bitcoinjs-lib-zcash';
+import * as bitcoin from '@trezor/utxo-lib';
 
 import {EventEmitter} from './events';
 import {Event0, Event1, Event2} from './flow-events';
@@ -28,6 +28,7 @@ export type DeviceListOptions = {
     configUrl?: string;
     config?: string;
     bridgeVersionUrl?: string;
+    bridgeVersion?: string;
     clearSession?: boolean;
     clearSessionTime?: number;
     rememberDevicePassphrase?: boolean;
@@ -215,6 +216,9 @@ export default class DeviceList extends EventEmitter {
         const transport = this.options.transport ? this.options.transport : DeviceList.defaultTransport();
         if (this.options.bridgeVersionUrl != null) {
             transport.setBridgeLatestUrl(this.options.bridgeVersionUrl);
+        }
+        if (this.options.bridgeVersion != null) {
+            transport.setBridgeLatestVersion(this.options.bridgeVersion);
         }
         if (this.options.debugInfo) {
             console.log('[trezor.js] [device list] Initializing transports');

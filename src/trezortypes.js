@@ -117,29 +117,29 @@ export type TransactionInput = {
     prev_hash: string;
     script_sig?: string;
     script_type?: 'SPENDADDRESS' | 'SPENDMULTISIG' | 'EXTERNAL' | 'SPENDWITNESS' | 'SPENDP2SHWITNESS';
-    amount?: number; // only with segwit
+    amount?: string; // only with segwit
 };
 
 export type TransactionOutput = {
     address: string;
-    amount: number; // in satoshis
+    amount: string; // in satoshis
     script_type: 'PAYTOADDRESS';
 } | {
     address_n: Array<number>;
-    amount: number; // in satoshis
+    amount: string; // in satoshis
     script_type: 'PAYTOADDRESS';
 } | {
     address_n: Array<number>;
-    amount: number; // in satoshis
+    amount: string; // in satoshis
     script_type: 'PAYTOP2SHWITNESS';
 } | {
     op_return_data: string;
-    amount: 0; // fixed
+    amount: '0'; // fixed
     script_type: 'PAYTOOPRETURN';
 }
 
 export type TransactionBinOutput = {
-    amount: number;
+    amount: string;
     script_pubkey: string;
 };
 

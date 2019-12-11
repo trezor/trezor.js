@@ -1,6 +1,5 @@
 [ignore]
-.*/node_modules/bitcoinjs-lib-zcash/.*
-.*/node_modules/bitcoinjs-lib/.*
+.*/node_modules/@trezor/utxo-lib/.*
 .*/node_modules/events/.*
 .*/node_modules/protobufjs-old-fixed-webpack/src/bower.json
 

@@ -8,7 +8,7 @@ import {Event0, Event1, Event2} from './flow-events';
 import Session from './session';
 import {lock} from './utils/connectionLock';
 import {BITCOIN_COIN_INFO, harden} from './utils/hdnode';
-import * as bitcoin from 'bitcoinjs-lib-zcash';
+import * as bitcoin from '@trezor/utxo-lib';
 
 import type DeviceList from './device-list';
 import type {Features} from './trezortypes';
