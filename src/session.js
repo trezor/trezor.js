@@ -58,7 +58,7 @@ export default class Session extends EventEmitter {
     errorEvent: Event1<Error> = new Event1('error', this);
     buttonEvent: Event1<string> = new Event1('button', this);
     pinEvent: Event2<string, (e: ?Error, pin?: ?string) => void> = new Event2('pin', this);
-    passphraseEvent: Event1<(e: ?Error, passphrase?: ?string) => void> = new Event1('passphrase', this);
+    passphraseEvent: Event1<(e: ?Error, passphrase?: ?string, onDevice?: boolean) => void> = new Event1('passphrase', this);
     wordEvent: Event1<(e: ?Error, word?: ?string) => void> = new Event1('word', this);
 
     static LABEL_MAX_LENGTH: number = 16;
@@ -120,8 +120,11 @@ export default class Session extends EventEmitter {
     }
 
     initialize(): Promise<MessageResponse<trezor.Features>> {
+        if (this.device && this.device.features.session_id) {
+            return this.typedCall('Initialize', 'Features', { session_id: this.device.features.session_id });
+        }
         if (this.device && this.device.passphraseState) {
-            return this.typedCall('Initialize', 'Features', { state: this.device.passphraseState });
+            return this.typedCall('Initialize', 'Features', { session_id: this.device.passphraseState });
         }
         return this.typedCall('Initialize', 'Features', {});
     }

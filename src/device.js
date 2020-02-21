@@ -73,7 +73,7 @@ export default class Device extends EventEmitter {
     disconnectEvent: Event0 = new Event0('disconnect', this);
     buttonEvent: Event1<string> = new Event1('button', this);
     errorEvent: Event1<Error> = new Event1('error', this);
-    passphraseEvent: Event1<(e: ?Error, passphrase?: ?string) => void> = new Event1('passphrase', this);
+    passphraseEvent: Event1<(e: ?Error, passphrase?: ?string, onDevice?: boolean) => void> = new Event1('passphrase', this);
     wordEvent: Event1<(e: ?Error, word?: ?string) => void> = new Event1('word', this);
     changedSessionsEvent: Event2<boolean, boolean> = new Event2('changedSessions', this);
     pinEvent: Event2<string, (e: ?Error, pin?: ?string) => void> = new Event2('pin', this);
@@ -475,6 +475,7 @@ export default class Device extends EventEmitter {
 
     // See comment on device-list option getPassphraseHash
     checkPassphraseHash(passphrase: string): boolean {
+        console.warn('tjs. checkPassphraseHash', passphrase);
         if (this.deviceList.options.getPassphraseHash != null) {
             const websiteHash = this.deviceList.options.getPassphraseHash(this);
             if (websiteHash == null) {
@@ -489,13 +490,15 @@ export default class Device extends EventEmitter {
     }
 
     // See comment on device-list option getPassphraseHash
-    forwardPassphrase(source: Event1<(e: ?Error, passphrase?: ?string) => void>) {
-        source.on((arg: (e: ?Error, passphrase?: ?string) => void) => {
+    forwardPassphrase(source: Event1<(e: ?Error, passphrase?: ?string, onDevice?: boolean) => void>) {
+        source.on((arg: (e: ?Error, passphrase?: ?string, onDevice?: boolean) => void) => {
+            console.warn('tjs forwardPassphrase, source.on', ...arg);
             if (this.rememberedPlaintextPasshprase != null) {
                 const p: string = this.rememberedPlaintextPasshprase;
 
                 const checkPasshprase = this.checkPassphraseHash(p);
                 if (checkPasshprase) {
+                    console.warn('do we ever enter here?');
                     arg(null, p);
                 } else {
                     arg(new Error('Inconsistent state'));
@@ -503,8 +506,10 @@ export default class Device extends EventEmitter {
                 return;
             }
 
-            const argAndRemember = (e: ?Error, passphrase: ?string) => {
-                if (this.rememberPlaintextPassphrase) {
+            const argAndRemember = (e: ?Error, passphrase?: ?string, onDevice?: boolean) => {
+                console.warn('tjs argAndRemember', passphrase, onDevice);
+                console.warn('tjs. rememberPlaintextPassphrase', this.rememberPlaintextPassphrase);
+                if (this.rememberPlaintextPassphrase && !onDevice) {
                     if (passphrase != null) {
                         const checkPasshprase = this.checkPassphraseHash(passphrase);
                         if (!checkPasshprase) {
@@ -514,8 +519,9 @@ export default class Device extends EventEmitter {
                     }
 
                     this.rememberedPlaintextPasshprase = passphrase;
+                    console.warn('tjs. rememberedPlaintextPassphrase', this.rememberedPlaintextPasshprase);
                 }
-                arg(e, passphrase);
+                arg(e, passphrase, onDevice);
             };
             this.passphraseEvent.emit(argAndRemember);
         });
