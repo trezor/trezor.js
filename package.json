@@ -1,6 +1,6 @@
 {
   "name": "trezor.js",
-  "version": "9.0.0",
+  "version": "9.0.0-new-passphrase-flow.0",
   "author": "TREZOR <info@trezor.io>",
   "homepage": "https://github.com/trezor/trezor.js",
   "description": "High-level Javascript API for Bitcoin Trezor",
@@ -69,7 +69,7 @@
     "node-fetch": "^1.6.0",
     "randombytes": "^2.0.1",
     "semver-compare": "1.0.0",
-    "trezor-link": "1.6.7-new-passphrase-flow",
+    "trezor-link": "1.6.7-new-passphrase-flow.2",
     "unorm": "^1.3.3",
     "whatwg-fetch": "0.11.0"
   },
