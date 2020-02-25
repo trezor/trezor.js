@@ -24,22 +24,19 @@ function generateEntropy(len: number): Buffer {
 
 function filterForLog(type: string, msg: Object): Object {
     const blacklist = {
-        // PassphraseAck: {
-        //     passphrase: '(redacted...)',
-        //     on_device: msg.on_device,
-        // },
+        PassphraseAck: {
+            passphrase: '(redacted...)',
+        },
         CipheredKeyValue: {
             value: '(redacted...)',
         },
-        GetPublicKey: '',
-        // GetPublicKey: {
-        //     address_n: '(redacted...)',
-        // },
-        PublicKey: '',
-        // PublicKey: {
-        //     node: '(redacted...)',
-        //     xpub: '(redacted...)',
-        // },
+        GetPublicKey: {
+            address_n: '(redacted...)',
+        },
+        PublicKey: {
+            node: '(redacted...)',
+            xpub: '(redacted...)',
+        },
         DecryptedMessage: {
             message: '(redacted...)',
             address: '(redacted...)',
@@ -190,7 +187,6 @@ export class CallHelper {
                     // when cached passphrase is different than entered passphrase
                     // cancel current request and emit error
                     return this._commonCall('Cancel', {}).catch(() => {
-                        console.warn('tjs. Invalid passphrase');
                         this.session.errorEvent.emit(new Error('Invalid passphrase'));
                     });
                 }
@@ -202,7 +198,6 @@ export class CallHelper {
         }
 
         if (res.type === 'PassphraseRequest') {
-            console.warn('PassphraseRequest', res);
             if (res.message._on_device) {
                 // "fake" button event
                 this.session.buttonEvent.emit('PassphraseOnDevice');
@@ -211,35 +206,27 @@ export class CallHelper {
                 }
                 return this._commonCall('PassphraseAck', { });
             }
-            console.warn('we have PassphraseRequest, returning Promise');
             return this._promptPassphrase().then(
                 (res: Object) => {
                     const { passphrase, onDevice } = res;
                     const session_id = this.session.device && this.session.device.features.session_id;
                     const passphraseState = this.session.device && this.session.device.passphraseState;
-                    // todo: what if is userInput undefined!???
-                    console.warn('PassphraseRequest promise resolved with', passphrase, onDevice);
                     if (session_id) {
-                        console.warn('sessionId');
                         return this._commonCall(
                             'PassphraseAck',
                             onDevice ? { on_device: true } : { passphrase: passphrase }
                         );
                     } else if (passphraseState) {
-                        console.warn('legacy');
-
                         return this._commonCall(
                             'PassphraseAck', {
                                 passphrase: passphrase,
                                 _state: passphraseState,
                             });
                     } else {
-                        console.warn('legacy legacy');
                         return this._commonCall('PassphraseAck', { passphrase: passphrase });
                     }
                 },
                 err => {
-                    console.warn('tjs._promptPassphrase().err1', err);
                     return this._commonCall('Cancel', {}).catch(e => {
                         throw err || e;
                     });
@@ -281,14 +268,10 @@ export class CallHelper {
     _promptPassphrase(): Promise<Object> {
         return new Promise((resolve, reject) => {
             if (!this.session.passphraseEvent.emit((err, passphrase, onDevice) => {
-                console.warn('tjs this.session.passphraseEvent.emit', err, passphrase, onDevice);
                 if (err || (!onDevice && passphrase == null)) {
                     return reject(err);
                 }
-                console.warn('_promptPassphrase() resolving with', passphrase, onDevice);
                 return resolve({ passphrase, onDevice });
-
-                // return resolve(passphrase ? passphrase.normalize('NFKD'): undefined, onDevice);
             })) {
                 if (this.session.debug) {
                     console.warn('[trezor.js] [call] Passphrase callback not configured, cancelling request');

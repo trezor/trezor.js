@@ -2771,10 +2771,10 @@ tough-cookie@~2.3.0:
   dependencies:
     punycode "^1.4.1"
 
-trezor-link@1.6.7-new-passphrase-flow.2:
-  version "1.6.7-new-passphrase-flow.2"
-  resolved "https://registry.yarnpkg.com/trezor-link/-/trezor-link-1.6.7-new-passphrase-flow.2.tgz#800c16d86633b0f71ae67e849c5e453a9f50b306"
-  integrity sha512-EI6Hi7PGu7HtUBAFbg16k3PLxdHAv7jwk0BPWJhEy19aePfVt9cFmNs2xqmzmGDI8MPqWafjlXDHDYUzfLydow==
+trezor-link@1.6.7-new-passphrase-flow.3:
+  version "1.6.7-new-passphrase-flow.3"
+  resolved "https://registry.yarnpkg.com/trezor-link/-/trezor-link-1.6.7-new-passphrase-flow.3.tgz#de1b80b398484759442a6f8171719b7d3029a9c0"
+  integrity sha512-Y6WmW20ObItR8XFacrReaJ9oEotwXUFYh8AOl8XkaPhGUTa38YySM5hXDArTsJyEkTpMrNpNkkZbYmqbbXJctA==
   dependencies:
     bigi "^1.4.1"
     ecurve "^1.0.3"
