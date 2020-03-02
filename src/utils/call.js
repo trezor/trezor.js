@@ -245,6 +245,16 @@ export class CallHelper {
             );
         }
 
+        // Initialize response for fw >= 2.3.0 || fw >= 1.9.0 with session_id=string
+        // GetFeatures always response with session_id null
+        // We need to avoid overwriting saved session_id in order to keep it for next Initialize call
+        if (res.type === 'Features') {
+            const oldSessionId = this.session.device && this.session.device.features.session_id;
+            if (oldSessionId && !res.message.session_id) {
+                res.message.session_id = oldSessionId;
+            }
+        }
+
         return Promise.resolve(res);
     }
 
