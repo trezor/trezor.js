@@ -214,16 +214,16 @@ export class CallHelper {
                     if (session_id) {
                         return this._commonCall(
                             'PassphraseAck',
-                            onDevice ? { on_device: true } : { passphrase: passphrase }
+                            onDevice ? { on_device: true } : { passphrase }
                         );
                     } else if (passphraseState) {
                         return this._commonCall(
                             'PassphraseAck', {
-                                passphrase: passphrase,
+                                passphrase,
                                 _state: passphraseState,
                             });
                     } else {
-                        return this._commonCall('PassphraseAck', { passphrase: passphrase });
+                        return this._commonCall('PassphraseAck', { passphrase });
                     }
                 },
                 err => {
@@ -280,6 +280,9 @@ export class CallHelper {
             if (!this.session.passphraseEvent.emit((err, passphrase, onDevice) => {
                 if (err || (!onDevice && passphrase == null)) {
                     return reject(err);
+                }
+                if (typeof passphrase === 'string') {
+                    passphrase = passphrase.normalize('NFKD');
                 }
                 return resolve({ passphrase, onDevice });
             })) {
