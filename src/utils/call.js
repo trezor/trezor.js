@@ -179,7 +179,7 @@ export class CallHelper {
             );
         }
 
-        if (res.type === 'PassphraseStateRequest') {
+        if (res.type === 'Deprecated_PassphraseStateRequest') {
             if (this.session.device) {
                 const currentState = this.session.device.passphraseState;
                 const receivedState = res.message.state;
@@ -191,28 +191,40 @@ export class CallHelper {
                     });
                 }
                 this.session.device.passphraseState = receivedState;
-                return this._commonCall('PassphraseStateAck', { });
+                return this._commonCall('Deprecated_PassphraseStateAck', { });
             }
             // ??? nowhere to save the state, throwing error
             return Promise.reject(new Error('Nowhere to save passphrase state.'));
         }
 
         if (res.type === 'PassphraseRequest') {
-            if (res.message.on_device) {
+            if (res.message._on_device) {
                 // "fake" button event
                 this.session.buttonEvent.emit('PassphraseOnDevice');
                 if (this.session.device && this.session.device.passphraseState) {
-                    return this._commonCall('PassphraseAck', { state: this.session.device.passphraseState });
+                    return this._commonCall('PassphraseAck', { _state: this.session.device.passphraseState });
                 }
                 return this._commonCall('PassphraseAck', { });
             }
             return this._promptPassphrase().then(
-                passphrase => {
-                    if (this.session.device && this.session.device.passphraseState) {
-                        return this._commonCall('PassphraseAck', { passphrase: passphrase, state: this.session.device.passphraseState });
+                (res: Object) => {
+                    const { passphrase, onDevice } = res;
+                    const session_id = this.session.device && this.session.device.features.session_id;
+                    const passphraseState = this.session.device && this.session.device.passphraseState;
+                    if (session_id) {
+                        return this._commonCall(
+                            'PassphraseAck',
+                            onDevice ? { on_device: true } : { passphrase }
+                        );
+                    } else if (passphraseState) {
+                        return this._commonCall(
+                            'PassphraseAck', {
+                                passphrase,
+                                _state: passphraseState,
+                            });
+                    } else {
+                        return this._commonCall('PassphraseAck', { passphrase });
                     }
-
-                    return this._commonCall('PassphraseAck', { passphrase: passphrase });
                 },
                 err => {
                     return this._commonCall('Cancel', {}).catch(e => {
@@ -231,6 +243,16 @@ export class CallHelper {
                     return this._commonCall('Cancel', {});
                 }
             );
+        }
+
+        // Initialize response for fw >= 2.3.0 || fw >= 1.9.0 with session_id=string
+        // GetFeatures always response with session_id null
+        // We need to avoid overwriting saved session_id in order to keep it for next Initialize call
+        if (res.type === 'Features') {
+            const oldSessionId = this.session.device && this.session.device.features.session_id;
+            if (oldSessionId && !res.message.session_id) {
+                res.message.session_id = oldSessionId;
+            }
         }
 
         return Promise.resolve(res);
@@ -253,14 +275,16 @@ export class CallHelper {
         });
     }
 
-    _promptPassphrase(): Promise<string> {
+    _promptPassphrase(): Promise<Object> {
         return new Promise((resolve, reject) => {
-            if (!this.session.passphraseEvent.emit((err, passphrase) => {
-                if (err || passphrase == null) {
-                    reject(err);
-                } else {
-                    resolve(passphrase.normalize('NFKD'));
+            if (!this.session.passphraseEvent.emit((err, passphrase, onDevice) => {
+                if (err || (!onDevice && passphrase == null)) {
+                    return reject(err);
                 }
+                if (typeof passphrase === 'string') {
+                    passphrase = passphrase.normalize('NFKD');
+                }
+                return resolve({ passphrase, onDevice });
             })) {
                 if (this.session.debug) {
                     console.warn('[trezor.js] [call] Passphrase callback not configured, cancelling request');

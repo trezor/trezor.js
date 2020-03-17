@@ -37,6 +37,7 @@ export type Features = {
     bootloader_major_version: number | null;
     bootloader_minor_version: number | null;
     bootloader_patch_version: number | null;
+    session_id?: string;
 };
 
 export type ResetDeviceSettings = {
