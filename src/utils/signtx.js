@@ -78,6 +78,7 @@ function requestPrevTxInfo(
     if (requestType === 'TXMETA') {
         const outputCount = reqTx.bin_outputs.length;
         const data: ?string = reqTx.extra_data;
+
         if (data != null && data.length !== 0) {
             const data_: string = data;
             return {
@@ -87,6 +88,7 @@ function requestPrevTxInfo(
                 outputs_cnt: outputCount,
                 extra_data_len: data_.length / 2,
                 version_group_id: reqTx.version_group_id,
+                expire: reqTx.expire,
             };
         } else {
             return {
