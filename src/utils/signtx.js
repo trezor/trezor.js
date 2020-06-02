@@ -88,7 +88,7 @@ function requestPrevTxInfo(
                 outputs_cnt: outputCount,
                 extra_data_len: data_.length / 2,
                 version_group_id: reqTx.version_group_id,
-                expire: reqTx.expire,
+                expiry: reqTx.expiry,
             };
         } else {
             return {

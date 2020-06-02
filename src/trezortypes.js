@@ -152,7 +152,7 @@ export type RefTransaction = {
     lock_time: number;
     extra_data: ?string;
     version_group_id: ?number;
-    expire?: number;
+    expiry?: number;
 };
 
 export type TxRequestDetails = {
@@ -224,6 +224,6 @@ export type SignTxInfoToTrezor = {
     outputs_cnt: number;
     extra_data_len?: number;
     version_group_id: ?number;
-    expire?: number;
+    expiry?: number;
 };
 
