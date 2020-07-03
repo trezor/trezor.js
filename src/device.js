@@ -414,7 +414,7 @@ export default class Device extends EventEmitter {
             this.rememberedPlaintextPasshprase === this.integrityCheckingPassphrase;
         const samePasshprase = passphraseDisabled || passphraseEnabledRemembered;
 
-        const noPin = this.features.pin_protection ? this.features.pin_cached : true;
+        const noPin = this.features.pin_protection ? this.features.unlocked : true;
         return noPassphrase && samePasshprase && noPin;
     }
 
