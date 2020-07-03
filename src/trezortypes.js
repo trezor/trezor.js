@@ -20,7 +20,7 @@ export type Features = {
     revision: string;
     bootloader_hash: string;
     imported: boolean;
-    pin_cached: boolean;
+    unlocked: boolean;
     passphrase_cached: boolean;
     needs_backup?: boolean;
     firmware_present?: boolean;
