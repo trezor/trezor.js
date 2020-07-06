@@ -239,7 +239,7 @@ export default class Session extends EventEmitter {
 
     clearSession(settings?: {}): Promise<MessageResponse<trezor.Success>> {
         const s = settings == null ? {} : settings;
-        return this.typedCall('ClearSession', 'Success', s);
+        return this.typedCall('LockDevice', 'Success', s);
     }
 
     changePin(remove: ?boolean): Promise<MessageResponse<trezor.Success>> {
