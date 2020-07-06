@@ -121,7 +121,7 @@ function signedTx2bjsTx(signedTx: MessageResponse<trezor.SignedTx>, network: bit
 
 function bjsTx2refTx(tx: bitcoin.Transaction): trezor.RefTransaction {
     const extraData = tx.getExtraData();
-    const version_group_id = bitcoin.coins.isZcash(tx.network) ? tx.versionGroupId : null;
+    const version_group_id = bitcoin.coins.isZcashType(tx.network) ? tx.versionGroupId : null;
     return {
         lock_time: tx.locktime,
         version: tx.isDashSpecialTransaction() ? tx.version | tx.type << 16 : tx.version,

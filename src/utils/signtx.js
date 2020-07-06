@@ -214,7 +214,7 @@ export function signTx(
             overwintered: true,
             version: 4,
             version_group_id: 0x892f2085,
-            branch_id: 0x2bb40e60,
+            branch_id: 0xF5B9230B,
         };
     }
 
