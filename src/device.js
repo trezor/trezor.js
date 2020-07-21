@@ -420,6 +420,8 @@ export default class Device extends EventEmitter {
 
     // See the comment on top on integrityCheckingXpub.
     async xpubIntegrityCheck(session: Session): Promise<void> {
+        // every getPublicKey call must be preceded with initialize call since version 2.3.2
+        await session.initialize();
         const hdnode = await session._getHDNodeInternal(this.integrityCheckingXpubPath, this.integrityCheckingXpubNetwork);
         const xpub = hdnode.toBase58();
         if (this.integrityCheckingXpub == null) {
