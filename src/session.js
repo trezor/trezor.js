@@ -9,6 +9,7 @@ import * as hdnodeUtils from './utils/hdnode';
 import * as signTxHelper from './utils/signtx';
 import * as signBjsTxHelper from './utils/signbjstx';
 import * as signEthTxHelper from './utils/signethtx';
+import * as signAdaTxHelper from './utils/signadatx';
 import {CallHelper} from './utils/call';
 
 import * as trezor from './trezortypes';
@@ -179,6 +180,35 @@ export default class Session extends EventEmitter {
     }
 
     @integrityCheck
+    adaGetAddress(
+        address_n: Array<number>,
+        show_display: ?boolean
+    ): Promise<MessageResponse<trezor.CardanoAddress>> {
+        return this.typedCall('CardanoGetAddress', 'CardanoAddress', {
+            address_n,
+            show_display: !!show_display,
+        });
+    }
+
+    @integrityCheck
+    getAdaPublicKey(
+        address_n: Array<number>,
+    ): Promise<MessageResponse<trezor.CardanoPublicKey>> {
+        return this.typedCall('CardanoGetPublicKey', 'CardanoPublicKey', {
+            address_n: address_n,
+        });
+    }
+
+    @integrityCheck
+    signAdaTransaction(
+        inputs: Array<trezor.CardanoTxInputType>,
+        outputs: Array<trezor.CardanoTxOutputType>,
+        transactions: Array<string>
+    ): Promise<MessageResponse<trezor.CardanoSignedTransaction>> {
+        return signAdaTxHelper.signAdaTx(this, inputs, outputs, transactions);
+    }
+
+    @integrityCheck
     getPublicKey(
         address_n: Array<number>,
         coin: ?(string),
@@ -310,6 +340,19 @@ export default class Session extends EventEmitter {
         });
     }
 
+    @integrityCheck
+    verifyAdaMessage(
+        publicKey: string,
+        signature: string,
+        message: string
+    ): Promise<MessageResponse<trezor.Success>> {
+        return this.typedCall('CardanoVerifyMessage', 'Success', {
+            public_key: publicKey,
+            signature: signature,
+            message: message,
+        });
+    }
+
     signMessage(
         address_n: Array<number>,
         message: string,
@@ -329,6 +372,17 @@ export default class Session extends EventEmitter {
         message: string
     ): Promise<MessageResponse<trezor.MessageSignature>> {
         return this.typedCall('EthereumSignMessage', 'EthereumMessageSignature', {
+            address_n: address_n,
+            message: message,
+        });
+    }
+
+    @integrityCheck
+    signAdaMessage(
+        address_n: Array<number>,
+        message: string
+    ): Promise<MessageResponse<trezor.MessageSignature>> {
+        return this.typedCall('CardanoSignMessage', 'CardanoMessageSignature', {
             address_n: address_n,
             message: message,
         });
