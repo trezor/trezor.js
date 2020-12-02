@@ -61,7 +61,7 @@ function convertXpub(original: string, network: bitcoin.Network) {
         // it's bitcoin-like => return xpub
         return original;
     } else {
-        const node = bitcoin.HDNode.fromBase58(original); // use bitcoin magic
+        const node = bitcoin.HDNode.fromBase58(original, null, true); // use bitcoin magic
 
         // "hard-fix" the new network into the HDNode keypair
         node.keyPair.network = network;
@@ -81,7 +81,7 @@ export function pubKey2bjsNode(
 
     const bjsXpub: string = bjsNode.toBase58();
     // const keyXpub: string = convertXpub(key.message.xpub, network);
-    const keyXpub = convert ? convertXpub(key.message.xpub, network) : bitcoin.HDNode.fromBase58(key.message.xpub, network).toBase58();
+    const keyXpub = convert ? convertXpub(key.message.xpub, network) : bitcoin.HDNode.fromBase58(key.message.xpub, network, true).toBase58();
 
     if (bjsXpub !== keyXpub) {
         throw new Error('Invalid public key transmission detected - ' +
